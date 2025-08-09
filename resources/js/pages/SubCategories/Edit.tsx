@@ -3,9 +3,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, useForm, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface Category {
     id: number;
@@ -21,15 +19,12 @@ interface Subcategory {
 interface SubcategoriesEditProps {
     subcategory: Subcategory;
     categories: Category[];
-    flash?: {
-        message: string | null;
-    };
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Subcategories',
-        href: '/subcategories',
+        href: route('subcategories.index'),
     },
     {
         title: 'Edit',
@@ -37,72 +32,77 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function SubcategoriesEdit({ subcategory, categories, flash }: SubcategoriesEditProps) {
+export default function SubcategoriesEdit({ subcategory, categories }: SubcategoriesEditProps) {
     const { data, setData, put, processing, errors } = useForm({
         name: subcategory.name,
-        category_id: subcategory.category ? subcategory.category.id.toString() : '',
+        category_id: subcategory.category?.id?.toString() || 'none',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         put(route('subcategories.update', { id: subcategory.id }), {
-            onSuccess: () => {
-                // Optional: Redirect or reset handled by backend
-            },
+            data,
+            onSuccess: () => {},
         });
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Edit Subcategory" />
-            <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 max-w-2xl mx-auto">
-                <h1 className="text-2xl font-bold">Edit Subcategory</h1>
-                {flash?.message && (
-                    <Alert>
-                        <AlertDescription>{flash.message}</AlertDescription>
-                    </Alert>
-                )}
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <Label htmlFor="name">Name</Label>
-                        <Input
-                            id="name"
-                            value={data.name}
-                            onChange={(e) => setData('name', e.target.value)}
-                            className={errors.name ? 'border-red-500' : ''}
-                        />
-                        {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
-                    </div>
-
-                    <div>
-                        <Label htmlFor="category_id">Category</Label>
-                        <Select
-                            onValueChange={(value) => setData('category_id', value)}
-                            value={data.category_id}
-                        >
-                            <SelectTrigger id="category_id" className={errors.category_id ? 'border-red-500' : ''}>
-                                <SelectValue placeholder="Select a category" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {categories.map((category) => (
-                                    <SelectItem key={category.id} value={category.id.toString()}>
-                                        {category.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        {errors.category_id && <p className="text-red-500 text-sm">{errors.category_id}</p>}
-                    </div>
-
-                    <div className="flex gap-2">
-                        <Button type="submit" disabled={processing}>
-                            {processing ? 'Updating...' : 'Update Subcategory'}
-                        </Button>
-                        <Link href={route('subcategories.index')}>
-                            <Button variant="outline">Cancel</Button>
-                        </Link>
-                    </div>
-                </form>
+            <div className="h-full flex-1 p-6">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 col-span-2">Edit Subcategory</h1>
+                    <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6 mt-6">
+                        <div className="space-y-2">
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Name</p>
+                            <Input
+                                id="name"
+                                value={data.name}
+                                onChange={(e) => setData('name', e.target.value)}
+                                className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 ${errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                            />
+                            {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+                        </div>
+                        <div className="space-y-2">
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Category</p>
+                            <Select
+                                value={data.category_id}
+                                onValueChange={(value) => setData('category_id', value)}
+                                className={errors.category_id ? 'border-red-500' : ''}
+                            >
+                                <SelectTrigger className="w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 border border-gray-300 dark:border-gray-600">
+                                    <SelectValue placeholder="Select a category" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="none">None</SelectItem>
+                                    {categories.map((category) => (
+                                        <SelectItem key={category.id} value={category.id.toString()}>
+                                            {category.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {errors.category_id && <p className="text-red-500 text-sm">{errors.category_id}</p>}
+                        </div>
+                        <div className="col-span-2 flex gap-4 mt-6">
+                            <Button
+                                type="submit"
+                                disabled={processing}
+                                className="bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 px-4 py-2 rounded-md transition-colors duration-200"
+                            >
+                                {processing ? 'Saving...' : 'Save Subcategory'}
+                            </Button>
+                            <Link href={route('subcategories.index')}>
+                                <Button
+                                    variant="outline"
+                                    className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-4 py-2 rounded-md transition-colors duration-200"
+                                >
+                                    Cancel
+                                </Button>
+                            </Link>
+                        </div>
+                    </form>
+                </div>
             </div>
         </AppLayout>
     );

@@ -3,9 +3,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, useForm, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface User {
     id: number;
@@ -22,15 +20,14 @@ interface BookLoan {
     return_date: string;
     book_id: number;
     user_id: number;
+    book: Book | null;
+    user: User | null;
 }
 
 interface BookLoansEditProps {
     loan: BookLoan;
     books: Book[];
     users: User[];
-    flash?: {
-        message: string | null;
-    };
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -44,16 +41,16 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function BookLoansEdit({ loan, books, users, flash }: BookLoansEditProps) {
+export default function BookLoansEdit({ loan, books, users }: BookLoansEditProps) {
     const { data, setData, put, processing, errors } = useForm({
-        return_date: loan.return_date,
+        return_date: loan.return_date || '',
         book_id: loan.book_id.toString(),
         user_id: loan.user_id.toString(),
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(route('bookloans.update', loan.id), {
+        put(route('bookloans.update', { id: loan.id }), {
             data,
             onSuccess: () => {},
         });
@@ -62,72 +59,80 @@ export default function BookLoansEdit({ loan, books, users, flash }: BookLoansEd
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Edit Book Loan" />
-            <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 max-w-2xl mx-auto">
-                <h1 className="text-2xl font-bold">Edit Book Loan</h1>
-                {flash?.message && (
-                    <Alert>
-                        <AlertDescription>{flash.message}</AlertDescription>
-                    </Alert>
-                )}
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <Label htmlFor="return_date">Return Date</Label>
-                        <Input
-                            id="return_date"
-                            type="date"
-                            value={data.return_date}
-                            onChange={(e) => setData('return_date', e.target.value)}
-                            className={errors.return_date ? 'border-red-500' : ''}
-                        />
-                        {errors.return_date && <p className="text-red-500 text-sm">{errors.return_date}</p>}
-                    </div>
-                    <div>
-                        <Label htmlFor="book_id">Book</Label>
-                        <Select
-                            onValueChange={(value) => setData('book_id', value)}
-                            value={data.book_id}
-                        >
-                            <SelectTrigger id="book_id" className={errors.book_id ? 'border-red-500' : ''}>
-                                <SelectValue placeholder="Select a book" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {books.map((book) => (
-                                    <SelectItem key={book.id} value={book.id.toString()}>
-                                        {book.title}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        {errors.book_id && <p className="text-red-500 text-sm">{errors.book_id}</p>}
-                    </div>
-                    <div>
-                        <Label htmlFor="user_id">User</Label>
-                        <Select
-                            onValueChange={(value) => setData('user_id', value)}
-                            value={data.user_id}
-                        >
-                            <SelectTrigger id="user_id" className={errors.user_id ? 'border-red-500' : ''}>
-                                <SelectValue placeholder="Select a user" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {users.map((user) => (
-                                    <SelectItem key={user.id} value={user.id.toString()}>
-                                        {user.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        {errors.user_id && <p className="text-red-500 text-sm">{errors.user_id}</p>}
-                    </div>
-                    <div className="flex gap-2">
-                        <Button type="submit" disabled={processing}>
-                            {processing ? 'Saving...' : 'Save'}
-                        </Button>
-                        <Link href={route('bookloans.show', loan.id)}>
-                            <Button variant="outline">Cancel</Button>
-                        </Link>
-                    </div>
-                </form>
+            <div className="h-full flex-1 p-6">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 col-span-2">Edit Book Loan</h1>
+                    <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6 mt-6">
+                        <div className="space-y-2">
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Return Date</p>
+                            <Input
+                                id="return_date"
+                                type="date"
+                                value={data.return_date}
+                                onChange={(e) => setData('return_date', e.target.value)}
+                                className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 ${errors.return_date ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                            />
+                            {errors.return_date && <p className="text-red-500 text-sm">{errors.return_date}</p>}
+                        </div>
+                        <div className="space-y-2">
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Book</p>
+                            <Select
+                                value={data.book_id}
+                                onValueChange={(value) => setData('book_id', value)}
+                                className={errors.book_id ? 'border-red-500' : ''}
+                            >
+                                <SelectTrigger className="w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 border border-gray-300 dark:border-gray-600">
+                                    <SelectValue placeholder="Select a book" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {books.map((book) => (
+                                        <SelectItem key={book.id} value={book.id.toString()}>
+                                            {book.title}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {errors.book_id && <p className="text-red-500 text-sm">{errors.book_id}</p>}
+                        </div>
+                        <div className="space-y-2">
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">User</p>
+                            <Select
+                                value={data.user_id}
+                                onValueChange={(value) => setData('user_id', value)}
+                                className={errors.user_id ? 'border-red-500' : ''}
+                            >
+                                <SelectTrigger className="w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 border border-gray-300 dark:border-gray-600">
+                                    <SelectValue placeholder="Select a user" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {users.map((user) => (
+                                        <SelectItem key={user.id} value={user.id.toString()}>
+                                            {user.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {errors.user_id && <p className="text-red-500 text-sm">{errors.user_id}</p>}
+                        </div>
+                        <div className="col-span-2 flex gap-4 mt-6">
+                            <Button
+                                type="submit"
+                                disabled={processing}
+                                className="bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 px-4 py-2 rounded-md transition-colors duration-200"
+                            >
+                                {processing ? 'Saving...' : 'Save Book Loan'}
+                            </Button>
+                            <Link href={route('bookloans.index')}>
+                                <Button
+                                    variant="outline"
+                                    className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-4 py-2 rounded-md transition-colors duration-200"
+                                >
+                                    Cancel
+                                </Button>
+                            </Link>
+                        </div>
+                    </form>
+                </div>
             </div>
         </AppLayout>
     );

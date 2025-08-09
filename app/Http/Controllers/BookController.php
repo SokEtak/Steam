@@ -133,6 +133,7 @@ class BookController extends Controller
     }
 
     public function destroy(Book $book){
+//        dd();
         $book->delete();
         return redirect()->route('books.index')->with('message', 'Book deleted successfully.');
     }
