@@ -28,11 +28,47 @@ class RegisteredUserController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
+    //default register without domain specify
+//    public function store(Request $request): RedirectResponse
+//    {
+//        $request->validate([
+//            'name' => 'required|string|max:255',
+//            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+//            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+//        ]);
+//
+//        $user = User::create([
+//            'name' => $request->name,
+//            'email' => $request->email,
+//            'password' => Hash::make($request->password),
+//        ]);
+//
+//        event(new Registered($user));
+//
+//        Auth::login($user);
+//
+//        return redirect()->intended(route('dashboard', absolute: false));
+//    }
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'email' => [
+                'required',
+                'string',
+                'lowercase',
+                'email',
+                'max:255',
+                'unique:' . User::class,
+                function ($attribute, $value, $fail) {
+                    // Allowed domain(s)
+                    $allowedDomain = 'diu.edu.kh';
+
+                    if (!str_ends_with($value, '@' . $allowedDomain)) {
+                        $fail("Only Dewey Organization's email addresses are allowed to register.");
+                    }
+                },
+            ],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
