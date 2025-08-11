@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('shelves', function (Blueprint $table) {
             $table->id();
             $table->string('code',10);
-//            $table->foreignId('bookcase_id')->nullable()->constrained('bookcases')->onDelete('set null');
         });
     }
 

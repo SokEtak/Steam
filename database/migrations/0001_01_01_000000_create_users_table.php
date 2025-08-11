@@ -17,9 +17,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->string('tel',10)->nullable();
-            $table->string('id_card',10)->nullable();
-            $table->string('follower')->nullable()->startingValue(0);
+            $table->bigInteger('follower')->nullable()->startingValue(0);
             $table->boolean('isVerified')->nullable()->default(false);
             $table->rememberToken();
             $table->foreignId('role_id')->nullable()->constrained('roles')->onDelete('set null');

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->date('return_date')->nullable();
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('book_id')->nullable()->constrained('books')->onDelete('set null');
+            $table->tinyInteger('is_deleted')->default(0);
             $table->timestamps();
         });
     }
