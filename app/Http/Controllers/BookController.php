@@ -2,23 +2,52 @@
 
 namespace App\Http\Controllers;
 
-//use App\Http\Requests\StoreBookRequest;
-//use App\Http\Requests\UpdateBookRequest;
+use App\Http\Requests\Book\StoreBookRequest;
+use App\Http\Requests\Book\UpdateBookRequest;
 use App\Models\Book;
 use App\Models\Category;
 use App\Models\Shelf;
 use App\Models\SubCategory;
 use App\Models\User;
 use App\Models\Bookcase;
-use Illuminate\Http\Request;
+use App\Models\Grade;
+use App\Models\Subject;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Storage;
 
 class BookController extends Controller
 {
     public function index()
     {
-        $books = Book::with('user:id,name', 'category:id,name', 'subcategory:id,name', 'bookcase:id,code', 'shelf:id,code')
-            ->select('id', 'title', 'flip_link', 'code', 'isbn', 'view', 'is_available', 'user_id', 'category_id', 'subcategory_id', 'bookcase_id', 'shelf_id')
+        $books = Book::with([
+            'user:id,name',
+            'category:id,name',
+            'subcategory:id,name',
+            'bookcase:id,code',
+            'shelf:id,code',
+            'grade:id,name',
+            'subject:id,name'
+        ])
+            ->select([
+                'id',
+                'title',
+                'flip_link',
+                'cover',
+                'code',
+                'isbn',
+                'view',
+                'is_available',
+                'pdf_url',
+                'user_id',
+                'category_id',
+                'subcategory_id',
+                'bookcase_id',
+                'shelf_id',
+                'grade_id',
+                'subject_id',
+                'is_deleted'
+            ])
+            ->where('is_deleted', false)
             ->get();
 
         return Inertia::render('Books/Index', [
@@ -28,113 +57,128 @@ class BookController extends Controller
 
     public function create()
     {
-        $users = User::select('id', 'name')->get();
-        $categories = Category::select('id', 'name')->get();
-        $subcategories = SubCategory::select('id', 'name')->get();
-        $bookcases = Bookcase::select('id', 'code')->get();
-        $shelves = Shelf::select('id', 'code')->get();
-
         return Inertia::render('Books/Create', [
-            'users' => $users,
-            'categories' => $categories,
-            'subcategories' => $subcategories,
-            'bookcases' => $bookcases,
-            'shelves' => $shelves,
+            'users' => User::select('id', 'name')->get(),
+            'categories' => Category::select('id', 'name')->get(),
+            'subcategories' => SubCategory::select('id', 'name')->get(),
+            'bookcases' => Bookcase::select('id', 'code')->get(),
+            'shelves' => Shelf::select('id', 'code')->get(),
+            'grades' => Grade::select('id', 'name')->get(),
+            'subjects' => Subject::select('id', 'name')->get(),
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreBookRequest $request)
     {
-        $data = $request->all();
-        // Transform 'none' to null for optional fields
-        $data['subcategory_id'] = $data['subcategory_id'] === 'none' ? null : $data['subcategory_id'];
-        $data['bookcase_id'] = $data['bookcase_id'] === 'none' ? null : $data['bookcase_id'];
-        $data['shelf_id'] = $data['shelf_id'] === 'none' ? null : $data['shelf_id'];
-        // Cast view to integer, default to 0 if invalid
-        $data['view'] = (int)($data['view'] ?? 0);
-
-        $request->merge($data);
-
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'flip_link' => 'nullable|url',
-            'code' => 'required|string|max:255',
-            'isbn' => 'required|string|max:13',
-            'view' => 'required|integer',
-            'is_available' => 'required|boolean',
-            'user_id' => 'required|exists:users,id',
-            'category_id' => 'required|exists:categories,id',
-            'subcategory_id' => 'nullable|exists:sub_categories,id',
-            'bookcase_id' => 'nullable|exists:bookcases,id',
-            'shelf_id' => 'nullable|exists:shelves,id',
-        ]);
-
-        Book::create($data);
-
-        return redirect()->route('books.index')->with('message', 'Book created successfully.');
+        try {
+            $validated = $request->validated();
+            if ($request->hasFile('cover')) {
+                $validated['cover'] = $request->file('cover')->store('covers', 'public');
+            }
+            if ($request->hasFile('pdf_url')) {
+                $validated['pdf_url'] = $request->file('pdf_url')->store('pdfs', 'public');
+            }
+            Book::create($validated);
+            return redirect()->route('books.index')->with('message', 'Book created successfully!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to create book: ' . $e->getMessage());
+        }
     }
 
     public function edit(Book $book)
     {
-        $users = User::select('id', 'name')->get();
-        $categories = Category::select('id', 'name')->get();
-        $subcategories = SubCategory::select('id', 'name')->get();
-        $bookcases = Bookcase::select('id', 'code')->get();
-        $shelves = Shelf::select('id', 'code')->get();
+        $book->load([
+            'user:id,name',
+            'category:id,name',
+            'subcategory:id,name',
+            'bookcase:id,code',
+            'shelf:id,code',
+            'grade:id,name',
+            'subject:id,name'
+        ]);
 
         return Inertia::render('Books/Edit', [
             'book' => $book,
-            'users' => $users,
-            'categories' => $categories,
-            'subcategories' => $subcategories,
-            'bookcases' => $bookcases,
-            'shelves' => $shelves,
-            'flash' => ['message' => session('message')],
+            'users' => User::select('id', 'name')->get(),
+            'categories' => Category::select('id', 'name')->get(),
+            'subcategories' => SubCategory::select('id', 'name')->get(),
+            'bookcases' => Bookcase::select('id', 'code')->get(),
+            'shelves' => Shelf::select('id', 'code')->get(),
+            'grades' => Grade::select('id', 'name')->get(),
+            'subjects' => Subject::select('id', 'name')->get(),
         ]);
     }
 
-    public function update(Request $request, Book $book)
+    public function update(UpdateBookRequest $request, Book $book)
     {
-        $data = $request->all();
-        // Transform 'none' to null for optional fields
-        $data['subcategory_id'] = $data['subcategory_id'] === 'none' ? null : $data['subcategory_id'];
-        $data['bookcase_id'] = $data['bookcase_id'] === 'none' ? null : $data['bookcase_id'];
-        $data['shelf_id'] = $data['shelf_id'] === 'none' ? null : $data['shelf_id'];
-        // Cast view to integer, default to 0 if invalid
-        $data['view'] = (int)($data['view'] ?? 0);
+        try {
+            $this->updateBookAttributes($book, $request->validated());
 
-        $request->merge($data);
+            $book->save();
 
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'flip_link' => 'nullable|url',
-            'code' => 'required|string|max:255',
-            'isbn' => 'required|string|max:13',
-            'view' => 'required|integer',
-            'is_available' => 'required|boolean',
-            'user_id' => 'required|exists:users,id',
-            'category_id' => 'required|exists:categories,id',
-            'subcategory_id' => 'nullable|exists:sub_categories,id',
-            'bookcase_id' => 'nullable|exists:bookcases,id',
-            'shelf_id' => 'nullable|exists:shelves,id',
-        ]);
-
-        $book->update($data);
-
-        return redirect()->route('books.index', $book->id)->with('message', 'Book updated successfully.');
+            return redirect()->route('books.index')->with('flash', ['message' => 'Book updated successfully!']);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('flash', ['error' => 'Failed to update book: ' . $e->getMessage()]);
+        }
     }
 
     public function show(Book $book)
     {
-        $book->load('user:id,name', 'category:id,name', 'subcategory:id,name', 'bookcase:id,code', 'shelf:id,code');
+        $book->load([
+            'user:id,name',
+            'category:id,name',
+            'subcategory:id,name',
+            'bookcase:id,code',
+            'shelf:id,code',
+            'grade:id,name',
+            'subject:id,name'
+        ]);
+
         return Inertia::render('Books/Show', [
             'book' => $book,
         ]);
     }
 
-    public function destroy(Book $book){
-//        dd();
-        $book->delete();
-        return redirect()->route('books.index')->with('message', 'Book deleted successfully.');
+    public function destroy(Book $book)
+    {
+        try {
+            $book->update(['is_deleted' => true]);
+
+            return redirect()->route('books.index')->with('flash', ['message' => 'Book deleted successfully!']);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('flash', ['error' => 'Failed to delete book: ' . $e->getMessage()]);
+        }
+    }
+
+    private function updateBookAttributes(Book $book, array $validated)
+    {
+        $book->title = $validated['title'];
+        $book->flip_link = $validated['flip_link'];
+        $book->code = $validated['code'];
+        $book->isbn = $validated['isbn'];
+        $book->view = $validated['view'];
+        $book->is_available = $validated['is_available'];
+        $book->user_id = $validated['user_id'];
+        $book->category_id = $validated['category_id'];
+        $book->subcategory_id = $validated['subcategory_id'] === 'none' ? null : $validated['subcategory_id'];
+        $book->bookcase_id = $validated['bookcase_id'] === 'none' ? null : $validated['bookcase_id'];
+        $book->shelf_id = $validated['shelf_id'] === 'none' ? null : $validated['shelf_id'];
+        $book->grade_id = $validated['grade_id'] === 'none' ? null : $validated['grade_id'];
+        $book->subject_id = $validated['subject_id'] === 'none' ? null : $validated['subject_id'];
+        $book->is_deleted = $validated['is_deleted'];
+
+        if (request()->hasFile('cover')) {
+            if ($book->cover) {
+                Storage::disk('public')->delete('covers/' . $book->cover);
+            }
+            $book->cover = request()->file('cover')->store('covers', 'public');
+        }
+
+        if (request()->hasFile('pdf_url')) {
+            if ($book->pdf_url) {
+                Storage::disk('public')->delete('pdfs/' . $book->pdf_url);
+            }
+            $book->pdf_url = request()->file('pdf_url')->store('pdfs', 'public');
+        }
     }
 }

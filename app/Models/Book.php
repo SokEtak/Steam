@@ -8,9 +8,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Book extends Model
 {
     protected $fillable = [
-        'title', 'flip_link', 'code', 'isbn', 'view',
+        'title', 'pdf_url' , 'flip_link','cover', 'code', 'isbn', 'view',
         'is_available', 'user_id', 'category_id', 'subcategory_id',
-        'bookcase_id','shelf_id'
+        'bookcase_id','shelf_id','grade_id','subject_id','is_deleted'
     ];
 
     public function user(): BelongsTo
@@ -39,6 +39,14 @@ class Book extends Model
 
     public function bookloands(): HasMany{
         return $this->hasMany(BookLoan::class, 'book_id');
+    }
+
+    public function grade(): BelongsTo{
+        return $this->belongsTo(Grade::class, 'grade_id');
+    }
+
+    public function subject(): BelongsTo{
+        return $this->belongsTo(Subject::class, 'subject_id');
     }
 
 }

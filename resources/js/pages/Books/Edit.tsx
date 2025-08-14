@@ -4,8 +4,20 @@ import { Head, useForm, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useState, useMemo } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Viewer, Worker } from '@react-pdf-viewer/core';
+import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
+import '@react-pdf-viewer/core/lib/styles/index.css';
+import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 
 interface User {
     id: number;
@@ -32,19 +44,41 @@ interface Shelves {
     code: string;
 }
 
+interface Grade {
+    id: number;
+    name: string;
+}
+
+interface Subject {
+    id: number;
+    name: string;
+}
+
 interface Book {
     id: number;
     title: string;
-    flip_link: string;
+    flip_link: string | null;
+    cover: string | null;
     code: string;
     isbn: string;
     view: string;
     is_available: boolean;
+    pdf_url: string | null;
     user_id: number;
     category_id: number;
     subcategory_id: number | null;
     bookcase_id: number | null;
     shelf_id: number | null;
+    grade_id: number | null;
+    subject_id: number | null;
+    is_deleted: boolean;
+    user: User | null;
+    category: Category | null;
+    subcategory: Subcategory | null;
+    bookcase: Bookcase | null;
+    shelf: Shelves | null;
+    grade: Grade | null;
+    subject: Subject | null;
 }
 
 interface BooksEditProps {
@@ -54,20 +88,16 @@ interface BooksEditProps {
     subcategories: Subcategory[];
     bookcases: Bookcase[];
     shelves: Shelves[];
+    grades: Grade[];
+    subjects: Subject[];
     flash?: {
         message: string | null;
     };
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Books',
-        href: route('books.index'),
-    },
-    {
-        title: 'Edit',
-        href: '',
-    },
+    { title: 'Books', href: route('books.index') },
+    { title: 'Edit', href: '' },
 ];
 
 export default function BooksEdit({
@@ -77,28 +107,123 @@ export default function BooksEdit({
                                       subcategories,
                                       bookcases,
                                       shelves,
+                                      grades,
+                                      subjects,
                                       flash,
                                   }: BooksEditProps) {
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, put, processing, errors, reset } = useForm({
         title: book.title,
-        flip_link: book.flip_link,
+        flip_link: book.flip_link || '',
+        cover: null as File | null,
         code: book.code,
         isbn: book.isbn,
-        view: book.view,
+        view: book.view || '0',
         is_available: book.is_available,
+        pdf_url: null as File | null,
         user_id: book.user_id.toString(),
         category_id: book.category_id.toString(),
-        subcategory_id: book.subcategory_id?.toString() || 'none', // Use 'none' if null
-        bookcase_id: book.bookcase_id?.toString() || 'none',       // Use 'none' if null
-        shelf_id: book.shelf_id?.toString() || 'none',            // Use 'none' if null
+        subcategory_id: book.subcategory_id?.toString() || 'none',
+        bookcase_id: book.bookcase_id?.toString() || 'none',
+        shelf_id: book.shelf_id?.toString() || 'none',
+        grade_id: book.grade_id?.toString() || 'none',
+        subject_id: book.subject_id?.toString() || 'none',
+        is_deleted: book.is_deleted,
     });
+
+    const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(book.cover ? `/storage/${book.cover}` : null);
+    const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(book.pdf_url ? `/storage/${book.pdf_url}` : null);
+    const [isCoverModalOpen, setIsCoverModalOpen] = useState(false);
+    const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [dragActive, setDragActive] = useState(false);
+
+    // Create a Blob URL for PDF preview
+    const pdfBlobUrl = useMemo(() => {
+        if (data.pdf_url) {
+            return URL.createObjectURL(data.pdf_url);
+        }
+        return book.pdf_url ? `/storage/${book.pdf_url}` : null;
+    }, [data.pdf_url, book.pdf_url]);
+
+    // Initialize PDF viewer plugin
+    const defaultLayoutPluginInstance = defaultLayoutPlugin();
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(route('books.update', book.id), {
-            data,
-            onSuccess: () => {},
+        const formData = new FormData();
+        for (const [key, value] of Object.entries(data)) {
+            if (value !== null && value !== 'none') {
+                formData.append(key, value as string | Blob);
+            }
+        }
+        put(route('books.update', { id: book.id }), {
+            data: formData,
+            onSuccess: () => {
+                reset();
+            },
         });
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            if (file.type.startsWith('image/')) {
+                setData('cover', file);
+                setCoverPreviewUrl(URL.createObjectURL(file));
+            } else {
+                alert('Please select a valid image file (jpg, jpeg, png).');
+            }
+        } else {
+            setData('cover', null);
+            setCoverPreviewUrl(book.cover ? `/storage/${book.cover}` : null);
+        }
+    };
+
+    const handlePdfFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            if (file.type === 'application/pdf') {
+                setData('pdf_url', file);
+                setPdfPreviewUrl(URL.createObjectURL(file));
+            } else {
+                alert('Please select a valid PDF file.');
+            }
+        } else {
+            setData('pdf_url', null);
+            setPdfPreviewUrl(book.pdf_url ? `/storage/${book.pdf_url}` : null);
+        }
+    };
+
+    const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.type === 'dragenter' || e.type === 'dragover') {
+            setDragActive(true);
+        } else if (e.type === 'dragleave') {
+            setDragActive(false);
+        }
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragActive(false);
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            const file = e.dataTransfer.files[0];
+            if (file.type === 'application/pdf') {
+                setData('pdf_url', file);
+                setPdfPreviewUrl(URL.createObjectURL(file));
+            } else {
+                alert('Please drop a valid PDF file.');
+            }
+        }
+    };
+
+    const handleCoverPreviewClick = () => {
+        setIsCoverModalOpen(true);
+    };
+
+    const handlePdfPreviewClick = () => {
+        setIsPdfModalOpen(true);
     };
 
     return (
@@ -112,7 +237,7 @@ export default function BooksEdit({
                             <AlertDescription className="text-sm">{flash.message}</AlertDescription>
                         </Alert>
                     )}
-                    <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6 mt-6">
+                    <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6 mt-6" encType="multipart/form-data">
                         <div className="space-y-2">
                             <Label htmlFor="title" className="text-sm font-medium text-gray-700 dark:text-gray-300">Title</Label>
                             <Input
@@ -159,7 +284,7 @@ export default function BooksEdit({
                                 id="view"
                                 type="number"
                                 value={data.view}
-                                onChange={(e) => setData('view', e.target.value)}
+                                onChange={(e) => setData('view', e.target.value || '0')}
                                 className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 ${errors.view ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
                             />
                             {errors.view && <p className="text-red-500 text-sm">{errors.view}</p>}
@@ -284,13 +409,176 @@ export default function BooksEdit({
                             </Select>
                             {errors.shelf_id && <p className="text-red-500 text-sm">{errors.shelf_id}</p>}
                         </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="grade_id" className="text-sm font-medium text-gray-700 dark:text-gray-300">Grade</Label>
+                            <Select
+                                value={data.grade_id}
+                                onValueChange={(value) => setData('grade_id', value)}
+                                className={errors.grade_id ? 'border-red-500' : ''}
+                            >
+                                <SelectTrigger className="w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 border border-gray-300 dark:border-gray-600">
+                                    <SelectValue placeholder="Select a grade" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="none">None</SelectItem>
+                                    {grades.map((grade) => (
+                                        <SelectItem key={grade.id} value={grade.id.toString()}>
+                                            {grade.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {errors.grade_id && <p className="text-red-500 text-sm">{errors.grade_id}</p>}
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="subject_id" className="text-sm font-medium text-gray-700 dark:text-gray-300">Subject</Label>
+                            <Select
+                                value={data.subject_id}
+                                onValueChange={(value) => setData('subject_id', value)}
+                                className={errors.subject_id ? 'border-red-500' : ''}
+                            >
+                                <SelectTrigger className="w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 border border-gray-300 dark:border-gray-600">
+                                    <SelectValue placeholder="Select a subject" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="none">None</SelectItem>
+                                    {subjects.map((subject) => (
+                                        <SelectItem key={subject.id} value={subject.id.toString()}>
+                                            {subject.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {errors.subject_id && <p className="text-red-500 text-sm">{errors.subject_id}</p>}
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="cover" className="text-sm font-medium text-gray-700 dark:text-gray-300">Cover</Label>
+                            <Input
+                                id="cover"
+                                type="file"
+                                accept="image/jpeg,image/png"
+                                onChange={handleFileChange}
+                                className={`w-full px-3 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 ${errors.cover ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                            />
+                            {coverPreviewUrl && (
+                                <div className="mt-2">
+                                    <img
+                                        src={coverPreviewUrl}
+                                        alt="Cover Preview"
+                                        className="w-32 h-auto rounded-md cursor-pointer"
+                                        onClick={handleCoverPreviewClick}
+                                    />
+                                </div>
+                            )}
+                            {errors.cover && <p className="text-red-500 text-sm">{errors.cover}</p>}
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="pdf_url" className="text-sm font-medium text-gray-700 dark:text-gray-300">PDF URL</Label>
+                            <div
+                                className={`border-2 border-dashed ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 dark:border-gray-600'} p-4 rounded-md text-center ${errors.pdf_url ? 'border-red-500' : ''}`}
+                                onDragEnter={handleDrag}
+                                onDragLeave={handleDrag}
+                                onDragOver={handleDrag}
+                                onDrop={handleDrop}
+                            >
+                                <Input
+                                    id="pdf_url"
+                                    type="file"
+                                    accept="application/pdf"
+                                    onChange={handlePdfFileChange}
+                                    className="hidden"
+                                />
+                                <div className="space-y-2">
+                                    {data.pdf_url ? (
+                                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                                            Selected: {(data.pdf_url as File).name}
+                                        </p>
+                                    ) : book.pdf_url ? (
+                                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                                            Current: {book.pdf_url.split('/').pop()}
+                                        </p>
+                                    ) : (
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                                            Drag and drop a PDF file here, or click to browse.
+                                        </p>
+                                    )}
+                                    <Button
+                                        type="button"
+                                        onClick={() => document.getElementById('pdf_url')?.click()}
+                                        className="bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 px-3 py-1 rounded-md transition-colors duration-200"
+                                    >
+                                        Browse
+                                    </Button>
+                                </div>
+                            </div>
+                            {(pdfPreviewUrl || book.pdf_url) && (
+                                <div className="mt-2">
+                                    <Button
+                                        variant="link"
+                                        onClick={handlePdfPreviewClick}
+                                        className="text-blue-500 dark:text-blue-400 hover:underline"
+                                    >
+                                        Preview PDF
+                                    </Button>
+                                </div>
+                            )}
+                            {errors.pdf_url && <p className="text-red-500 text-sm">{errors.pdf_url}</p>}
+                        </div>
+                        <Dialog open={isCoverModalOpen} onOpenChange={setIsCoverModalOpen}>
+                            <DialogContent className="max-w-md bg-gradient-to-br from-amber-900 to-orange-900 text-white border border-amber-700 rounded-xl shadow-xl md:max-w-md sm:max-w-[80%] max-w-[90%]">
+                                <DialogHeader>
+                                    <DialogTitle className="text-xl font-bold">Cover Preview</DialogTitle>
+                                </DialogHeader>
+                                {coverPreviewUrl ? (
+                                    <img
+                                        src={coverPreviewUrl}
+                                        alt="Cover Preview"
+                                        className="w-full h-auto rounded-md"
+                                    />
+                                ) : (
+                                    <p className="text-red-400">No cover image available</p>
+                                )}
+                                <DialogFooter>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setIsCoverModalOpen(false)}
+                                        className="bg-white text-amber-900 border-amber-700 hover:bg-amber-100"
+                                    >
+                                        Close
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
+                        <Dialog open={isPdfModalOpen} onOpenChange={setIsPdfModalOpen}>
+                            <DialogContent className="max-w-4xl bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-indigo-900 text-gray-800 dark:text-gray-100 border border-indigo-200 dark:border-indigo-700 rounded-2xl shadow-2xl p-6 transition-all duration-300">
+                                <DialogHeader>
+                                    <DialogTitle className="text-xl font-bold text-indigo-600 dark:text-indigo-300">PDF Preview</DialogTitle>
+                                </DialogHeader>
+                                {pdfBlobUrl ? (
+                                    <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+                                        <Viewer fileUrl={pdfBlobUrl} plugins={[defaultLayoutPluginInstance]} />
+                                    </Worker>
+                                ) : (
+                                    <p className="text-red-500 dark:text-red-400">No PDF available</p>
+                                )}
+                                <DialogFooter>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setIsPdfModalOpen(false)}
+                                        className="bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-300 border-indigo-200 dark:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-800"
+                                    >
+                                        Close
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
                         <div className="col-span-2 flex gap-4 mt-6">
                             <Button
                                 type="submit"
                                 disabled={processing}
                                 className="bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 px-4 py-2 rounded-md transition-colors duration-200"
                             >
-                                {processing ? 'Updating...' : 'Update Book'}
+                                {processing ? 'Saving...' : 'Save Book'}
                             </Button>
                             <Link href={route('books.index')}>
                                 <Button

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->string('cover')->nullable();
+            $table->string('pdf_url')->nullable();
             $table->string('flip_link')->nullable();
             $table->string('code', 10)->unique();
             $table->string('isbn', 13)->unique();

@@ -14,31 +14,39 @@ class StoreBookRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'required|string|max:255',
-            'flip_link' => 'required|url',
-            'code' => 'required|string|max:255',
-            'isbn' => 'required|string|max:13',
-            'view' => 'nullable|integer',
-            'is_available' => 'required|boolean',
-            'user_id' => 'required|exists:users,id',
-            'category_id' => 'required|exists:categories,id',
-            'subcategory_id' => 'nullable',
-            'bookcase_id' => 'nullable',
-            'shelf_id' => 'nullable'
+            'title' => ['required', 'string', 'max:255'],
+            'flip_link' => ['nullable', 'url'],
+            'cover' => ['nullable', 'image', 'mimes:jpeg,png', 'max:2048'],
+            'code' => ['nullable', 'string', 'max:50'],
+            'isbn' => ['nullable', 'string', 'max:13'],
+            'view' => ['nullable', 'integer', 'min:0'],
+            'is_available' => ['required', 'boolean'],
+            'pdf_url' => ['nullable', 'file', 'mimes:pdf', 'max:10000'],
+            'user_id' => ['required', 'exists:users,id'],
+            'category_id' => ['required', 'exists:categories,id'],
+            'subcategory_id' => ['nullable', 'exists:subcategories,id'],
+            'bookcase_id' => ['nullable', 'exists:bookcases,id'],
+            'shelf_id' => ['nullable', 'exists:shelves,id'],
+            'grade_id' => ['nullable', 'exists:grades,id'],
+            'subject_id' => ['nullable', 'exists:subjects,id'],
         ];
     }
 
-    protected function prepareForValidation()
+    public function prepareForValidation()
     {
-        if ($this->input('subcategory_id') === 'null') {
-            $this->merge(['subcategory_id' => null]);
-        }
-        if ($this->input('bookcase_id') === 'null') {
-            $this->merge(['bookcase_id' => null]);
-        }
+        $fields = [
+            'subcategory_id',
+            'bookcase_id',
+            'shelf_id',
+            'grade_id',
+            'subject_id'
+        ];
 
-        if ($this->input('shelf_id') === 'null') {
-            $this->merge(['shelf_id' => null]);
+        foreach ($fields as $field) {
+            if ($this->$field === 'none') {
+                $this->merge([$field => null]);
+            }
         }
     }
+
 }

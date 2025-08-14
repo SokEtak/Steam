@@ -28,10 +28,21 @@ interface Shelves {
     code: string;
 }
 
+interface Grade {
+    id: number;
+    name: string;
+}
+
+interface Subject {
+    id: number;
+    name: string;
+}
+
 interface Book {
     id: number;
     title: string;
-    flip_link: string;
+    flip_link: string | null;
+    cover: string | null; // Path to the stored image in public/covers
     code: string;
     isbn: string;
     view: number;
@@ -41,11 +52,16 @@ interface Book {
     subcategory_id: number | null;
     bookcase_id: number | null;
     shelf_id: number | null;
+    grade_id: number | null;
+    subject_id: number | null;
+    is_deleted: boolean;
     user: User | null;
     category: Category | null;
     subcategory: Subcategory | null;
     bookcase: Bookcase | null;
     shelf: Shelves | null;
+    grade: Grade | null;
+    subject: Subject | null;
 }
 
 interface BooksShowProps {
@@ -87,6 +103,7 @@ export default function BooksShow({ book }: BooksShowProps) {
                                 </a>
                             </p>
                         </div>
+
                         <div className="space-y-2">
                             <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Code</p>
                             <p className="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700">{book.code}</p>
@@ -151,6 +168,37 @@ export default function BooksShow({ book }: BooksShowProps) {
                                         {book.shelf?.code || 'N/A'}
                                     </Link>
                                 ) : 'N/A'}
+                            </p>
+                        </div>
+                        <div className="space-y-2">
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Grade</p>
+                            <p className="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
+                                {book.grade_id ? (
+                                    <Link href={route('grades.show', book.grade_id)} className="text-blue-500 underline">
+                                        {book.grade?.name || 'N/A'}
+                                    </Link>
+                                ) : 'N/A'}
+                            </p>
+                        </div>
+                        <div className="space-y-2">
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Subject</p>
+                            <p className="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
+                                {book.subject_id ? (
+                                    <Link href={route('subjects.show', book.subject_id)} className="text-blue-500 underline">
+                                        {book.subject?.name || 'N/A'}
+                                    </Link>
+                                ) : 'N/A'}
+                            </p>
+                        </div>
+
+                        <div className="space-y-2">
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Cover</p>
+                            <p className="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
+                                {book.cover ? (
+                                    <img src={`/storage/${book.cover}`} alt="Book Cover" className="max-w-full h-auto rounded-md" />
+                                ) : (
+                                    'N/A'
+                                )}
                             </p>
                         </div>
                     </div>
