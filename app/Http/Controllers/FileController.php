@@ -38,6 +38,6 @@ class FileController extends Controller
     {
         $file = File::findOrFail($id);
         $url = Storage::disk('r2')->url($file->path);
-        return response()->json()
+        return response()->json();
     }
 }
