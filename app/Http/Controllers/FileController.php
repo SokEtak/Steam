@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\File;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use function Pest\Laravel\json;
 
 class FileController extends Controller
 {
@@ -18,7 +19,7 @@ class FileController extends Controller
     public function upload(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:jpg,png,pdf|max:2048', // Max 2MB
+            'file' => 'required|file|mimes:jpg,png,pdf', // Max 2MB
         ]);
 
         $file = $request->file('file');
@@ -37,6 +38,6 @@ class FileController extends Controller
     {
         $file = File::findOrFail($id);
         $url = Storage::disk('r2')->url($file->path);
-        return redirect($url);
+        return response()->json()
     }
 }
