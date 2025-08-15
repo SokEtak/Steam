@@ -32,18 +32,4 @@ class UpdateBookRequest extends FormRequest
             'is_deleted' => 'required|boolean',
         ];
     }
-
-    protected function prepareForValidation()
-    {
-        if ($this->input('subcategory_id') === 'null') {
-            $this->merge(['subcategory_id' => null]);
-        }
-        if ($this->input('bookcase_id') === 'null') {
-            $this->merge(['bookcase_id' => null]);
-        }
-
-        if ($this->input('shelf_id') === 'null') {
-            $this->merge(['shelf_id' => null]);
-        }
-    }
 }

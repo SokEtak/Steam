@@ -14,6 +14,7 @@ use App\Models\Grade;
 use App\Models\Subject;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class BookController extends Controller
 {
@@ -72,12 +73,24 @@ class BookController extends Controller
     {
         try {
             $validated = $request->validated();
+            $currentDate = Carbon::now()->format('d-M-Y'); // e.g., 15-Aug-2025
+
             if ($request->hasFile('cover')) {
-                $validated['cover'] = $request->file('cover')->store('covers', 'public');
+                $file = $request->file('cover');
+                $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                $extension = $file->getClientOriginalExtension();
+                $newFileName = "{$fileName}_{$currentDate}.{$extension}";
+                $validated['cover'] = $file->storeAs('covers', $newFileName, 'public');
             }
+
             if ($request->hasFile('pdf_url')) {
-                $validated['pdf_url'] = $request->file('pdf_url')->store('pdfs', 'public');
+                $file = $request->file('pdf_url');
+                $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                $extension = $file->getClientOriginalExtension();
+                $newFileName = "{$fileName}_{$currentDate}.{$extension}";
+                $validated['pdf_url'] = $file->storeAs('pdfs', $newFileName, 'public');
             }
+
             Book::create($validated);
             return redirect()->route('books.index')->with('message', 'Book created successfully!');
         } catch (\Exception $e) {
@@ -167,18 +180,30 @@ class BookController extends Controller
         $book->subject_id = $validated['subject_id'] === 'none' ? null : $validated['subject_id'];
         $book->is_deleted = $validated['is_deleted'];
 
+        $currentDate = Carbon::now()->format('d-M-Y'); // e.g., 15-Aug-2025
+
         if (request()->hasFile('cover')) {
+            // Delete old cover if it exists
             if ($book->cover) {
-                Storage::disk('public')->delete('covers/' . $book->cover);
+                Storage::disk('public')->delete($book->cover);
             }
-            $book->cover = request()->file('cover')->store('covers', 'public');
+            $file = request()->file('cover');
+            $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $extension = $file->getClientOriginalExtension();
+            $newFileName = "{$fileName}_{$currentDate}.{$extension}";
+            $book->cover = $file->storeAs('covers', $newFileName, 'public');
         }
 
         if (request()->hasFile('pdf_url')) {
+            // Delete old PDF if it exists
             if ($book->pdf_url) {
-                Storage::disk('public')->delete('pdfs/' . $book->pdf_url);
+                Storage::disk('public')->delete($book->pdf_url);
             }
-            $book->pdf_url = request()->file('pdf_url')->store('pdfs', 'public');
+            $file = request()->file('pdf_url');
+            $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $extension = $file->getClientOriginalExtension();
+            $newFileName = "{$fileName}_{$currentDate}.{$extension}";
+            $book->pdf_url = $file->storeAs('pdfs', $newFileName, 'public');
         }
     }
 }
