@@ -1,28 +1,79 @@
-import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
-import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { useState, useEffect } from 'react';
-import { X, Bell, Eye, Pencil, Trash, Plus } from 'lucide-react';
+"use client";
+
+import { useState, useEffect, useMemo } from "react";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
 import {
-    AlertDialog,
-    AlertDialogTrigger,
-    AlertDialogContent,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogCancel,
-    AlertDialogAction,
-} from '@/components/ui/alert-dialog';
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
-} from '@/components/ui/tooltip';
+} from "@/components/ui/tooltip";
+import {
+    DropdownMenu,
+    DropdownMenuCheckboxItem,
+    DropdownMenuContent,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
+import AppLayout from "@/layouts/app-layout";
+import { type BreadcrumbItem } from "@/types";
+import { Head, Link, router } from "@inertiajs/react";
+import {
+    CheckCircle2Icon,
+    Plus,
+    ArrowUpDown,
+    ArrowUp,
+    ArrowDown,
+    MoreHorizontal,
+    ArrowLeft,
+    ArrowRight,
+    ChevronDown,
+    X,
+    EyeIcon,
+    PencilIcon,
+    TrashIcon,
+} from 'lucide-react';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import {
+    ColumnDef,
+    ColumnFiltersState,
+    flexRender,
+    getCoreRowModel,
+    getFilteredRowModel,
+    getPaginationRowModel,
+    getSortedRowModel,
+    useReactTable,
+    VisibilityState,
+    PaginationState,
+    SortingState,
+} from "@tanstack/react-table";
+
+const commonStyles = {
+    button: "rounded-lg text-sm transition-colors",
+    text: "text-gray-800 dark:text-gray-100 text-sm",
+    indigoButton:
+        "bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700",
+    outlineButton:
+        "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-300 border-indigo-200 dark:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-800",
+    gradientBg: "bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-indigo-900",
+    tooltipBg: "bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl",
+};
 
 interface User {
     id: number;
@@ -39,349 +90,660 @@ interface BookLoan {
     return_date: string;
     book_id: number;
     user_id: number;
+    created_at: string;
+    updated_at: string;
     book: Book | null;
     user: User | null;
 }
 
-interface BookLoansIndexProps {
-    bookloans: BookLoan[];
-    flash?: {
-        message?: string;
+interface BookLoansProps {
+    bookloans: BookLoan[] | null;
+    books: Book[];
+    users: User[];
+    flash: {
+        message: string | null;
+        type?: "success" | "error";
     };
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
+    { title: "Book Loans", href: route("bookloans.index") },
+];
+
+const getColumns = (): ColumnDef<BookLoan>[] => [
     {
-        title: 'Book Loans',
-        href: '',
+        id: "actions",
+        enableHiding: false,
+        enableGlobalFilter: false,
+        enableSorting: false,
+        cell: ({ row }) => {
+            const bookLoan = row.original;
+            return (
+                <TooltipProvider>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                className={`${commonStyles.button} h-8 w-8 p-0`}
+                                aria-label="Open actions menu"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                            align="center"
+                            className={`${commonStyles.gradientBg} w-auto min-w-0 dark:border-indigo-600 rounded-xl p-1`}
+                        >
+                            <div className="flex flex-col items-center gap-1 px-1 py-1">
+                                {/* View Button */}
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Link
+                                            href={route("bookloans.show", bookLoan.id)}
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            <Button
+                                                variant="ghost"
+                                                className="h-4 w-4 p-0"
+                                            >
+                                                <EyeIcon className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />
+                                            </Button>
+                                        </Link>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="right" align="center" className={commonStyles.tooltipBg}>
+                                        View Book Loan
+                                    </TooltipContent>
+                                </Tooltip>
+                                {/* Edit Button */}
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Link
+                                            href={route("bookloans.edit", bookLoan.id)}
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            <Button
+                                                variant="ghost"
+                                                className="h-4 w-4 p-0"
+                                            >
+                                                <PencilIcon className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />
+                                            </Button>
+                                        </Link>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="right" align="center" className={commonStyles.tooltipBg}>
+                                        Edit Book Loan
+                                    </TooltipContent>
+                                </Tooltip>
+                                {/* Delete Button */}
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Link
+                                            href={route("bookloans.destroy", bookLoan.id)}
+                                            method="delete"
+                                            as="button"
+                                            className="h-4 w-4 p-0 text-red-600 dark:text-red-400 flex items-center justify-center"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            <TrashIcon className="h-4 w-4" />
+                                        </Link>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="right" align="center" className={commonStyles.tooltipBg}>
+                                        Delete Book Loan
+                                    </TooltipContent>
+                                </Tooltip>
+                            </div>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </TooltipProvider>
+            );
+        },
+    },
+    {
+        accessorKey: "id",
+        header: ({ column }) => (
+            <Button
+                variant="ghost"
+                onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
+            >
+                ID
+                {{
+                    asc: <ArrowUp className="ml-2 h-4 w-4" />,
+                    desc: <ArrowDown className="ml-2 h-4 w-4" />,
+                }[column.getIsSorted() as string] ?? <ArrowUpDown className="ml-2 h-4 w-4" />}
+            </Button>
+        ),
+        cell: ({ row }) => (
+            <span className={`${commonStyles.text} px-2`}>{row.getValue("id")}</span>
+        ),
+        filterFn: (row, id, value) => String(row.getValue(id)).includes(String(value)),
+    },
+    {
+        accessorKey: "return_date",
+        header: ({ column }) => (
+            <Button
+                variant="ghost"
+                onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
+            >
+                Return Date
+                {{
+                    asc: <ArrowUp className="ml-2 h-4 w-4" />,
+                    desc: <ArrowDown className="ml-2 h-4 w-4" />,
+                }[column.getIsSorted() as string] ?? <ArrowUpDown className="ml-2 h-4 w-4" />}
+            </Button>
+        ),
+        cell: ({ row }) => (
+            <span className={`${commonStyles.text} px-2`}>{row.getValue("return_date") || "N/A"}</span>
+        ),
+        filterFn: (row, id, value) =>
+            String(row.getValue(id) || "N/A").toLowerCase().includes(String(value).toLowerCase()),
+    },
+    {
+        accessorKey: "book",
+        header: ({ column }) => (
+            <Button
+                variant="ghost"
+                onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
+            >
+                Book
+                {{
+                    asc: <ArrowUp className="ml-2 h-4 w-4" />,
+                    desc: <ArrowDown className="ml-2 h-4 w-4" />,
+                }[column.getIsSorted() as string] ?? <ArrowUpDown className="ml-2 h-4 w-4" />}
+            </Button>
+        ),
+        cell: ({ row }) => {
+            const book = row.original.book;
+            return (
+                <span className="px-2">
+                    {book ? (
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Link
+                                        href={route("books.show", { id: book.id })}
+                                        className={`${commonStyles.text} text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:hover:text-indigo-400 underline`}
+                                        aria-label={`Navigate to book ${book.title}`}
+                                    >
+                                        {book.title}
+                                    </Link>
+                                </TooltipTrigger>
+                                <TooltipContent className={commonStyles.tooltipBg}>
+                                    Navigate to /books/{book.id}
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    ) : (
+                        <span className="text-red-500 dark:text-red-400 text-sm">N/A</span>
+                    )}
+                </span>
+            );
+        },
+        filterFn: (row, _id, value) =>
+            (row.original.book?.title || "N/A").toLowerCase().includes(String(value).toLowerCase()),
+        sortingFn: (rowA, rowB) =>
+            (rowA.original.book?.title || "N/A").localeCompare(rowB.original.book?.title || "N/A"),
+    },
+    {
+        accessorKey: "user",
+        header: ({ column }) => (
+            <Button
+                variant="ghost"
+                onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
+            >
+                User
+                {{
+                    asc: <ArrowUp className="ml-2 h-4 w-4" />,
+                    desc: <ArrowDown className="ml-2 h-4 w-4" />,
+                }[column.getIsSorted() as string] ?? <ArrowUpDown className="ml-2 h-4 w-4" />}
+            </Button>
+        ),
+        cell: ({ row }) => {
+            const user = row.original.user;
+            return (
+                <span className="px-2">
+                    {user ? (
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Link
+                                        href={route("users.show", { id: user.id })}
+                                        className={`${commonStyles.text} text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:hover:text-indigo-400 underline`}
+                                        aria-label={`Navigate to user ${user.name}`}
+                                    >
+                                        {user.name}
+                                    </Link>
+                                </TooltipTrigger>
+                                <TooltipContent className={commonStyles.tooltipBg}>
+                                    Navigate to /users/{user.id}
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    ) : (
+                        <span className="text-red-500 dark:text-red-400 text-sm">N/A</span>
+                    )}
+                </span>
+            );
+        },
+        filterFn: (row, _id, value) =>
+            (row.original.user?.name || "N/A").toLowerCase().includes(String(value).toLowerCase()),
+        sortingFn: (rowA, rowB) =>
+            (rowA.original.user?.name || "N/A").localeCompare(rowB.original.user?.name || "N/A"),
+    },
+    {
+        accessorKey: "created_at",
+        header: ({ column }) => (
+            <Button
+                variant="ghost"
+                onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
+            >
+                Created At
+                {{
+                    asc: <ArrowUp className="ml-2 h-4 w-4" />,
+                    desc: <ArrowDown className="ml-2 h-4 w-4" />,
+                }[column.getIsSorted() as string] ?? <ArrowUpDown className="ml-2 h-4 w-4" />}
+            </Button>
+        ),
+        cell: ({ row }) => (
+            <span className={`${commonStyles.text} px-2`}>{new Date(row.getValue("created_at")).toLocaleString()}</span>
+        ),
+        filterFn: (row, id, value) =>
+            new Date(row.getValue(id)).toLocaleString().toLowerCase().includes(String(value).toLowerCase()),
+        sortingFn: (rowA, rowB) =>
+            new Date(rowA.getValue("created_at")).getTime() - new Date(rowB.getValue("created_at")).getTime(),
+    },
+    {
+        accessorKey: "updated_at",
+        header: ({ column }) => (
+            <Button
+                variant="ghost"
+                onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
+            >
+                Last Modified
+                {{
+                    asc: <ArrowUp className="ml-2 h-4 w-4" />,
+                    desc: <ArrowDown className="ml-2 h-4 w-4" />,
+                }[column.getIsSorted() as string] ?? <ArrowUpDown className="ml-2 h-4 w-4" />}
+            </Button>
+        ),
+        cell: ({ row }) => (
+            <span className={`${commonStyles.text} px-2`}>{new Date(row.getValue("updated_at")).toLocaleString()}</span>
+        ),
+        filterFn: (row, id, value) =>
+            new Date(row.getValue(id)).toLocaleString().toLowerCase().includes(String(value).toLowerCase()),
+        sortingFn: (rowA, rowB) =>
+            new Date(rowA.getValue("updated_at")).getTime() - new Date(rowB.getValue("updated_at")).getTime(),
     },
 ];
 
-export default function BookLoansIndex({ bookloans, flash }: BookLoansIndexProps) {
-    const [isNotificationVisible, setIsNotificationVisible] = useState(!!flash?.message);
-    const [deleteId, setDeleteId] = useState<number | null>(null);
+export default function BookLoans({ bookloans, flash }: BookLoansProps) {
+    const [showFlashAlert, setShowFlashAlert] = useState(!!flash.message);
+    const [isTableLoading, setIsTableLoading] = useState(bookloans === null || bookloans === undefined);
+    const [sorting, setSorting] = useState<SortingState>([]);
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() => {
+        const saved = localStorage.getItem("bookLoansColumnVisibility");
+        return saved
+            ? JSON.parse(saved)
+            : { id: true, return_date: true, book: true, user: true, created_at: true, updated_at: true };
+    });
+    const [pagination, setPagination] = useState<PaginationState>({
+        pageIndex: 0,
+        pageSize: 10,
+    });
+    const [globalFilter, setGlobalFilter] = useState("");
+
+    const columns = useMemo(() => getColumns(), []);
+
+    const table = useReactTable({
+        data: bookloans || [],
+        columns,
+        onSortingChange: setSorting,
+        onColumnFiltersChange: setColumnFilters,
+        getCoreRowModel: getCoreRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        getFilteredRowModel: getFilteredRowModel(),
+        onColumnVisibilityChange: (updater) => {
+            setColumnVisibility((prev) => {
+                const newState = typeof updater === "function" ? updater(prev) : updater;
+                localStorage.setItem("bookLoansColumnVisibility", JSON.stringify(newState));
+                return newState;
+            });
+        },
+        onPaginationChange: setPagination,
+        onGlobalFilterChange: setGlobalFilter,
+        globalFilterFn: (row, _columnId, filterValue) => {
+            const search = String(filterValue).toLowerCase().trim();
+            if (!search) return true;
+            return (
+                String(row.original.id).includes(search) ||
+                (row.original.return_date || "N/A").toLowerCase().includes(search) ||
+                (row.original.book?.title || "N/A").toLowerCase().includes(search) ||
+                (row.original.user?.name || "N/A").toLowerCase().includes(search) ||
+                new Date(row.original.created_at).toLocaleString().toLowerCase().includes(search) ||
+                new Date(row.original.updated_at).toLocaleString().toLowerCase().includes(search)
+            );
+        },
+        state: {
+            sorting,
+            columnFilters,
+            columnVisibility,
+            pagination,
+            globalFilter,
+        },
+        initialState: {
+            pagination: { pageSize: 10 },
+        },
+    });
 
     useEffect(() => {
-        if (flash?.message) {
-            setIsNotificationVisible(true);
-            const timer = setTimeout(() => {
-                setIsNotificationVisible(false);
-            }, 3000);
-            return () => clearTimeout(timer);
-        } else {
-            setIsNotificationVisible(false);
-        }
-    }, [flash?.message]);
+        if (flash.message) setShowFlashAlert(true);
+        setIsTableLoading(bookloans === null || bookloans === undefined);
+    }, [flash.message, bookloans]);
 
-    const handleDelete = (id: number) => {
-        setDeleteId(id);
-    };
-
-    const confirmDelete = () => {
-        if (deleteId) {
-            router.delete(route('bookloans.destroy', deleteId), {
-                onSuccess: () => {
-                    setDeleteId(null);
-                },
-                onError: () => {
-                    alert('Failed to delete the book loan. Please try again.');
-                },
-            });
-        }
-    };
-
-    const handleCloseNotification = () => {
-        setIsNotificationVisible(false);
-    };
+    const handleCloseFlashAlert = () => setShowFlashAlert(false);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Book Loans" />
-            <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                <div className="flex justify-between items-center">
-                    <h1 className="text-2xl font-bold">Book Loans({bookloans.length || 0})</h1>
-                    <Link href={route('bookloans.create')}>
-                        <Button className="flex items-center gap-1">
-                            <Plus className="h-5 w-5" />
-                            Create New Book Loan
-                        </Button>
-                    </Link>
+            <div className="p-4 sm:p-6 lg:p-5 xl:p-2">
+                {/* Table Controls Section */}
+                <div className="flex flex-wrap items-center justify-center gap-4 py-4">
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Input
+                                    placeholder="Search"
+                                    value={globalFilter ?? ""}
+                                    onChange={(event) => setGlobalFilter(event.target.value)}
+                                    className={`${commonStyles.text} max-w-sm ${commonStyles.outlineButton} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400`}
+                                    disabled={isTableLoading}
+                                    aria-label="Search book loans"
+                                />
+                            </TooltipTrigger>
+                            <TooltipContent className={commonStyles.tooltipBg}>
+                                Enter keywords to filter book loans
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Link href={route("bookloans.create")}>
+                                    <Button
+                                        className={`${commonStyles.button} ${commonStyles.indigoButton}`}
+                                        disabled={isTableLoading}
+                                        aria-label="Add a new book loan"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                    </Button>
+                                </Link>
+                            </TooltipTrigger>
+                            <TooltipContent className={commonStyles.tooltipBg}>
+                                Go to create a new book loan
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                    <DropdownMenu>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            className={`${commonStyles.button} ${commonStyles.outlineButton}`}
+                                            disabled={isTableLoading}
+                                            aria-label="Toggle column visibility"
+                                        >
+                                            Columns <ChevronDown className="ml-2 h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                </TooltipTrigger>
+                                <TooltipContent className={commonStyles.tooltipBg}>
+                                    Show or hide columns
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                        <DropdownMenuContent
+                            align="end"
+                            className={`${commonStyles.gradientBg} border-indigo-200 dark:border-indigo-600 rounded-xl`}
+                        >
+                            {table
+                                .getAllColumns()
+                                .filter((column) => column.getCanHide())
+                                .map((column) => (
+                                    <DropdownMenuCheckboxItem
+                                        key={column.id}
+                                        className={`${commonStyles.text} capitalize`}
+                                        checked={column.getIsVisible()}
+                                        onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                                        disabled={isTableLoading}
+                                    >
+                                        {column.id.replace(/_/g, " ")}
+                                    </DropdownMenuCheckboxItem>
+                                ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    {isTableLoading ? (
+                        <Skeleton className="h-4 w-32" />
+                    ) : (
+                        <span className={commonStyles.text}>
+                            {`${table.getFilteredRowModel().rows.length} filtered out of ${(bookloans || []).length} book loans`}
+                        </span>
+                    )}
                 </div>
-                {isNotificationVisible && flash?.message && (
-                    <Alert className="mb-4 relative flex items-center p-3 rounded-md">
-                        <Bell className="h-5 w-5 mr-2" />
-                        <div className="flex-1">
-                            <AlertTitle className="text-sm font-medium text-blue-700">Notification</AlertTitle>
-                            <AlertDescription className="text-sm">{flash.message}</AlertDescription>
+
+                {/* Flash Message Alert */}
+                {showFlashAlert && flash.message && (
+                    <Alert
+                        className={`mb-4 flex items-start justify-between ${commonStyles.gradientBg} border-indigo-200 dark:border-indigo-700 rounded-xl`}
+                        variant={flash.type === "error" ? "destructive" : "default"}
+                    >
+                        <div className="flex gap-2">
+                            <CheckCircle2Icon
+                                className={`h-4 w-4 ${
+                                    flash.type === "error"
+                                        ? "text-red-600 dark:text-red-300"
+                                        : "text-indigo-600 dark:text-indigo-300"
+                                }`}
+                            />
+                            <div>
+                                <AlertTitle
+                                    className={`${
+                                        flash.type === "error"
+                                            ? "text-red-600 dark:text-red-300"
+                                            : "text-indigo-600 dark:text-indigo-300"
+                                    } text-sm`}
+                                >
+                                    {flash.type === "error" ? "Error" : "Notification"}
+                                </AlertTitle>
+                                <AlertDescription className="text-gray-600 dark:text-gray-300 text-sm">
+                                    {flash.message}
+                                </AlertDescription>
+                            </div>
                         </div>
                         <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleCloseNotification}
-                            className="text-gray-500 hover:text-gray-700 absolute right-2 top-2"
+                            onClick={handleCloseFlashAlert}
+                            className={`${commonStyles.button} ${
+                                flash.type === "error"
+                                    ? "text-red-600 dark:text-red-300 hover:text-red-800 dark:hover:text-red-100"
+                                    : "text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-100"
+                            }`}
+                            aria-label="Close alert"
                         >
-                            <X className="h-5 w-5" />
+                            <X className="h-4 w-4" />
                         </Button>
                     </Alert>
                 )}
-                <div className="overflow-x-auto md:hidden">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {bookloans.length > 0 ? (
-                            bookloans.map((loan) => (
-                                <div
-                                    key={loan.id}
-                                    className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200"
-                                >
-                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Loan #{loan.id}</h3>
-                                    <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Return Date:</strong> {loan.return_date || 'N/A'}</p>
-                                    <p className="text-sm text-gray-700 dark:text-gray-300">
-                                        <strong>Book:</strong>{' '}
-                                        {loan.book_id ? (
-                                            <Link
-                                                href={route('books.show', loan.book_id)}
-                                                className="text-blue-500 underline hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-                                            >
-                                                {loan.book?.title || 'N/A'}
-                                            </Link>
-                                        ) : (
-                                            <span className="text-red-500 dark:text-red-400">N/A</span>
-                                        )}
-                                    </p>
-                                    <p className="text-sm text-gray-700 dark:text-gray-300">
-                                        <strong>User:</strong>{' '}
-                                        {loan.user_id ? (
-                                            <Link
-                                                href={route('users.show', loan.user_id)}
-                                                className="text-blue-500 underline hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-                                            >
-                                                {loan.user?.name || 'N/A'}
-                                            </Link>
-                                        ) : (
-                                            <span className="text-red-500 dark:text-red-400">N/A</span>
-                                        )}
-                                    </p>
-                                    <div className="flex gap-2 mt-2">
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Link href={route('bookloans.show', loan.id)}>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="secondary"
-                                                            className="bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 flex items-center gap-1"
-                                                        >
-                                                            <Eye className="h-4 w-4" />
-                                                            Show
-                                                        </Button>
-                                                    </Link>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>View loan details</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Link href={route('bookloans.edit', loan.id)}>
-                                                        <Button
-                                                            size="sm"
-                                                            className="bg-yellow-500 text-gray-900 hover:bg-yellow-600 dark:bg-yellow-600 dark:hover:bg-yellow-700 dark:text-gray-100 flex items-center gap-1"
-                                                        >
-                                                            <Pencil className="h-4 w-4" />
-                                                            Edit
-                                                        </Button>
-                                                    </Link>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>Edit loan information</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <AlertDialog>
-                                                        <AlertDialogTrigger asChild>
-                                                            <Button
-                                                                size="sm"
-                                                                variant="destructive"
-                                                                className="bg-red-500 hover:bg-red-600 text-white dark:bg-red-600 dark:hover:bg-red-700 flex items-center gap-1"
-                                                                onClick={() => handleDelete(loan.id)}
-                                                            >
-                                                                <Trash className="h-4 w-4" />
-                                                                Delete
-                                                            </Button>
-                                                        </AlertDialogTrigger>
-                                                        <AlertDialogContent className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-                                                            <AlertDialogHeader>
-                                                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                                                <AlertDialogDescription>
-                                                                    This action cannot be undone. This will permanently delete the book loan
-                                                                    and remove its data from our servers.
-                                                                </AlertDialogDescription>
-                                                            </AlertDialogHeader>
-                                                            <AlertDialogFooter>
-                                                                <AlertDialogCancel className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600">
-                                                                    Cancel
-                                                                </AlertDialogCancel>
-                                                                <AlertDialogAction
-                                                                    onClick={confirmDelete}
-                                                                    className="bg-red-500 hover:bg-red-600 text-white"
-                                                                >
-                                                                    Continue
-                                                                </AlertDialogAction>
-                                                            </AlertDialogFooter>
-                                                        </AlertDialogContent>
-                                                    </AlertDialog>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>Delete this loan</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
-                                    </div>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="col-span-full text-center text-gray-500 dark:text-gray-400">
-                                No book loans found.
-                            </div>
-                        )}
-                    </div>
-                </div>
-                <div className="hidden md:block overflow-x-auto">
+
+                {/* Table Section */}
+                <div className="overflow-x-auto rounded-2xl border border-indigo-200 dark:border-indigo-700">
                     <Table>
                         <TableHeader>
-                            <TableRow>
-                                <TableHead>ID</TableHead>
-                                <TableHead>Return Date</TableHead>
-                                <TableHead>Book</TableHead>
-                                <TableHead>User</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
-                            </TableRow>
+                            {table.getHeaderGroups().map((headerGroup) => (
+                                <TableRow key={headerGroup.id} className="bg-indigo-50 dark:bg-indigo-900">
+                                    {headerGroup.headers.map((header) => (
+                                        <TableHead
+                                            key={header.id}
+                                            className="text-indigo-600 dark:text-indigo-300 text-sm"
+                                        >
+                                            {header.isPlaceholder
+                                                ? null
+                                                : flexRender(header.column.columnDef.header, header.getContext())}
+                                        </TableHead>
+                                    ))}
+                                </TableRow>
+                            ))}
                         </TableHeader>
                         <TableBody>
-                            {bookloans.length > 0 ? (
-                                bookloans.map((loan) => (
-                                    <TableRow key={loan.id}>
-                                        <TableCell>{loan.id}</TableCell>
-                                        <TableCell>{loan.return_date || 'N/A'}</TableCell>
-                                        <TableCell>
-                                            {loan.book_id ? (
-                                                <Link
-                                                    href={route('books.show', loan.book_id)}
-                                                    className="text-blue-500 underline hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-                                                >
-                                                    {loan.book?.title || 'N/A'}
-                                                </Link>
-                                            ) : (
-                                                <span className="text-red-500 dark:text-red-400">N/A</span>
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            {loan.user_id ? (
-                                                <Link
-                                                    href={route('users.show', loan.user_id)}
-                                                    className="text-blue-500 underline hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-                                                >
-                                                    {loan.user?.name || 'N/A'}
-                                                </Link>
-                                            ) : (
-                                                <span className="text-red-500 dark:text-red-400">N/A</span>
-                                            )}
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <div className="flex justify-end gap-2">
-                                                <TooltipProvider>
-                                                    <Tooltip>
-                                                        <TooltipTrigger asChild>
-                                                            <Link href={route('bookloans.show', loan.id)}>
-                                                                <Button
-                                                                    size="sm"
-                                                                    variant="secondary"
-                                                                    className="bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 flex items-center"
-                                                                >
-                                                                    <Eye className="h-4 w-4" />
-                                                                </Button>
-                                                            </Link>
-                                                        </TooltipTrigger>
-                                                        <TooltipContent>
-                                                            <p>View loan details</p>
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                </TooltipProvider>
-                                                <TooltipProvider>
-                                                    <Tooltip>
-                                                        <TooltipTrigger asChild>
-                                                            <Link href={route('bookloans.edit', loan.id)}>
-                                                                <Button
-                                                                    size="sm"
-                                                                    className="bg-yellow-500 text-gray-900 hover:bg-yellow-600 dark:bg-yellow-600 dark:hover:bg-yellow-700 dark:text-gray-100 flex items-center"
-                                                                >
-                                                                    <Pencil className="h-4 w-4" />
-                                                                </Button>
-                                                            </Link>
-                                                        </TooltipTrigger>
-                                                        <TooltipContent>
-                                                            <p>Edit loan information</p>
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                </TooltipProvider>
-                                                <TooltipProvider>
-                                                    <Tooltip>
-                                                        <TooltipTrigger asChild>
-                                                            <AlertDialog>
-                                                                <AlertDialogTrigger asChild>
-                                                                    <Button
-                                                                        size="sm"
-                                                                        variant="destructive"
-                                                                        onClick={() => handleDelete(loan.id)}
-                                                                        className="bg-red-500 hover:bg-red-600 text-white dark:bg-red-600 dark:hover:bg-red-700 flex items-center"
-                                                                    >
-                                                                        <Trash className="h-4 w-4" />
-                                                                    </Button>
-                                                                </AlertDialogTrigger>
-                                                                <AlertDialogContent className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-                                                                    <AlertDialogHeader>
-                                                                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                                                        <AlertDialogDescription>
-                                                                            This action cannot be undone. This will permanently delete the book loan
-                                                                            and remove its data from our servers.
-                                                                        </AlertDialogDescription>
-                                                                    </AlertDialogHeader>
-                                                                    <AlertDialogFooter>
-                                                                        <AlertDialogCancel className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600">
-                                                                            Cancel
-                                                                        </AlertDialogCancel>
-                                                                        <AlertDialogAction
-                                                                            onClick={confirmDelete}
-                                                                            className="bg-red-500 hover:bg-red-600 text-white"
-                                                                        >
-                                                                            Continue
-                                                                        </AlertDialogAction>
-                                                                    </AlertDialogFooter>
-                                                                </AlertDialogContent>
-                                                            </AlertDialog>
-                                                        </TooltipTrigger>
-                                                        <TooltipContent>
-                                                            <p>Delete this loan</p>
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                </TooltipProvider>
-                                            </div>
-                                        </TableCell>
+                            {isTableLoading ? (
+                                Array.from({ length: table.getState().pagination.pageSize }).map((_, index) => (
+                                    <TableRow key={index}>
+                                        {columns.map((_, colIndex) => (
+                                            <TableCell key={colIndex}>
+                                                <Skeleton className="h-4 w-full" />
+                                            </TableCell>
+                                        ))}
                                     </TableRow>
+                                ))
+                            ) : (bookloans || []).length ? (
+                                table.getRowModel().rows.map((row) => (
+                                    <TooltipProvider key={row.id}>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <TableRow
+                                                    className="hover:bg-indigo-50 dark:hover:bg-indigo-800 transition-colors cursor-pointer"
+                                                    onClick={() => router.visit(route("bookloans.show", row.original.id))}
+                                                    role="link"
+                                                    tabIndex={0}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === "Enter") router.visit(route("bookloans.show", row.original.id));
+                                                    }}
+                                                >
+                                                    {row.getVisibleCells().map((cell) => (
+                                                        <TableCell key={cell.id} className={`${commonStyles.text} py-2`}>
+                                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                        </TableCell>
+                                                    ))}
+                                                </TableRow>
+                                            </TooltipTrigger>
+                                            <TooltipContent className={`${commonStyles.tooltipBg} p-4 max-w-xs`}>
+                                                <div className="text-sm">
+                                                    <p><strong>ID:</strong> {row.original.id}</p>
+                                                    <p><strong>Book:</strong> {row.original.book?.title || "N/A"}</p>
+                                                    <p><strong>User:</strong> {row.original.user?.name || "N/A"}</p>
+                                                    <p><strong>Return Date:</strong> {row.original.return_date || "N/A"}</p>
+                                                    <p><strong>Created At:</strong> {new Date(row.original.created_at).toLocaleString()}</p>
+                                                    <p><strong>Last Modified:</strong> {new Date(row.original.updated_at).toLocaleString()}</p>
+                                                </div>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="text-center">
+                                    <TableCell
+                                        colSpan={columns.length}
+                                        className="h-24 text-center text-gray-600 dark:text-gray-300 text-sm"
+                                    >
                                         No book loans found.
                                     </TableCell>
                                 </TableRow>
                             )}
                         </TableBody>
                     </Table>
+                </div>
+
+                {/* Pagination Controls */}
+                <div className="flex justify-center gap-2 py-4">
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex items-center space-x-2">
+                            <span className={commonStyles.text}>Rows per page:</span>
+                            <Select
+                                value={String(table.getState().pagination.pageSize)}
+                                onValueChange={(value) => {
+                                    if (value === "All") {
+                                        table.setPageSize(Math.min(table.getFilteredRowModel().rows.length, 1000));
+                                    } else {
+                                        table.setPageSize(Number(value));
+                                    }
+                                }}
+                                disabled={isTableLoading}
+                            >
+                                <SelectTrigger
+                                    className={`${commonStyles.text} h-8 w-[120px] ${commonStyles.outlineButton}`}
+                                >
+                                    <SelectValue placeholder={String(table.getState().pagination.pageSize)} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {[10, 20, 50, 100].map((pageSize) => (
+                                        <SelectItem key={pageSize} value={`${pageSize}`}>
+                                            {pageSize}
+                                        </SelectItem>
+                                    ))}
+                                    {table.getFilteredRowModel().rows.length > 0 && (
+                                        <SelectItem key="all" value="All">
+                                            All
+                                        </SelectItem>
+                                    )}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => table.previousPage()}
+                                            disabled={!table.getCanPreviousPage() || isTableLoading}
+                                            className={`${commonStyles.button} ${commonStyles.outlineButton}`}
+                                            aria-label="Previous page"
+                                        >
+                                            <ArrowLeft className="h-4 w-4" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent className={commonStyles.tooltipBg}>
+                                        Previous Page
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => table.nextPage()}
+                                            disabled={!table.getCanNextPage() || isTableLoading}
+                                            className={`${commonStyles.button} ${commonStyles.outlineButton}`}
+                                            aria-label="Next page"
+                                        >
+                                            <ArrowRight className="h-4 w-4" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent className={commonStyles.tooltipBg}>
+                                        Next Page
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </div>
+                        <div className={commonStyles.text}>
+                            {isTableLoading ? (
+                                <Skeleton className="h-4 w-24" />
+                            ) : (
+                                `Page ${table.getState().pagination.pageIndex + 1} of ${table.getPageCount() || 1}`
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
         </AppLayout>

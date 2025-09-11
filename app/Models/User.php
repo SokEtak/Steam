@@ -8,6 +8,23 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
+
+    //scope available loaners who are regular user
+    public function scopeLoaners($query,$campus_id)
+    {
+        return $query->select(['id', 'name'])
+            ->where([
+                'role_id'=>1,
+                'isActive'=>1,
+                'campus_id'=>$campus_id,
+            ]);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->select(['id', 'name', 'email', 'created_at','avatar','role_id','campus_id'])
+            ->where('isActive', 1   );
+    }
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
@@ -18,9 +35,11 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
-//        'tel',
         'email',
         'password',
+        'avatar',
+        'role_id',
+        'campus_id'
     ];
 
     /**
@@ -47,10 +66,14 @@ class User extends Authenticatable
     }
 
     public function books(){
-        return $this->hasMany(Book::class); //one user can publish many books
+        return $this->hasMany(Book::class);
     }
 
     public function bookloans(){
         return $this->hasMany(BookLoan::class);
+    }
+
+    public function campus(){
+        return $this->belongsTo(Campus::class);
     }
 }

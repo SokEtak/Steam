@@ -11,11 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('files', function (Blueprint $table) {
-            $table->id();
-            $table->string('path');
-            $table->string('original_name');
-            $table->timestamps();
+        Schema::table('books', function (Blueprint $table) {
+            $table->foreignId('campus_id')->nullable()->constrained('campuses')->cascadeOnDelete();
         });
     }
 
@@ -24,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('files');
+        Schema::table('books', function (Blueprint $table) {
+            //
+        });
     }
 };

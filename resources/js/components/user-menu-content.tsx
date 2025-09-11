@@ -3,7 +3,7 @@ import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { type User } from '@/types';
 import { Link, router } from '@inertiajs/react';
-import { LogOut, Settings } from 'lucide-react';
+import { LogOut, Settings , Sun } from 'lucide-react';
 
 interface UserMenuContentProps {
     user: User;
@@ -38,6 +38,14 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                 <Link className="block w-full" method="post" href={route('logout')} as="button" onClick={handleLogout}>
                     <LogOut className="mr-2" />
                     Log out
+                </Link>
+            </DropdownMenuItem>
+
+            {/*add more as much as u need*/}
+            <DropdownMenuItem asChild>
+                <Link className="block w-full" method="post" href={route('#')} as="button" onClick={handleLogout}>
+                    <Sun color={"red"} className="mr-2" />
+                    Anything
                 </Link>
             </DropdownMenuItem>
         </>

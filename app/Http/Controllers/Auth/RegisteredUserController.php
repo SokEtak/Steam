@@ -28,27 +28,6 @@ class RegisteredUserController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    //default register without domain specify
-//    public function store(Request $request): RedirectResponse
-//    {
-//        $request->validate([
-//            'name' => 'required|string|max:255',
-//            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
-//            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-//        ]);
-//
-//        $user = User::create([
-//            'name' => $request->name,
-//            'email' => $request->email,
-//            'password' => Hash::make($request->password),
-//        ]);
-//
-//        event(new Registered($user));
-//
-//        Auth::login($user);
-//
-//        return redirect()->intended(route('dashboard', absolute: false));
-//    }
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
@@ -70,12 +49,23 @@ class RegisteredUserController extends Controller
                 },
             ],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'avatar' => 'nullable|image|max:2048',
         ]);
+
+
+
+        $imagePath = null;
+        if ($request->hasFile('avatar')) {
+            $imagePath = $request->file('avatar')->store('avatars', 'public');//change public to s3 for production
+        }
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'avatar' => $imagePath,
+            'role_id' => 1,
+            'campus_id' => 1,
         ]);
 
         event(new Registered($user));

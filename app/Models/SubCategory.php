@@ -4,14 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SubCategory extends Model
 {
-    protected $table = 'sub_categories'; // Explicitly set the table name
+    protected $table = 'sub_categories';
     protected $fillable = ['name', 'category_id'];
 
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function books(): HasMany{
+        return $this->hasMany(Book::class, 'subcategory_id'); // Explicitly define the foreign key
     }
 }

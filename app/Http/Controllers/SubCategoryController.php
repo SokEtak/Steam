@@ -17,7 +17,7 @@ class SubCategoryController extends Controller
         ]);
     }
 
-    public function show(Subcategory $subcategory) {
+    public function show(SubCategory $subcategory) {
         return Inertia::render('SubCategories/Show', [
             'subcategory' => $subcategory->load('category:id,name'),
             'flash' => ['message' => session('message')],
@@ -38,12 +38,12 @@ class SubCategoryController extends Controller
             'category_id' => 'required|exists:categories,id',
         ]);
 
-        Subcategory::create($validated);
+        SubCategory::create($validated);
 
         return redirect()->route('subcategories.index')->with('message', 'Subcategory created successfully.');
     }
 
-    public function edit(Subcategory $subcategory) {
+    public function edit(SubCategory $subcategory) {
         $categories = Category::select('id', 'name')->get();
         return Inertia::render('SubCategories/Edit', [
             'subcategory' => $subcategory->load('category:id,name'),
@@ -52,7 +52,7 @@ class SubCategoryController extends Controller
         ]);
     }
 
-    public function update(Request $request, Subcategory $subcategory) {
+    public function update(Request $request, SubCategory $subcategory) {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
@@ -63,11 +63,11 @@ class SubCategoryController extends Controller
         return redirect()->route('subcategories.index')->with('message', 'Subcategory updated successfully.');
     }
 
-    public function destroy(Subcategory $subcategory) {
-        // Optional: Check for related records (e.g., books with subcategory_id)
-
-        if ($subcategory->books()->exists()) {
-             return redirect()->route('subcategories.index')->with('message', 'Cannot delete subcategory because it is referenced by books.');
+    public function destroy(SubCategory $subcategory)
+    {
+        // Check for related records in the books table using the correct foreign key
+        if ($subcategory->books()->where('subcategory_id', $subcategory->id)->exists()) {
+            return redirect()->route('subcategories.index')->with('message', 'Cannot delete subcategory because it is referenced by books.');
         }
 
         $subcategory->delete();

@@ -5,14 +5,18 @@ namespace App\Http\Controllers;
 use App\Models\Book;
 use App\Models\BookLoan;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class BookLoanController extends Controller
 {
     public function index()
     {
-        $bookloans = BookLoan::with(['book', 'user'])->get();
+        $bookloans = BookLoan::with(['book', 'user'])
+            ->active()
+            ->get();
         return Inertia::render('BookLoans/Index', [
             'bookloans' => $bookloans,
         ]);
@@ -20,11 +24,10 @@ class BookLoanController extends Controller
 
     public function create()
     {
-        $books = Book::all();
-        $users = User::all();
+        $campus_id = Auth::user()->campus_id;
         return Inertia::render('BookLoans/Create', [
-            'books' => $books,
-            'users' => $users,
+            'books' => Book::active(null)->get(),
+            'users' => User::loaners(2,$campus_id)->get()->toArray()
         ]);
     }
 
@@ -49,8 +52,9 @@ class BookLoanController extends Controller
 
     public function edit(BookLoan $bookloan)
     {
-        $books = Book::all();
-        $users = User::all();
+        $campus_id = Auth::user()->campus_id;
+        $books = Book::active(null)->get();
+        $users = User::loaners(2,$campus_id)->get()->toArray();
         return Inertia::render('BookLoans/Edit', [
             'loan' => $bookloan,
             'books' => $books,
@@ -72,7 +76,27 @@ class BookLoanController extends Controller
 
     public function destroy(BookLoan $bookloan)
     {
-        $bookloan->delete();
-        return redirect()->route('bookloans.index')->with('message', 'Book loan deleted successfully.');
+        return $this->handleBookLoanOperation(function () use ($bookloan) {
+            if (!$bookloan->is_deleted) {
+                // Soft delete: set is_deleted to true
+                $bookloan->update(['is_deleted' => true]);
+            } else {
+                // Hard delete: permanently remove the record
+                $bookloan->delete();
+            }
+
+            return redirect()
+                ->route('bookloans.index')
+                ->with('message', 'Book loan deleted successfully.');
+        }, 'delete');
+    }
+
+    private function handleBookLoanOperation(callable $operation, string $action): RedirectResponse
+    {
+        try {
+            return $operation();
+        } catch (\Exception $e) {
+            return redirect()->back()->with('flash', ['error' => "Failed to $action book loan: " . $e->getMessage()]);
+        }
     }
 }

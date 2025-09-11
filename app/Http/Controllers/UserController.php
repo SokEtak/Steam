@@ -2,18 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
 
 class UserController extends Controller
 {
-    public function show(User $user)
+    public function index()
     {
-        return Inertia::render('Users/Show', [
-            'user' => $user->only('id', 'name', 'email', 'created_at', 'updated_at'),
-            'flash' => [
-                'message' => session('message'),
-            ],
+
+//        $response = Http::get('http://127.0.0.1:8000/api/v1/users');
+//            'users' => $response->json(),
+        return Inertia::render('Users/Index', [
         ]);
     }
 }

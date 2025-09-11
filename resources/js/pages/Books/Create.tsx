@@ -1,106 +1,354 @@
-import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-import { Head, useForm, Link } from '@inertiajs/react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useState, useMemo, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Viewer, Worker } from '@react-pdf-viewer/core';
-import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
-import '@react-pdf-viewer/core/lib/styles/index.css';
-import '@react-pdf-viewer/default-layout/lib/styles/index.css';
-import { CheckCircle2Icon, X } from 'lucide-react';
+"use client";
 
-interface User {
-    id: number;
-    name: string;
-}
+    import AppLayout from '@/layouts/app-layout';
+    import { type BreadcrumbItem } from '@/types';
+    import { Head, useForm, Link, router } from '@inertiajs/react';
+    import { Button } from '@/components/ui/button';
+    import { Input } from '@/components/ui/input';
+    import { Label } from '@/components/ui/label';
+    import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+    import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+    import { CheckCircle2Icon, X } from 'lucide-react';
+    import { useState, useEffect, useCallback, Component, ReactNode } from 'react';
+    import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+    import { Viewer, Worker } from '@react-pdf-viewer/core';
+    import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
+    import '@react-pdf-viewer/core/lib/styles/index.css';
+    import '@react-pdf-viewer/default-layout/lib/styles/index.css';
+    import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+    import { Calendar } from '@/components/ui/calendar';
+    import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+    import { format } from 'date-fns';
+    import { CalendarIcon } from 'lucide-react';
 
-interface Category {
-    id: number;
-    name: string;
-}
+    interface Category {
+        id: number;
+        name: string;
+    }
 
-interface Subcategory {
-    id: number;
-    name: string;
-}
+    interface Subcategory {
+        id: number;
+        name: string;
+    }
 
-interface Bookcase {
-    id: number;
-    code: string;
-}
+    interface Shelf {
+        id: number;
+        code: string;
+    }
 
-interface Shelves {
-    id: number;
-    code: string;
-}
+    interface Bookcase {
+        id: number;
+        code: string;
+    }
 
-interface Grade {
-    id: number;
-    name: string;
-}
+    interface Grade {
+        id: number;
+        name: string;
+    }
 
-interface Subject {
-    id: number;
-    name: string;
-}
+    interface Subject {
+        id: number;
+        name: string;
+    }
 
-interface BooksCreateProps {
-    users: User[];
-    categories: Category[];
-    subcategories: Subcategory[];
-    bookcases: Bookcase[];
-    shelves: Shelves[];
-    grades: Grade[];
-    subjects: Subject[];
-    flash?: {
-        message: string | null;
-        error: string | null;
+    interface BooksCreateProps {
+        categories: Category[];
+        subcategories: Subcategory[];
+        shelves: Shelf[];
+        bookcases: Bookcase[];
+        grades: Grade[];
+        subjects: Subject[];
+        flash?: {
+            message: string | null;
+            error: string | null;
+        };
+        type: 'physical' | 'ebook';
+    }
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: 'Books', href: route('books.index') },
+        { title: 'Create', href: '' },
+    ];
+
+    const generateRandomString = (length: number): string => {
+        const characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        let result = '';
+        for (let i = 0; i < length; i++) {
+            result += characters.charAt(Math.floor(Math.random() * characters.length));
+        }
+        return result;
     };
-}
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Books', href: route('books.index') },
-    { title: 'Create', href: '' },
-];
+    // Error Boundary Component
+    interface ErrorBoundaryProps {
+        children: ReactNode;
+    }
 
-export default function BooksCreate({
-                                        users,
-                                        categories,
-                                        subcategories,
-                                        bookcases,
-                                        shelves,
-                                        grades,
-                                        subjects,
-                                        flash,
-                                    }: BooksCreateProps) {
-    const { data, setData, post, processing, errors } = useForm({
+    interface ErrorBoundaryState {
+        hasError: boolean;
+    }
+
+    class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+        constructor(props: ErrorBoundaryProps) {
+            super(props);
+            this.state = { hasError: false };
+        }
+
+        static getDerivedStateFromError(_: Error): ErrorBoundaryState {
+            return { hasError: true };
+        }
+
+        render() {
+            if (this.state.hasError) {
+                return (
+                    <div className="p-4 sm:p-6 lg:p-8">
+                        <div className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900 dark:to-red-800 rounded-2xl shadow-2xl border border-red-200 dark:border-red-700 p-6">
+                            <h2 className="text-xl font-semibold text-red-600 dark:text-red-300">Something went wrong</h2>
+                            <p className="text-gray-600 dark:text-gray-300 mt-2">
+                                An error occurred while creating the book. Please try again or contact support.
+                            </p>
+                            <Button
+                                onClick={() => window.location.reload()}
+                                className="mt-4 bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 px-4 py-2 rounded-lg"
+                            >
+                                Try Again
+                            </Button>
+                        </div>
+                    </div>
+                );
+            }
+            return this.props.children;
+        }
+    }
+
+    interface FileFieldProps {
+        label: string;
+        id: string;
+        accept: string;
+        onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+        previewUrl?: string | null;
+        onPreviewClick?: () => void;
+        error?: string;
+        helperText?: string;
+        isDragDrop?: boolean;
+        dragActive?: boolean;
+        onDrag?: (e: React.DragEvent<HTMLDivElement>) => void;
+        onDrop?: (e: React.DragEvent<HTMLDivElement>) => void;
+        selectedFileName?: string;
+        onRemove?: () => void;
+        fileError?: string;
+    }
+
+    const FileField: React.FC<FileFieldProps> = ({
+                                                    label,
+                                                    id,
+                                                    accept,
+                                                    onChange,
+                                                    previewUrl,
+                                                    onPreviewClick,
+                                                    error,
+                                                    helperText,
+                                                    isDragDrop = false,
+                                                    dragActive = false,
+                                                    onDrag,
+                                                    onDrop,
+                                                    selectedFileName,
+                                                    onRemove,
+                                                    fileError,
+                                                }) => (
+        <div className="space-y-2">
+            <Label htmlFor={id} className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {label} {isDragDrop && <span className="text-red-500">*</span>}
+            </Label>
+            {isDragDrop ? (
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <div
+                                className={`border-2 border-dashed ${
+                                    dragActive
+                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
+                                        : 'border-indigo-200 dark:border-indigo-600'
+                                } p-4 rounded-md text-center transition-all duration-200 ${
+                                    error || fileError ? 'border-red-500 dark:border-red-400' : ''
+                                } w-full max-w-md h-64 mx-auto`}
+                                onDragEnter={onDrag}
+                                onDragLeave={onDrag}
+                                onDragOver={onDrag}
+                                onDrop={onDrop}
+                                role="region"
+                                aria-label={`Drag and drop ${label.toLowerCase()} file`}
+                            >
+                                <Input
+                                    id={id}
+                                    type="file"
+                                    accept={accept}
+                                    onChange={onChange}
+                                    className="hidden"
+                                    required={isDragDrop}
+                                    aria-describedby={error || fileError ? `${id}-error` : undefined}
+                                />
+                                <div className="space-y-2 flex flex-col h-full justify-center">
+                                    {selectedFileName ? (
+                                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                                            Selected: {selectedFileName}{' '}
+                                            {onRemove && (
+                                                <Button
+                                                    variant="link"
+                                                    onClick={onRemove}
+                                                    className="text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300"
+                                                    aria-label={`Remove ${selectedFileName}`}
+                                                >
+                                                    Remove
+                                                </Button>
+                                            )}
+                                            {onPreviewClick && (
+                                                <Button
+                                                    variant="link"
+                                                    onClick={onPreviewClick}
+                                                    className="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300"
+                                                    aria-label={`Preview ${selectedFileName}`}
+                                                >
+                                                    Preview
+                                                </Button>
+                                            )}
+                                        </p>
+                                    ) : (
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                                            Drag and drop a {label.toLowerCase()} file here, or click to browse.
+                                        </p>
+                                    )}
+                                    <Button
+                                        type="button"
+                                        onClick={() => document.getElementById(id)?.click()}
+                                        className="bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 px-3 py-1 rounded-md"
+                                        aria-label="Browse files"
+                                    >
+                                        Browse
+                                    </Button>
+                                </div>
+                            </div>
+                        </TooltipTrigger>
+                        <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
+                            Upload a {label.toLowerCase()} file
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            ) : (
+                <div className="space-y-2">
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div
+                                    className={`relative w-full max-w-md h-64 mx-auto bg-white dark:bg-gray-700 border ${
+                                        error || fileError
+                                            ? 'border-red-500 dark:border-red-400'
+                                            : 'border-indigo-200 dark:border-indigo-600'
+                                    } rounded-md overflow-hidden flex items-center justify-center cursor-pointer`}
+                                    onClick={() => document.getElementById(id)?.click()}
+                                    role="button"
+                                    tabIndex={0}
+                                >
+                                    <Input
+                                        id={id}
+                                        type="file"
+                                        accept={accept}
+                                        onChange={onChange}
+                                        className="hidden"
+                                        aria-describedby={error || fileError ? `${id}-error` : undefined}
+                                    />
+                                    {previewUrl ? (
+                                        <div className="relative w-full h-full">
+                                            <img
+                                                src={previewUrl}
+                                                alt={`${label} Preview`}
+                                                className="w-full h-full object-contain"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onPreviewClick?.();
+                                                }}
+                                            />
+                                            {onRemove && (
+                                                <Button
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        onRemove();
+                                                    }}
+                                                    aria-label="Remove cover image"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </Button>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <span className="text-gray-600 dark:text-gray-400">Click to select image</span>
+                                    )}
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
+                                Upload a {label.toLowerCase()} file
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                    {(error || fileError) && (
+                        <p id={`${id}-error`} className="text-red-500 dark:text-red-400 text-sm text-center">
+                            {error || fileError || `Please upload a valid ${label.toLowerCase()} (JPEG/PNG, max 2MB).`}
+                        </p>
+                    )}
+                    {helperText && <p className="text-xs text-gray-500 dark:text-gray-400 text-center">{helperText}</p>}
+                </div>
+            )}
+        </div>
+    );
+
+    export default function BooksCreate({
+    categories: initialCategories,
+    subcategories: initialSubcategories,
+    shelves: initialShelves,
+    bookcases: initialBookcases,
+    grades: initialGrades,
+    subjects: initialSubjects,
+    flash,
+    type: initialType,
+}: BooksCreateProps) {
+    const [type, setType] = useState<'physical' | 'ebook'>(initialType);
+    const isEbook = type === 'ebook';
+    const [categories, setCategories] = useState(initialCategories);
+    const [subcategories, setSubcategories] = useState(initialSubcategories);
+    const [shelves, setShelves] = useState(initialShelves);
+    const [bookcases, setBookcases] = useState(initialBookcases);
+    const [grades, setGrades] = useState(initialGrades);
+    const [subjects, setSubjects] = useState(initialSubjects);
+    const [pdfFileError, setPdfFileError] = useState<string | null>(null);
+    const [showErrorAlert, setShowErrorAlert] = useState(!!flash?.error);
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+
+    const { data, setData, post, processing, errors, reset } = useForm({
         title: '',
+        description: '',
+        page_count: '',
+        publisher: '',
+        language: 'kh',
+        published_at: '',
+        author: '',
         flip_link: '',
         cover: null as File | null,
         code: '',
         isbn: '',
         view: '0',
-        is_available: false,
+        is_available: !isEbook,
         pdf_url: null as File | null,
-        user_id: '',
-        category_id: '',
+        category_id: null as string | null,
         subcategory_id: null as string | null,
-        bookcase_id: null as string | null,
-        shelf_id: null as string | null,
+        shelf_id: isEbook ? null : (null as string | null),
+        bookcase_id: isEbook ? null : (null as string | null),
         grade_id: null as string | null,
         subject_id: null as string | null,
-        is_deleted: false,
+        downloadable: isEbook,
+        type,
     });
 
     const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
@@ -108,107 +356,85 @@ export default function BooksCreate({
     const [isCoverModalOpen, setIsCoverModalOpen] = useState(false);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
     const [dragActive, setDragActive] = useState(false);
-    const [showAlert, setShowAlert] = useState(!!flash?.message || !!flash?.error);
-
-    // Create and clean up Blob URL for PDF preview
-    const pdfBlobUrl = useMemo(() => {
-        if (data.pdf_url) {
-            return URL.createObjectURL(data.pdf_url);
-        }
-        return null;
-    }, [data.pdf_url]);
-
-    // Cleanup Blob URL on component unmount or file change
-    useEffect(() => {
-        return () => {
-            if (pdfBlobUrl) {
-                URL.revokeObjectURL(pdfBlobUrl);
-            }
-            if (coverPreviewUrl) {
-                URL.revokeObjectURL(coverPreviewUrl);
-            }
-        };
-    }, [pdfBlobUrl, coverPreviewUrl]);
-
-    // Initialize PDF viewer plugin
     const defaultLayoutPluginInstance = defaultLayoutPlugin();
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        const formData = new FormData();
-        for (const [key, value] of Object.entries(data)) {
-            if (value !== null && value !== '') {
-                formData.append(key, value as string | Blob);
-            }
+    useEffect(() => {
+        setShowErrorAlert(!!Object.keys(errors).length || !!flash?.error);
+    }, [errors, flash?.error]);
+
+    const generateCode = useCallback(() => {
+        const category = data.category_id
+            ? categories.find((cat) => cat.id.toString() === data.category_id)
+            : null;
+        const categoryPrefix = category ? category.name.slice(0, 3).toUpperCase() : 'UNK';
+        const typePrefix = isEbook ? 'EBK' : 'PHY';
+        const randomSuffix = generateRandomString(4);
+        return `${categoryPrefix}-${typePrefix}-${randomSuffix}`.slice(0, 10);
+    }, [data.category_id, isEbook, categories]);
+
+    useEffect(() => {
+        if (data.category_id) {
+            setData('code', generateCode());
         }
-        post(route('books.store'), {
-            data: formData,
-            forceFormData: true, // Ensure Inertia sends FormData correctly
-            onSuccess: () => {
-                setShowAlert(true);
-                // Reset form after successful submission
-                setData({
-                    title: '',
-                    flip_link: '',
-                    cover: null,
-                    code: '',
-                    isbn: '',
-                    view: '0',
-                    is_available: false,
-                    pdf_url: null,
-                    user_id: '',
-                    category_id: '',
-                    subcategory_id: null,
-                    bookcase_id: null,
-                    shelf_id: null,
-                    grade_id: null,
-                    subject_id: null,
-                    is_deleted: false,
-                });
-                setCoverPreviewUrl(null);
+    }, [data.category_id, generateCode]);
+
+    useEffect(() => {
+        return () => {
+            if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl);
+            if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl);
+        };
+    }, [coverPreviewUrl, pdfPreviewUrl]);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'cover' | 'pdf_url') => {
+        const file = e.target.files?.[0];
+        if (!file) {
+            setData(field, null);
+            if (field === 'cover') setCoverPreviewUrl(null);
+            else {
                 setPdfPreviewUrl(null);
-            },
-            onError: () => {
-                setShowAlert(true);
-            },
-        });
-    };
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            if (file.type.match('image/(jpeg|png)')) {
-                setData('cover', file);
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    setCoverPreviewUrl(reader.result as string);
-                };
-                reader.readAsDataURL(file);
-            } else {
-                alert('Please select a valid image file (jpg, jpeg, png).');
+                setPdfFileError(null);
             }
-        } else {
-            setData('cover', null);
-            setCoverPreviewUrl(null);
+            return;
         }
-    };
 
-    const handlePdfFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            if (file.type === 'application/pdf') {
-                setData('pdf_url', file);
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    setPdfPreviewUrl(reader.result as string);
-                };
-                reader.readAsDataURL(file);
-            } else {
-                alert('Please select a valid PDF file.');
+        if (field === 'cover') {
+            if (!file.type.match('image/(jpeg|png)')) {
+                setData(field, null);
+                e.target.value = '';
+                setPdfFileError('Invalid file format. Please upload a JPEG or PNG image.');
+                return;
             }
+            if (file.size > 2 * 1024 * 1024) {
+                setData(field, null);
+                e.target.value = '';
+                setPdfFileError('Cover image exceeds 2MB limit. Please upload a smaller file.');
+                return;
+            }
+        }
+        if (field === 'pdf_url') {
+            if (file.type !== 'application/pdf') {
+                setData(field, null);
+                e.target.value = '';
+                setPdfFileError('Invalid file format. Please upload a PDF file.');
+                return;
+            }
+            if (file.size > 10 * 1024 * 1024) {
+                setData(field, null);
+                e.target.value = '';
+                setPdfFileError('PDF file exceeds 10MB limit. Please upload a smaller file.');
+                return;
+            }
+            setPdfFileError(null);
+        }
+
+        setData(field, file);
+        const newUrl = URL.createObjectURL(file);
+        if (field === 'cover') {
+            if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl);
+            setCoverPreviewUrl(newUrl);
         } else {
-            setData('pdf_url', null);
-            setPdfPreviewUrl(null);
+            if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl);
+            setPdfPreviewUrl(newUrl);
         }
     };
 
@@ -226,473 +452,907 @@ export default function BooksCreate({
         e.preventDefault();
         e.stopPropagation();
         setDragActive(false);
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            const file = e.dataTransfer.files[0];
-            if (file.type === 'application/pdf') {
-                setData('pdf_url', file);
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    setPdfPreviewUrl(reader.result as string);
-                };
-                reader.readAsDataURL(file);
-            } else {
-                alert('Please drop a valid PDF file.');
-            }
+        const file = e.dataTransfer.files?.[0];
+        if (!file) {
+            setPdfFileError('No file was dropped. Please try again.');
+            return;
         }
+        if (file.type !== 'application/pdf') {
+            setPdfFileError('Invalid file format. Please drop a PDF file.');
+            return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            setPdfFileError('PDF file exceeds 10MB limit. Please drop a smaller file.');
+            return;
+        }
+        setPdfFileError(null);
+        if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl);
+        setData('pdf_url', file);
+        setPdfPreviewUrl(URL.createObjectURL(file));
     };
 
-    const handleCoverPreviewClick = () => {
-        setIsCoverModalOpen(true);
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        post(route('books.store'), {
+            forceFormData: true,
+            onSuccess: () => {
+                setShowErrorAlert(false);
+                reset();
+                setCoverPreviewUrl(null);
+                setPdfPreviewUrl(null);
+                setPdfFileError(null);
+                setSelectedDate(undefined);
+            },
+            onError: () => setShowErrorAlert(true),
+        });
     };
 
-    const handlePdfPreviewClick = () => {
-        setIsPdfModalOpen(true);
-    };
-
-    const handleCloseAlert = () => {
-        setShowAlert(false);
+    const handleTypeChange = (newType: 'physical' | 'ebook') => {
+        setType(newType);
+        setData('type', newType);
+        router.get(
+            route('books.create'),
+            { type: newType },
+            {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+            }
+        );
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Create Book" />
-            <div className="h-full flex-1 p-4 sm:p-6">
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6 max-w-4xl mx-auto">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">Create Book</h1>
-                    {showAlert && (flash?.message || flash?.error) && (
-                        <Alert
-                            className={`mb-4 flex items-start justify-between ${
-                                flash.error ? 'border-red-500' : 'border-blue-200 dark:border-blue-800'
-                            } bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-200 rounded-lg`}
-                        >
-                            <div className="flex gap-2">
-                                <CheckCircle2Icon className={`h-4 w-4 ${flash.error ? 'text-red-500' : 'text-blue-500'}`} />
-                                <div>
-                                    <AlertTitle>{flash.error ? 'Error' : 'Success'}</AlertTitle>
-                                    <AlertDescription>{flash.message || flash.error}</AlertDescription>
+        <ErrorBoundary>
+            <AppLayout breadcrumbs={breadcrumbs}>
+                <Head title={`Create ${isEbook ? 'E-Book' : 'Physical Book'}`} />
+                <div className="p-4 sm:p-6 lg:p-8">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-blue-900 rounded-2xl shadow-2xl border border-indigo-200 dark:border-indigo-700 p-6">
+                        <h1 className="text-2xl font-bold text-indigo-600 dark:text-indigo-300 mb-6">
+                            Create New Book
+                        </h1>
+
+                        {showErrorAlert && (Object.keys(errors).length > 0 || flash?.error) && (
+                            <Alert className="mb-4 flex items-start justify-between bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900 dark:to-red-800 text-gray-800 dark:text-gray-100 border border-red-200 dark:border-red-700 rounded-xl">
+                                <div className="flex gap-2">
+                                    <CheckCircle2Icon className="h-4 w-4 text-red-600 dark:text-red-300" />
+                                    <div>
+                                        <AlertTitle className="text-red-600 dark:text-red-300">Error</AlertTitle>
+                                        <AlertDescription className="text-gray-600 dark:text-gray-300">
+                                            {flash?.error || Object.values(errors).join(', ')}
+                                        </AlertDescription>
+                                    </div>
+                                </div>
+                                <Button
+                                    onClick={() => setShowErrorAlert(false)}
+                                    className="text-sm font-medium cursor-pointer text-red-600 dark:text-red-300 hover:text-red-800 dark:hover:text-red-100"
+                                    disabled={processing}
+                                    aria-label="Dismiss error alert"
+                                >
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            </Alert>
+                        )}
+
+                        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-6" encType="multipart/form-data">
+                            <input type="hidden" name="type" value={type} />
+
+                            {/* Tabs for Physical/Ebook */}
+                            <div className="col-span-full">
+                                <div className="border-b border-indigo-200 dark:border-indigo-600">
+                                    <nav className="flex space-x-8">
+                                        {['physical', 'ebook', 'audio'].map((tab) => (
+                                            <button
+                                                key={tab}
+                                                onClick={() => (tab === 'physical' || tab === 'ebook') && handleTypeChange(tab as 'physical' | 'ebook')}
+                                                className={`py-2 px-4 text-sm font-medium ${
+                                                    type === tab
+                                                        ? 'border-b-2 border-indigo-600 text-indigo-600 dark:text-indigo-300'
+                                                        : tab === 'audio'
+                                                            ? 'text-gray-400 cursor-not-allowed'
+                                                            : 'text-gray-500 dark:text-gray-400 hover:text-indigo-700 dark:hover:text-indigo-200'
+                                                } transition-colors duration-200`}
+                                                disabled={tab === 'audio'}
+                                            >
+                                                {tab.charAt(0).toUpperCase() + tab.slice(1)}{' '}
+                                                {tab === 'audio' && '(Coming Soon)'}
+                                            </button>
+                                        ))}
+                                    </nav>
                                 </div>
                             </div>
-                            <Button
-                                onClick={handleCloseAlert}
-                                className="text-sm font-medium cursor-pointer"
-                                disabled={processing}
-                            >
-                                <X className="h-4 w-4" />
-                            </Button>
-                        </Alert>
-                    )}
-                    <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6" encType="multipart/form-data">
-                        <div className="space-y-2">
-                            <Label htmlFor="title" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Title <span className="text-red-500">*</span>
-                            </Label>
-                            <Input
-                                id="title"
-                                value={data.title}
-                                onChange={(e) => setData('title', e.target.value)}
-                                className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 ${
-                                    errors.title ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                                }`}
-                                required
-                            />
-                            {errors.title && <p className="text-red-500 text-sm">{errors.title}</p>}
+
+                            {/* Basic Information */}
+                            <div className="col-span-full">
+                                <h2 className="text-lg font-semibold text-indigo-600 dark:text-indigo-300 mb-4">Basic Information</h2>
+                            </div>
+                            <div className="space-y-4">
+                                <div>
+                                    <Label htmlFor="title" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Title <span className="text-red-500">*</span>
+                                    </Label>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Input
+                                                    id="title"
+                                                    value={data.title}
+                                                    onChange={(e) => setData('title', e.target.value)}
+                                                    className={`w-full mt-1 p-2 rounded-md border ${
+                                                        errors.title ? 'border-red-500 dark:border-red-400' : 'border-indigo-200 dark:border-indigo-600'
+                                                    } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100`}
+                                                    required
+                                                    aria-describedby={errors.title ? 'title-error' : undefined}
+                                                />
+                                            </TooltipTrigger>
+                                            <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
+                                                Enter the book title
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                    {errors.title && (
+                                        <p id="title-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
+                                            {errors.title || 'Please provide a valid title (max 255 characters).'}
+                                        </p>
+                                    )}
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Max 255 characters.</p>
+                                </div>
+                                <div>
+                                    <Label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Description <span className="text-red-500">*</span>
+                                    </Label>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <textarea
+                                                    id="description"
+                                                    value={data.description}
+                                                    onChange={(e) => setData('description', e.target.value)}
+                                                    className={`w-full mt-1 p-2 rounded-md border ${
+                                                        errors.description ? 'border-red-500 dark:border-red-400' : 'border-indigo-200 dark:border-indigo-600'
+                                                    } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100`}
+                                                    rows={4}
+                                                    required
+                                                    aria-describedby={errors.description ? 'description-error' : undefined}
+                                                />
+                                            </TooltipTrigger>
+                                            <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
+                                                Enter the book description
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                    {errors.description && (
+                                        <p id="description-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
+                                            {errors.description || 'Please provide a valid description.'}
+                                        </p>
+                                    )}
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Brief description of the book.</p>
+                                </div>
+                            </div>
+                            <div className="space-y-4">
+                                <div>
+                                    <Label htmlFor="page_count" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Page Count <span className="text-red-500">*</span>
+                                    </Label>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Input
+                                                    id="page_count"
+                                                    type="number"
+                                                    value={data.page_count}
+                                                    onChange={(e) => setData('page_count', e.target.value)}
+                                                    min="1"
+                                                    className={`w-full mt-1 p-2 rounded-md border ${
+                                                        errors.page_count ? 'border-red-500 dark:border-red-400' : 'border-indigo-200 dark:border-indigo-600'
+                                                    } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100`}
+                                                    required
+                                                    aria-describedby={errors.page_count ? 'page_count-error' : undefined}
+                                                />
+                                            </TooltipTrigger>
+                                            <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
+                                                Enter the number of pages
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                    {errors.page_count && (
+                                        <p id="page_count-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
+                                            {errors.page_count || 'Please provide a valid page count (minimum 1).'}
+                                        </p>
+                                    )}
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total number of pages.</p>
+                                </div>
+                                <div>
+                                    <Label htmlFor="publisher" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Publisher <span className="text-red-500">*</span>
+                                    </Label>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Input
+                                                    id="publisher"
+                                                    value={data.publisher}
+                                                    onChange={(e) => setData('publisher', e.target.value)}
+                                                    className={`w-full mt-1 p-2 rounded-md border ${
+                                                        errors.publisher ? 'border-red-500 dark:border-red-400' : 'border-indigo-200 dark:border-indigo-600'
+                                                    } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100`}
+                                                    required
+                                                    aria-describedby={errors.publisher ? 'publisher-error' : undefined}
+                                                />
+                                            </TooltipTrigger>
+                                            <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
+                                                Enter the publisher name
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                    {errors.publisher && (
+                                        <p id="publisher-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
+                                            {errors.publisher || 'Please provide a valid publisher name (max 255 characters).'}
+                                        </p>
+                                    )}
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Max 255 characters.</p>
+                                </div>
+                            </div>
+                            <div className="space-y-4">
+                                <div>
+                                    <Label htmlFor="language" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Language <span className="text-red-500">*</span>
+                                    </Label>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Select
+                                                    value={data.language}
+                                                    onValueChange={(value) => setData('language', value)}
+                                                    required
+                                            >
+                                                <SelectTrigger
+                                                    className={`w-full mt-1 p-2 rounded-md border ${
+                                                        errors.language ? 'border-red-500 dark:border-red-400' : 'border-indigo-200 dark:border-indigo-600'
+                                                    } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100`}
+                                                    aria-describedby={errors.language ? 'language-error' : undefined}
+                                                >
+                                                    <SelectValue placeholder="Select language" />
+                                                </SelectTrigger>
+                                                <SelectContent className="bg-white dark:bg-gray-700 border-indigo-200 dark:border-indigo-600">
+                                                    <SelectItem value="kh">Khmer</SelectItem>
+                                                    <SelectItem value="en">English</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
+                                            Select the book language
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                                {errors.language && (
+                                    <p id="language-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
+                                        {errors.language || 'Please select a valid language.'}
+                                    </p>
+                                )}
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Primary language of the book.</p>
+                            </div>
+                            <div>
+                                <Label htmlFor="published_at" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Published Date
+                                </Label>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        variant="outline"
+                                                        className={`w-full mt-1 p-2 rounded-md border ${
+                                                            errors.published_at ? 'border-red-500 dark:border-red-400' : 'border-indigo-200 dark:border-indigo-600'
+                                                        } bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 justify-start text-left font-normal ${
+                                                            !selectedDate && 'text-gray-500 dark:text-gray-400'
+                                                        }`}
+                                                        aria-describedby={errors.published_at ? 'published_at-error' : undefined}
+                                                    >
+                                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                                        {selectedDate ? format(selectedDate, 'PPP') : 'Select date'}
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-700 border-indigo-200 dark:border-indigo-600">
+                                                    <Calendar
+                                                        mode="single"
+                                                        selected={selectedDate}
+                                                        onSelect={(date) => {
+                                                            setSelectedDate(date);
+                                                            setData('published_at', date ? format(date, 'yyyy-MM-dd') : '');
+                                                        }}
+                                                        initialFocus
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
+                                            Select the publication date
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                                {errors.published_at && (
+                                    <p id="published_at-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
+                                        {errors.published_at || 'Please select a valid publication date.'}
+                                    </p>
+                                )}
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Optional publication date.</p>
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="flip_link" className="text-sm font-medium text-gray-700 dark:text-gray-300">Flip Link</Label>
-                            <Input
-                                id="flip_link"
-                                value={data.flip_link}
-                                onChange={(e) => setData('flip_link', e.target.value)}
-                                className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 ${
-                                    errors.flip_link ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                                }`}
-                            />
-                            {errors.flip_link && <p className="text-red-500 text-sm">{errors.flip_link}</p>}
+                        <div className="space-y-4">
+                            <div>
+                                <Label htmlFor="author" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Author
+                                </Label>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Input
+                                                id="author"
+                                                value={data.author}
+                                                onChange={(e) => setData('author', e.target.value)}
+                                                className={`w-full mt-1 p-2 rounded-md border ${
+                                                    errors.author ? 'border-red-500 dark:border-red-400' : 'border-indigo-200 dark:border-indigo-600'
+                                                } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100`}
+                                                aria-describedby={errors.author ? 'author-error' : undefined}
+                                            />
+                                        </TooltipTrigger>
+                                        <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
+                                            Enter the author name
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                                {errors.author && (
+                                    <p id="author-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
+                                        {errors.author || 'Please provide a valid author name (max 255 characters).'}
+                                    </p>
+                                )}
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Optional, max 255 characters.</p>
+                            </div>
+                            <div>
+                                <Label htmlFor="flip_link" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Flip Link
+                                </Label>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Input
+                                                id="flip_link"
+                                                value={data.flip_link}
+                                                onChange={(e) => setData('flip_link', e.target.value)}
+                                                type="url"
+                                                className={`w-full mt-1 p-2 rounded-md border ${
+                                                    errors.flip_link ? 'border-red-500 dark:border-red-400' : 'border-indigo-200 dark:border-indigo-600'
+                                                } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100`}
+                                                aria-describedby={errors.flip_link ? 'flip_link-error' : undefined}
+                                            />
+                                        </TooltipTrigger>
+                                        <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
+                                            Enter the digital preview URL
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                                {errors.flip_link && (
+                                    <p id="flip_link-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
+                                        {errors.flip_link || 'Please provide a valid URL for the digital preview.'}
+                                    </p>
+                                )}
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Optional digital preview link.</p>
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="code" className="text-sm font-medium text-gray-700 dark:text-gray-300">Code</Label>
-                            <Input
-                                id="code"
-                                value={data.code}
-                                onChange={(e) => setData('code', e.target.value)}
-                                className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 ${
-                                    errors.code ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                                }`}
-                            />
-                            {errors.code && <p className="text-red-500 text-sm">{errors.code}</p>}
+                        <div className="space-y-4">
+                            <div>
+                                <Label htmlFor="code" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Code <span className="text-red-500">*</span>
+                                </Label>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Input
+                                                id="code"
+                                                value={data.code}
+                                                onChange={(e) => setData('code', e.target.value)}
+                                                maxLength={10}
+                                                className={`w-full mt-1 p-2 rounded-md border ${
+                                                    errors.code ? 'border-red-500 dark:border-red-400' : 'border-indigo-200 dark:border-indigo-600'
+                                                } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100`}
+                                                placeholder="Auto-generated after selecting category"
+                                                required
+                                                aria-describedby={errors.code ? 'code-error' : undefined}
+                                            />
+                                        </TooltipTrigger>
+                                        <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
+                                            Enter or edit the book code
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                                {errors.code && (
+                                    <p id="code-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
+                                        {errors.code || 'Please provide a valid book code (max 10 characters).'}
+                                    </p>
+                                )}
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Max 10 characters, auto-generated.</p>
+                            </div>
+                            <div>
+                                <Label htmlFor="isbn" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    ISBN
+                                </Label>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Input
+                                                id="isbn"
+                                                value={data.isbn}
+                                                onChange={(e) => setData('isbn', e.target.value)}
+                                                maxLength={13}
+                                                className={`w-full mt-1 p-2 rounded-md border ${
+                                                    errors.isbn ? 'border-red-500 dark:border-red-400' : 'border-indigo-200 dark:border-indigo-600'
+                                                } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100`}
+                                                aria-describedby={errors.isbn ? 'isbn-error' : undefined}
+                                            />
+                                        </TooltipTrigger>
+                                        <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
+                                            Enter the ISBN
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                                {errors.isbn && (
+                                    <p id="isbn-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
+                                        {errors.isbn || 'Please provide a valid ISBN (max 13 characters).'}
+                                    </p>
+                                )}
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Optional, 13 characters.</p>
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="isbn" className="text-sm font-medium text-gray-700 dark:text-gray-300">ISBN</Label>
-                            <Input
-                                id="isbn"
-                                value={data.isbn}
-                                onChange={(e) => setData('isbn', e.target.value)}
-                                className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 ${
-                                    errors.isbn ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                                }`}
-                            />
-                            {errors.isbn && <p className="text-red-500 text-sm">{errors.isbn}</p>}
+                        <div className="space-y-4 col-span-full">
+                            <div>
+                                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    {isEbook ? 'Downloadable' : 'Available'} <span className="text-red-500">*</span>
+                                </Label>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <div className="flex items-center space-x-6 mt-1">
+                                                <div className="flex items-center">
+                                                    <input
+                                                        type="radio"
+                                                        id={isEbook ? 'downloadable-yes' : 'is_available-yes'}
+                                                        name={isEbook ? 'downloadable' : 'is_available'}
+                                                        checked={isEbook ? data.downloadable === true : data.is_available === true}
+                                                        onChange={() => setData(isEbook ? 'downloadable' : 'is_available', true)}
+                                                        className="w-4 h-4 text-indigo-600 bg-gray-100 border-indigo-200 focus:ring-indigo-500 dark:focus:ring-indigo-400 dark:bg-gray-700 dark:border-indigo-600"
+                                                        required
+                                                        aria-describedby={(errors.is_available || errors.downloadable) ? 'availability-error' : undefined}
+                                                    />
+                                                    <Label
+                                                        htmlFor={isEbook ? 'downloadable-yes' : 'is_available-yes'}
+                                                        className="ml-2 text-sm text-gray-700 dark:text-gray-300"
+                                                    >
+                                                        Yes
+                                                    </Label>
+                                                </div>
+                                                <div className="flex items-center">
+                                                    <input
+                                                        type="radio"
+                                                        id={isEbook ? 'downloadable-no' : 'is_available-no'}
+                                                        name={isEbook ? 'downloadable' : 'is_available'}
+                                                        checked={isEbook ? data.downloadable === false : data.is_available === false}
+                                                        onChange={() => setData(isEbook ? 'downloadable' : 'is_available', false)}
+                                                        className="w-4 h-4 text-indigo-600 bg-gray-100 border-indigo-200 focus:ring-indigo-500 dark:focus:ring-indigo-400 dark:bg-gray-700 dark:border-indigo-600"
+                                                        aria-describedby={(errors.is_available || errors.downloadable) ? 'availability-error' : undefined}
+                                                    />
+                                                    <Label
+                                                        htmlFor={isEbook ? 'downloadable-no' : 'is_available-no'}
+                                                        className="ml-2 text-sm text-gray-700 dark:text-gray-300"
+                                                    >
+                                                        No
+                                                    </Label>
+                                                </div>
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
+                                            {isEbook ? 'Set if the e-book is downloadable' : 'Set book availability'}
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                                {(errors.is_available || errors.downloadable) && (
+                                    <p id="availability-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
+                                        {errors.is_available || errors.downloadable || 'Please select an availability option.'}
+                                    </p>
+                                )}
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    {isEbook ? 'Allow users to download the e-book.' : 'Indicate if the book is available.'}
+                                </p>
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="view" className="text-sm font-medium text-gray-700 dark:text-gray-300">Views</Label>
-                            <Input
-                                id="view"
-                                type="number"
-                                value={data.view}
-                                onChange={(e) => setData('view', e.target.value)}
-                                min="0"
-                                className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 ${
-                                    errors.view ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                                }`}
-                            />
-                            {errors.view && <p className="text-red-500 text-sm">{errors.view}</p>}
+
+                        {/* Classification */}
+                        <div className="col-span-full">
+                            <h2 className="text-lg font-semibold text-indigo-600 dark:text-indigo-300 mb-4">Classification</h2>
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="is_available" className="text-sm font-medium text-gray-700 dark:text-gray-300">Available</Label>
-                            <Select
-                                value={data.is_available ? 'true' : 'false'}
-                                onValueChange={(value) => setData('is_available', value === 'true')}
-                            >
-                                <SelectTrigger
-                                    className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 border ${
-                                        errors.is_available ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                                    }`}
-                                >
-                                    <SelectValue placeholder="Select availability" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="true">Yes</SelectItem>
-                                    <SelectItem value="false">No</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            {errors.is_available && <p className="text-red-500 text-sm">{errors.is_available}</p>}
+                        <div className="space-y-4">
+                            <div>
+                                <Label htmlFor="category" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Category <span className="text-red-500">*</span>
+                                </Label>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Select
+                                                value={data.category_id || undefined}
+                                                onValueChange={(value) => setData('category_id', value)}
+                                                required
+                                            >
+                                                <SelectTrigger
+                                                    className={`w-full mt-1 p-2 rounded-md border ${
+                                                        errors.category_id ? 'border-red-500 dark:border-red-400' : 'border-indigo-200 dark:border-indigo-600'
+                                                    } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100`}
+                                                    aria-describedby={errors.category_id ? 'category-error' : undefined}
+                                                >
+                                                    <SelectValue placeholder="Select category" />
+                                                </SelectTrigger>
+                                                <SelectContent className="bg-white dark:bg-gray-700 border-indigo-200 dark:border-indigo-600">
+                                                    {categories.map((cat) => (
+                                                        <SelectItem key={cat.id} value={cat.id.toString()}>
+                                                            {cat.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
+                                            Select the book category
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                                {errors.category_id && (
+                                    <p id="category-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
+                                        {errors.category_id || 'Please select a valid category.'}
+                                    </p>
+                                )}
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Select a category for the book.</p>
+                            </div>
+                            <div>
+                                <Label htmlFor="grade" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Grade
+                                </Label>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Select
+                                                value={data.grade_id || undefined}
+                                                onValueChange={(value) => setData('grade_id', value === 'none' ? null : value)}
+                                            >
+                                                <SelectTrigger
+                                                    className={`w-full mt-1 p-2 rounded-md border ${
+                                                        errors.grade_id ? 'border-red-500 dark:border-red-400' : 'border-indigo-200 dark:border-indigo-600'
+                                                    } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100`}
+                                                    aria-describedby={errors.grade_id ? 'grade-error' : undefined}
+                                                >
+                                                    <SelectValue placeholder="Select grade" />
+                                                </SelectTrigger>
+                                                <SelectContent className="bg-white dark:bg-gray-700 border-indigo-200 dark:border-indigo-600">
+                                                    <SelectItem value="none">None</SelectItem>
+                                                    {grades.map((grade) => (
+                                                        <SelectItem key={grade.id} value={grade.id.toString()}>
+                                                            {grade.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
+                                            Select the book grade (optional)
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                                {errors.grade_id && (
+                                    <p id="grade-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
+                                        {errors.grade_id || 'Please select a valid grade.'}
+                                    </p>
+                                )}
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Optional grade level for the book.</p>
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="user_id" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                User <span className="text-red-500">*</span>
-                            </Label>
-                            <Select
-                                value={data.user_id}
-                                onValueChange={(value) => setData('user_id', value)}
-                                required
-                            >
-                                <SelectTrigger
-                                    className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 border ${
-                                        errors.user_id ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                                    }`}
-                                >
-                                    <SelectValue placeholder="Select a user" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {users.map((user) => (
-                                        <SelectItem key={user.id} value={user.id.toString()}>
-                                            {user.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {errors.user_id && <p className="text-red-500 text-sm">{errors.user_id}</p>}
+                        <div className="space-y-4">
+                            <div>
+                                <Label htmlFor="subcategory" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Subcategory
+                                </Label>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Select
+                                                value={data.subcategory_id || undefined}
+                                                onValueChange={(value) => setData('subcategory_id', value === 'none' ? null : value)}
+                                            >
+                                                <SelectTrigger
+                                                    className={`w-full mt-1 p-2 rounded-md border ${
+                                                        errors.subcategory_id ? 'border-red-500 dark:border-red-400' : 'border-indigo-200 dark:border-indigo-600'
+                                                    } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100`}
+                                                    aria-describedby={errors.subcategory_id ? 'subcategory-error' : undefined}
+                                                >
+                                                    <SelectValue placeholder="Select subcategory" />
+                                                </SelectTrigger>
+                                                <SelectContent className="bg-white dark:bg-gray-700 border-indigo-200 dark:border-indigo-600">
+                                                    <SelectItem value="none">None</SelectItem>
+                                                    {subcategories.map((sub) => (
+                                                        <SelectItem key={sub.id} value={sub.id.toString()}>
+                                                            {sub.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
+                                            Select the book subcategory (optional)
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                                {errors.subcategory_id && (
+                                    <p id="subcategory-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
+                                        {errors.subcategory_id || 'Please select a valid subcategory.'}
+                                    </p>
+                                )}
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Optional subcategory for the book.</p>
+                            </div>
+                            <div>
+                                <Label htmlFor="subject" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Subject
+                                </Label>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Select
+                                                value={data.subject_id || undefined}
+                                                onValueChange={(value) => setData('subject_id', value === 'none' ? null : value)}
+                                            >
+                                                <SelectTrigger
+                                                    className={`w-full mt-1 p-2 rounded-md border ${
+                                                        errors.subject_id ? 'border-red-500 dark:border-red-400' : 'border-indigo-200 dark:border-indigo-600'
+                                                    } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100`}
+                                                    aria-describedby={errors.subject_id ? 'subject-error' : undefined}
+                                                >
+                                                    <SelectValue placeholder="Select subject" />
+                                                </SelectTrigger>
+                                                <SelectContent className="bg-white dark:bg-gray-700 border-indigo-200 dark:border-indigo-600">
+                                                    <SelectItem value="none">None</SelectItem>
+                                                    {subjects.map((subject) => (
+                                                        <SelectItem key={subject.id} value={subject.id.toString()}>
+                                                            {subject.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
+                                            Select the book subject (optional)
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                                {errors.subject_id && (
+                                    <p id="subject-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
+                                        {errors.subject_id || 'Please select a valid subject.'}
+                                    </p>
+                                )}
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Optional subject for the book.</p>
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="category_id" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Category <span className="text-red-500">*</span>
-                            </Label>
-                            <Select
-                                value={data.category_id}
-                                onValueChange={(value) => setData('category_id', value)}
-                                required
-                            >
-                                <SelectTrigger
-                                    className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 border ${
-                                        errors.category_id ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                                    }`}
-                                >
-                                    <SelectValue placeholder="Select a category" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {categories.map((category) => (
-                                        <SelectItem key={category.id} value={category.id.toString()}>
-                                            {category.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {errors.category_id && <p className="text-red-500 text-sm">{errors.category_id}</p>}
+
+                        {/* Location (Physical Books Only) */}
+                        {!isEbook && (
+                            <>
+                                <div className="col-span-full">
+                                    <h2 className="text-lg font-semibold text-indigo-600 dark:text-indigo-300 mb-4">Location</h2>
+                                </div>
+                                <div className="space-y-4">
+                                    <div>
+                                        <Label htmlFor="bookcase" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Bookcase <span className="text-red-500">*</span>
+                                        </Label>
+                                        <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Select
+                                                        value={data.bookcase_id || undefined}
+                                                        onValueChange={(value) => setData('bookcase_id', value)}
+                                                        required
+                                                    >
+                                                        <SelectTrigger
+                                                            className={`w-full mt-1 p-2 rounded-md border ${
+                                                                errors.bookcase_id ? 'border-red-500 dark:border-red-400' : 'border-indigo-200 dark:border-indigo-600'
+                                                            } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100`}
+                                                            aria-describedby={errors.bookcase_id ? 'bookcase-error' : undefined}
+                                                        >
+                                                            <SelectValue placeholder="Select bookcase" />
+                                                        </SelectTrigger>
+                                                        <SelectContent className="bg-white dark:bg-gray-700 border-indigo-200 dark:border-indigo-600">
+                                                            {bookcases.map((bookcase) => (
+                                                                <SelectItem key={bookcase.id} value={bookcase.id.toString()}>
+                                                                    {bookcase.code}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </TooltipTrigger>
+                                                <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
+                                                    Select the bookcase
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                        {errors.bookcase_id && (
+                                            <p id="bookcase-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
+                                                {errors.bookcase_id || 'Please select a valid bookcase.'}
+                                            </p>
+                                        )}
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Select a bookcase for the physical book.</p>
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <div>
+                                        <Label htmlFor="shelf" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Shelf <span className="text-red-500">*</span>
+                                        </Label>
+                                        <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Select
+                                                        value={data.shelf_id || undefined}
+                                                        onValueChange={(value) => setData('shelf_id', value)}
+                                                        required
+                                                    >
+                                                        <SelectTrigger
+                                                            className={`w-full mt-1 p-2 rounded-md border ${
+                                                                errors.shelf_id ? 'border-red-500 dark:border-red-400' : 'border-indigo-200 dark:border-indigo-600'
+                                                            } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100`}
+                                                            aria-describedby={errors.shelf_id ? 'shelf-error' : undefined}
+                                                        >
+                                                            <SelectValue placeholder="Select shelf" />
+                                                        </SelectTrigger>
+                                                        <SelectContent className="bg-white dark:bg-gray-700 border-indigo-200 dark:border-indigo-600">
+                                                            {shelves.map((shelf) => (
+                                                                <SelectItem key={shelf.id} value={shelf.id.toString()}>
+                                                                    {shelf.code}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </TooltipTrigger>
+                                                <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
+                                                    Select the shelf
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                        {errors.shelf_id && (
+                                            <p id="shelf-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
+                                                {errors.shelf_id || 'Please select a valid shelf.'}
+                                            </p>
+                                        )}
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Select a shelf for the physical book.</p>
+                                    </div>
+
+                                </div>
+                            </>
+                        )}
+
+                        {/* Files */}
+                        <div className="col-span-full">
+                            <h2 className="text-lg font-semibold text-indigo-600 dark:text-indigo-300 mb-4">Files</h2>
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="subcategory_id" className="text-sm font-medium text-gray-700 dark:text-gray-300">Subcategory</Label>
-                            <Select
-                                value={data.subcategory_id || 'none'}
-                                onValueChange={(value) => setData('subcategory_id', value === 'none' ? null : value)}
-                            >
-                                <SelectTrigger
-                                    className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 border ${
-                                        errors.subcategory_id ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                                    }`}
-                                >
-                                    <SelectValue placeholder="Select a subcategory" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="none">None</SelectItem>
-                                    {subcategories.map((subcategory) => (
-                                        <SelectItem key={subcategory.id} value={subcategory.id.toString()}>
-                                            {subcategory.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {errors.subcategory_id && <p className="text-red-500 text-sm">{errors.subcategory_id}</p>}
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="bookcase_id" className="text-sm font-medium text-gray-700 dark:text-gray-300">Bookcase</Label>
-                            <Select
-                                value={data.bookcase_id || 'none'}
-                                onValueChange={(value) => setData('bookcase_id', value === 'none' ? null : value)}
-                            >
-                                <SelectTrigger
-                                    className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 border ${
-                                        errors.bookcase_id ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                                    }`}
-                                >
-                                    <SelectValue placeholder="Select a bookcase" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="none">None</SelectItem>
-                                    {bookcases.map((bookcase) => (
-                                        <SelectItem key={bookcase.id} value={bookcase.id.toString()}>
-                                            {bookcase.code}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {errors.bookcase_id && <p className="text-red-500 text-sm">{errors.bookcase_id}</p>}
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="shelf_id" className="text-sm font-medium text-gray-700 dark:text-gray-300">Shelf</Label>
-                            <Select
-                                value={data.shelf_id || 'none'}
-                                onValueChange={(value) => setData('shelf_id', value === 'none' ? null : value)}
-                            >
-                                <SelectTrigger
-                                    className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 border ${
-                                        errors.shelf_id ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                                    }`}
-                                >
-                                    <SelectValue placeholder="Select a shelf" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="none">None</SelectItem>
-                                    {shelves.map((shelf) => (
-                                        <SelectItem key={shelf.id} value={shelf.id.toString()}>
-                                            {shelf.code}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {errors.shelf_id && <p className="text-red-500 text-sm">{errors.shelf_id}</p>}
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="grade_id" className="text-sm font-medium text-gray-700 dark:text-gray-300">Grade</Label>
-                            <Select
-                                value={data.grade_id || 'none'}
-                                onValueChange={(value) => setData('grade_id', value === 'none' ? null : value)}
-                            >
-                                <SelectTrigger
-                                    className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 border ${
-                                        errors.grade_id ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                                    }`}
-                                >
-                                    <SelectValue placeholder="Select a grade" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="none">None</SelectItem>
-                                    {grades.map((grade) => (
-                                        <SelectItem key={grade.id} value={grade.id.toString()}>
-                                            {grade.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {errors.grade_id && <p className="text-red-500 text-sm">{errors.grade_id}</p>}
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="subject_id" className="text-sm font-medium text-gray-700 dark:text-gray-300">Subject</Label>
-                            <Select
-                                value={data.subject_id || 'none'}
-                                onValueChange={(value) => setData('subject_id', value === 'none' ? null : value)}
-                            >
-                                <SelectTrigger
-                                    className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 border ${
-                                        errors.subject_id ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                                    }`}
-                                >
-                                    <SelectValue placeholder="Select a subject" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="none">None</SelectItem>
-                                    {subjects.map((subject) => (
-                                        <SelectItem key={subject.id} value={subject.id.toString()}>
-                                            {subject.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {errors.subject_id && <p className="text-red-500 text-sm">{errors.subject_id}</p>}
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="cover" className="text-sm font-medium text-gray-700 dark:text-gray-300">Cover</Label>
-                            <Input
+                        <div className="space-y-4">
+                            <FileField
+                                label="Cover(portrait recommended)"
                                 id="cover"
-                                type="file"
                                 accept="image/jpeg,image/png"
-                                onChange={handleFileChange}
-                                className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 ${
-                                    errors.cover ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                                }`}
+                                onChange={(e) => handleFileChange(e, 'cover')}
+                                previewUrl={coverPreviewUrl}
+                                onPreviewClick={() => setIsCoverModalOpen(true)}
+                                error={errors.cover}
+                                helperText="Optional: JPEG or PNG, max 2MB."
+                                onRemove={() => {
+                                    setData('cover', null);
+                                    setCoverPreviewUrl(null);
+                                    setPdfFileError(null);
+                                }}
                             />
-                            {coverPreviewUrl && (
-                                <div className="mt-2">
-                                    <img
-                                        src={coverPreviewUrl}
-                                        alt="Cover Preview"
-                                        className="w-32 h-auto rounded-md cursor-pointer hover:shadow-md transition-shadow"
-                                        onClick={handleCoverPreviewClick}
+                        </div>
+                            {isEbook && (
+                                <div className="space-y-3 sm:space-y-4">
+                                    <FileField
+                                        label="PDF File (10MB max)"
+                                        id="pdf_url"
+                                        accept="application/pdf"
+                                        onChange={(e) => handleFileChange(e, 'pdf_url')}
+                                        previewUrl={pdfPreviewUrl}
+                                        error={errors.pdf_url}
+                                        fileError={pdfFileError}
+                                        helperText="Required: PDF, max 10MB."
+                                        isDragDrop
+                                        dragActive={dragActive}
+                                        onDrag={handleDrag}
+                                        onDrop={handleDrop}
+                                        selectedFileName={data.pdf_url?.name || (typeof data.pdf_url === 'string' ? data.pdf_url.split('/').pop() : null)}
+                                        onRemove={() => {
+                                            setData('pdf_url', null);
+                                            setPdfPreviewUrl(null);
+                                            setPdfFileError(null);
+                                        }}
                                     />
                                 </div>
                             )}
-                            {errors.cover && <p className="text-red-500 text-sm">{errors.cover}</p>}
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="pdf_url" className="text-sm font-medium text-gray-700 dark:text-gray-300">PDF File</Label>
-                            <div
-                                className={`border-2 border-dashed ${
-                                    dragActive ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30' : 'border-gray-300 dark:border-gray-600'
-                                } p-4 rounded-md text-center ${errors.pdf_url ? 'border-red-500' : ''}`}
-                                onDragEnter={handleDrag}
-                                onDragLeave={handleDrag}
-                                onDragOver={handleDrag}
-                                onDrop={handleDrop}
-                            >
-                                <Input
-                                    id="pdf_url"
-                                    type="file"
-                                    accept="application/pdf"
-                                    onChange={handlePdfFileChange}
-                                    className="hidden"
-                                />
-                                <div className="space-y-2">
-                                    {data.pdf_url ? (
-                                        <p className="text-sm text-gray-700 dark:text-gray-300">
-                                            Selected: {(data.pdf_url as File).name}{' '}
+                        {/* Submit and Cancel */}
+                        <div className="col-span-full flex justify-end gap-4 mt-6">
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            type="submit"
+                                            disabled={processing}
+                                            className="bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 px-4 py-2 rounded-lg transition-colors duration-200"
+                                        >
+                                            {processing ? 'Creating...' : 'Create Book'}
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
+                                        Save the new book
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Link href={route('books.index')}>
                                             <Button
-                                                variant="link"
-                                                onClick={() => {
-                                                    setData('pdf_url', null);
-                                                    setPdfPreviewUrl(null);
-                                                }}
-                                                className="text-red-500 dark:text-red-400 hover:underline"
+                                                variant="outline"
+                                                className="bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-300 border-indigo-200 dark:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-800 px-4 py-2 rounded-lg transition-colors duration-200"
+                                                disabled={processing}
                                             >
-                                                Remove
+                                                Cancel
                                             </Button>
-                                        </p>
-                                    ) : (
-                                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                                            Drag and drop a PDF file here, or click to browse.
-                                        </p>
-                                    )}
-                                    <Button
-                                        type="button"
-                                        onClick={() => document.getElementById('pdf_url')?.click()}
-                                        className="bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 px-3 py-1 rounded-md transition-colors duration-200"
-                                    >
-                                        Browse
-                                    </Button>
-                                </div>
-                            </div>
-                            {pdfPreviewUrl && (
-                                <div className="mt-2">
-                                    <Button
-                                        variant="link"
-                                        onClick={handlePdfPreviewClick}
-                                        className="text-blue-500 dark:text-blue-400 hover:underline"
-                                    >
-                                        Preview PDF
-                                    </Button>
-                                </div>
-                            )}
-                            {errors.pdf_url && <p className="text-red-500 text-sm">{errors.pdf_url}</p>}
-                        </div>
-                        <div className="col-span-1 sm:col-span-2 flex gap-4 mt-6">
-                            <Button
-                                type="submit"
-                                disabled={processing}
-                                className="bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 px-4 py-2 rounded-md transition-colors duration-200"
-                            >
-                                {processing ? 'Creating...' : 'Create Book'}
-                            </Button>
-                            <Link href={route('books.index')}>
-                                <Button
-                                    variant="outline"
-                                    className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-4 py-2 rounded-md transition-colors duration-200"
-                                >
-                                    Cancel
-                                </Button>
-                            </Link>
+                                        </Link>
+                                    </TooltipTrigger>
+                                    <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
+                                        Return to the books list
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
                         </div>
                     </form>
                 </div>
+
+                {/* Cover Preview Dialog */}
                 <Dialog open={isCoverModalOpen} onOpenChange={setIsCoverModalOpen}>
-                    <DialogContent className="max-w-md bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl p-6">
+                    <DialogContent className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-blue-900 text-gray-800 dark:text-gray-100 border border-indigo-200 dark:border-indigo-700 rounded-2xl max-w-2xl">
                         <DialogHeader>
-                            <DialogTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">Cover Preview</DialogTitle>
+                            <DialogTitle className="text-xl font-semibold text-indigo-600 dark:text-indigo-300">Cover Preview</DialogTitle>
                         </DialogHeader>
                         {coverPreviewUrl ? (
-                            <img
-                                src={coverPreviewUrl}
-                                alt="Cover Preview"
-                                className="w-full h-auto rounded-md"
-                                onError={() => setIsCoverModalOpen(false)} // Close modal if image fails to load
-                            />
+                            <img src={coverPreviewUrl} alt="Cover Preview" className="w-full h-auto max-h-[70vh] object-contain rounded" />
                         ) : (
-                            <p className="text-red-500 dark:text-red-400">No cover image available</p>
+                            <p className="text-red-500 dark:text-red-400">No cover image available.</p>
                         )}
-                        <DialogFooter>
-                            <Button
-                                variant="outline"
-                                onClick={() => setIsCoverModalOpen(false)}
-                                className="bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-                            >
-                                Close
-                            </Button>
-                        </DialogFooter>
                     </DialogContent>
                 </Dialog>
+
+                {/* PDF Preview Dialog */}
                 <Dialog open={isPdfModalOpen} onOpenChange={setIsPdfModalOpen}>
-                    <DialogContent className="max-w-4xl bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl p-6">
+                    <DialogContent className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-blue-900 text-gray-800 dark:text-gray-100 border border-indigo-200 dark:border-indigo-700 rounded-2xl max-w-4xl">
                         <DialogHeader>
-                            <DialogTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">PDF Preview</DialogTitle>
+                            <DialogTitle className="text-xl font-semibold text-indigo-600 dark:text-indigo-300">PDF Preview</DialogTitle>
                         </DialogHeader>
-                        {pdfBlobUrl ? (
+                        {pdfPreviewUrl ? (
                             <Worker workerUrl="/pdf.worker.min.js">
-                                <div style={{ height: '600px' }}>
-                                    <Viewer fileUrl={pdfBlobUrl} plugins={[defaultLayoutPluginInstance]} />
+                                <div className="h-[70vh] w-full overflow-auto">
+                                    <Viewer fileUrl={pdfPreviewUrl} plugins={[defaultLayoutPluginInstance]} />
                                 </div>
                             </Worker>
                         ) : (
-                            <p className="text-red-500 dark:text-red-400">No PDF available</p>
+                            <p className="text-red-500 dark:text-red-400">No PDF file available.</p>
                         )}
-                        <DialogFooter>
-                            <Button
-                                variant="outline"
-                                onClick={() => setIsPdfModalOpen(false)}
-                                className="bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-                            >
-                                Close
-                            </Button>
-                        </DialogFooter>
                     </DialogContent>
                 </Dialog>
             </div>
         </AppLayout>
-    );
+    </ErrorBoundary>
+);
 }

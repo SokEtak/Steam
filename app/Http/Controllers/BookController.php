@@ -1,209 +1,175 @@
 <?php
-
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Book\StoreBookRequest;
-use App\Http\Requests\Book\UpdateBookRequest;
-use App\Models\Book;
-use App\Models\Category;
-use App\Models\Shelf;
-use App\Models\SubCategory;
-use App\Models\User;
-use App\Models\Bookcase;
-use App\Models\Grade;
-use App\Models\Subject;
+use App\Http\Requests\Book\BaseBookRequest;
+use App\Models\{Book, Bookcase, Campus, Category, Shelf, SubCategory, Grade, Subject};
+use Illuminate\Support\Facades\{Auth, Storage};
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Storage;
-use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 
 class BookController extends Controller
 {
     public function index()
     {
-        $books = Book::with([
-            'user:id,name',
-            'category:id,name',
-            'subcategory:id,name',
-            'bookcase:id,code',
-            'shelf:id,code',
-            'grade:id,name',
-            'subject:id,name'
-        ])
-            ->select([
-                'id',
-                'title',
-                'flip_link',
-                'cover',
-                'code',
-                'isbn',
-                'view',
-                'is_available',
-                'pdf_url',
-                'user_id',
-                'category_id',
-                'subcategory_id',
-                'bookcase_id',
-                'shelf_id',
-                'grade_id',
-                'subject_id',
-                'is_deleted'
-            ])
-            ->where('is_deleted', false)
-            ->get();
+        $book_type = request()->query('type', null);//null to get all mixed book
 
+        //prevent from illegal parameter
+        if (!in_array($book_type, ['physical', 'ebook','delbook']) && $book_type !== null) {
+            $book_type = 'physical';
+        }
+
+        $books = Book::active($book_type)->get();
+        $campuses = Campus::select('id', 'name')->get();
         return Inertia::render('Books/Index', [
             'books' => $books,
+            'availableCategories' => Category::all(),
+            'availableSubjects' => Subject::all(),
+            'availableShelves' => Shelf::select(['id', 'code'])->get(),
+            'availableSubcategories' => SubCategory::all(),
+            'availableBookcases' => Bookcase::select(['id', 'code'])->get(),
+            'availableCampuses' => $campuses,
+            'availableGrades' => Grade::all(),
+            'isSuperLibrarian' => Auth::check() && Auth::user()->role_id === 3,
+            'flash' => session('flash', []),
         ]);
     }
 
     public function create()
     {
+        //redirect to index if super librarian or non-authenticated user
+        $redirect = $this->shouldRedirect();
+        if ($redirect !== true) {
+            return $redirect;
+        }
+
+        $user_campus_id = Auth::user()->campus_id;
         return Inertia::render('Books/Create', [
-            'users' => User::select('id', 'name')->get(),
-            'categories' => Category::select('id', 'name')->get(),
-            'subcategories' => SubCategory::select('id', 'name')->get(),
-            'bookcases' => Bookcase::select('id', 'code')->get(),
-            'shelves' => Shelf::select('id', 'code')->get(),
-            'grades' => Grade::select('id', 'name')->get(),
-            'subjects' => Subject::select('id', 'name')->get(),
+            'categories' => Category::all(['id', 'name']),
+            'subcategories' => SubCategory::all(['id', 'name']),
+            'shelves' => Shelf::select(['id', 'code'])->where('campus_id', $user_campus_id)->get(),//select user campus
+            'bookcases' => Bookcase::select(['id', 'code'])->where('campus_id', $user_campus_id)->get(),
+            'grades' => Grade::all(['id', 'name']),
+            'subjects' => Subject::all(['id', 'name']),
+            'type' => request('type', 'physical'),
         ]);
-    }
-
-    public function store(StoreBookRequest $request)
-    {
-        try {
-            $validated = $request->validated();
-            $currentDate = Carbon::now()->format('d-M-Y'); // e.g., 15-Aug-2025
-
-            if ($request->hasFile('cover')) {
-                $file = $request->file('cover');
-                $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                $extension = $file->getClientOriginalExtension();
-                $newFileName = "{$fileName}_{$currentDate}.{$extension}";
-                $validated['cover'] = $file->storeAs('covers', $newFileName, 'public');
-            }
-
-            if ($request->hasFile('pdf_url')) {
-                $file = $request->file('pdf_url');
-                $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                $extension = $file->getClientOriginalExtension();
-                $newFileName = "{$fileName}_{$currentDate}.{$extension}";
-                $validated['pdf_url'] = $file->storeAs('pdfs', $newFileName, 'public');
-            }
-
-            Book::create($validated);
-            return redirect()->route('books.index')->with('message', 'Book created successfully!');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Failed to create book: ' . $e->getMessage());
-        }
-    }
-
-    public function edit(Book $book)
-    {
-        $book->load([
-            'user:id,name',
-            'category:id,name',
-            'subcategory:id,name',
-            'bookcase:id,code',
-            'shelf:id,code',
-            'grade:id,name',
-            'subject:id,name'
-        ]);
-
-        return Inertia::render('Books/Edit', [
-            'book' => $book,
-            'users' => User::select('id', 'name')->get(),
-            'categories' => Category::select('id', 'name')->get(),
-            'subcategories' => SubCategory::select('id', 'name')->get(),
-            'bookcases' => Bookcase::select('id', 'code')->get(),
-            'shelves' => Shelf::select('id', 'code')->get(),
-            'grades' => Grade::select('id', 'name')->get(),
-            'subjects' => Subject::select('id', 'name')->get(),
-        ]);
-    }
-
-    public function update(UpdateBookRequest $request, Book $book)
-    {
-        try {
-            $this->updateBookAttributes($book, $request->validated());
-
-            $book->save();
-
-            return redirect()->route('books.index')->with('flash', ['message' => 'Book updated successfully!']);
-        } catch (\Exception $e) {
-            return redirect()->back()->with('flash', ['error' => 'Failed to update book: ' . $e->getMessage()]);
-        }
     }
 
     public function show(Book $book)
     {
-        $book->load([
-            'user:id,name',
-            'category:id,name',
-            'subcategory:id,name',
-            'bookcase:id,code',
-            'shelf:id,code',
-            'grade:id,name',
-            'subject:id,name'
-        ]);
+        //prevent from viewing soft deleted book
+        if ($book->is_deleted){
+            return abort(404);
+        }
 
-        return Inertia::render('Books/Show', [
-            'book' => $book,
+        return Inertia::render('Books/Show', ['book' => $book]);
+    }
+
+    public function edit(Book $book)
+    {
+        abort(403, 'Unauthorized action.Temporary disabled.');
+        // Check for redirect
+        $redirect = $this->shouldRedirect();
+        if ($redirect !== true) {
+            return $redirect;
+        }
+
+        return Inertia::render('Books/Edit', [
+            'book' => $book->toArray(),
+            'categories' => Category::all(['id', 'name']),
+            'subcategories' => SubCategory::all(['id', 'name']),
+            'shelves' => Shelf::all(['id', 'code']),
+            'bookcases' => Bookcase::all(['id', 'code']),
+            'grades' => Grade::all(['id', 'name']),
+            'subjects' => Subject::all(['id', 'name']),
+            'flash' => session('flash', []),
         ]);
     }
 
-    public function destroy(Book $book)
+    public function store(BaseBookRequest $request)
+    {
+        $validated = $request->validated();
+        $isEbook = $validated['type'] === 'ebook';
+        $bookData = array_merge($validated, [
+            'user_id' => Auth::id(),
+        ]);
+
+        $book = new Book($bookData);
+
+        if ($request->hasFile('cover')) {
+            $book->cover = $request->file('cover')->store('covers', 'public');
+        }
+
+        if ($isEbook && $request->hasFile('pdf_url')) {
+            // Get the uploaded file
+            $pdfFile = $request->file('pdf_url');
+
+            // Get the original filename
+            $originalFilename = $pdfFile->getClientOriginalName();
+
+            // Store the file using its original filename
+            $book->pdf_url = $pdfFile->storeAs('pdfs', $originalFilename, 'public');
+        }
+
+        $book->save();
+
+        return redirect()->route('books.index')->with('message', 'Book created successfully!');
+    }
+
+    public function update(BaseBookRequest $request, Book $book)
+    {
+        $validated = $request->validated();
+        $isEbook = $validated['type'] === 'ebook';
+        $bookData = array_merge($validated, [
+            'user_id' => Auth::id(),
+            'is_available' => $validated['is_available'] ?? $book->is_available,
+            'downloadable' => $validated['downloadable'] ?? $book->downloadable,
+            'view' => $validated['view'] ?? $book->view,
+        ]);
+
+        if ($request->hasFile('cover')) {
+            $book->cover && Storage::disk('public')->delete($book->cover);
+            $bookData['cover'] = $request->file('cover')->store('covers', 'public');
+        }
+        if ($isEbook && $request->hasFile('pdf_url')) {
+            $book->pdf_url && Storage::disk('public')->delete($book->pdf_url);
+            $bookData['pdf_url'] = $request->file('pdf_url')->store('pdfs', 'public');
+        }
+        $book->update($bookData);
+
+        return redirect()->route('books.index')->with('message', 'Book updated successfully!');
+    }
+
+    public function destroy(Book $book): RedirectResponse
+    {
+        return $this->handleBookOperation(function () use ($book) {
+            if (!$book->is_deleted) {//soft delete(keep data)
+                $book->update(['is_deleted' => true]);
+                $message = 'Book deleted successfully!';
+            } else {//hard delete(permanently delete)
+                $book->cover && Storage::disk('public')->delete($book->cover);
+                $book->pdf_url && Storage::disk('public')->delete($book->pdf_url);
+                $book->delete();
+                $message = 'Book permanently deleted!';
+            }
+            return redirect()->route('books.index')->with('message', $message);
+        }, 'delete');
+    }
+
+
+    private function handleBookOperation(callable $operation, string $action): RedirectResponse
     {
         try {
-            $book->update(['is_deleted' => true]);
-
-            return redirect()->route('books.index')->with('flash', ['message' => 'Book deleted successfully!']);
+            return $operation();
         } catch (\Exception $e) {
-            return redirect()->back()->with('flash', ['error' => 'Failed to delete book: ' . $e->getMessage()]);
+            return redirect()->back()->with('flash', ['error' => "Failed to $action book: " . $e->getMessage()]);
         }
     }
 
-    private function updateBookAttributes(Book $book, array $validated)
+    public function shouldRedirect()
     {
-        $book->title = $validated['title'];
-        $book->flip_link = $validated['flip_link'];
-        $book->code = $validated['code'];
-        $book->isbn = $validated['isbn'];
-        $book->view = $validated['view'];
-        $book->is_available = $validated['is_available'];
-        $book->user_id = $validated['user_id'];
-        $book->category_id = $validated['category_id'];
-        $book->subcategory_id = $validated['subcategory_id'] === 'none' ? null : $validated['subcategory_id'];
-        $book->bookcase_id = $validated['bookcase_id'] === 'none' ? null : $validated['bookcase_id'];
-        $book->shelf_id = $validated['shelf_id'] === 'none' ? null : $validated['shelf_id'];
-        $book->grade_id = $validated['grade_id'] === 'none' ? null : $validated['grade_id'];
-        $book->subject_id = $validated['subject_id'] === 'none' ? null : $validated['subject_id'];
-        $book->is_deleted = $validated['is_deleted'];
-
-        $currentDate = Carbon::now()->format('d-M-Y'); // e.g., 15-Aug-2025
-
-        if (request()->hasFile('cover')) {
-            // Delete old cover if it exists
-            if ($book->cover) {
-                Storage::disk('public')->delete($book->cover);
-            }
-            $file = request()->file('cover');
-            $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-            $extension = $file->getClientOriginalExtension();
-            $newFileName = "{$fileName}_{$currentDate}.{$extension}";
-            $book->cover = $file->storeAs('covers', $newFileName, 'public');
+        if (Auth::check() && Auth::user()->role_id!=2) {
+            return redirect()->route('books.index');
         }
-
-        if (request()->hasFile('pdf_url')) {
-            // Delete old PDF if it exists
-            if ($book->pdf_url) {
-                Storage::disk('public')->delete($book->pdf_url);
-            }
-            $file = request()->file('pdf_url');
-            $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-            $extension = $file->getClientOriginalExtension();
-            $newFileName = "{$fileName}_{$currentDate}.{$extension}";
-            $book->pdf_url = $file->storeAs('pdfs', $newFileName, 'public');
-        }
+        return true ;
     }
 }
