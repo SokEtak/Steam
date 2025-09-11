@@ -10,9 +10,10 @@ class UserController extends Controller
     public function index()
     {
 
-//        $response = Http::get('http://127.0.0.1:8000/api/v1/users');
-//            'users' => $response->json(),
+        $response = Http::get('http://127.0.0.1:8000/api/v1/users');
+
         return Inertia::render('Users/Index', [
+            'users' => $response->json(),
         ]);
     }
 }

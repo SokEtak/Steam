@@ -15,8 +15,9 @@ class BookLoanController extends Controller
     public function index()
     {
         $bookloans = BookLoan::with(['book', 'user'])
-            ->active()
+            ->active($this->userCampusId())
             ->get();
+
         return Inertia::render('BookLoans/Index', [
             'bookloans' => $bookloans,
         ]);
@@ -24,10 +25,13 @@ class BookLoanController extends Controller
 
     public function create()
     {
-        $campus_id = Auth::user()->campus_id;
+        if ($redirect = $this->shouldRedirectIfNotStudent()) {
+            return $redirect;
+        }
+
         return Inertia::render('BookLoans/Create', [
-            'books' => Book::active(null)->get(),
-            'users' => User::loaners(2,$campus_id)->get()->toArray()
+            'books' => Book::active('physical')->get(),
+            'users' => $this->getLoanableUsers(),
         ]);
     }
 
@@ -40,11 +44,16 @@ class BookLoanController extends Controller
         ]);
 
         BookLoan::create($validated);
+
         return redirect()->route('bookloans.index')->with('message', 'Book loan created successfully.');
     }
 
     public function show(BookLoan $bookloan)
     {
+        if ($this->isDeleted($bookloan)) {
+            return abort(404);
+        }
+
         return Inertia::render('BookLoans/Show', [
             'loan' => $bookloan->load(['book', 'user']),
         ]);
@@ -52,13 +61,18 @@ class BookLoanController extends Controller
 
     public function edit(BookLoan $bookloan)
     {
-        $campus_id = Auth::user()->campus_id;
-        $books = Book::active(null)->get();
-        $users = User::loaners(2,$campus_id)->get()->toArray();
+        if ($this->isDeleted($bookloan)) {
+            return abort(404);
+        }
+
+        if ($redirect = $this->shouldRedirectIfNotStudent()) {
+            return $redirect;
+        }
+
         return Inertia::render('BookLoans/Edit', [
             'loan' => $bookloan,
-            'books' => $books,
-            'users' => $users,
+            'books' => Book::active(null)->get(),
+            'users' => $this->getLoanableUsers(),
         ]);
     }
 
@@ -71,19 +85,16 @@ class BookLoanController extends Controller
         ]);
 
         $bookloan->update($validated);
+
         return redirect()->route('bookloans.show', $bookloan->id)->with('message', 'Book loan updated successfully.');
     }
 
     public function destroy(BookLoan $bookloan)
     {
         return $this->handleBookLoanOperation(function () use ($bookloan) {
-            if (!$bookloan->is_deleted) {
-                // Soft delete: set is_deleted to true
-                $bookloan->update(['is_deleted' => true]);
-            } else {
-                // Hard delete: permanently remove the record
-                $bookloan->delete();
-            }
+            $bookloan->is_deleted
+                ? $bookloan->delete()
+                : $bookloan->update(['is_deleted' => true]);
 
             return redirect()
                 ->route('bookloans.index')
@@ -96,7 +107,33 @@ class BookLoanController extends Controller
         try {
             return $operation();
         } catch (\Exception $e) {
-            return redirect()->back()->with('flash', ['error' => "Failed to $action book loan: " . $e->getMessage()]);
+            return redirect()->back()->with('flash', [
+                'error' => "Failed to $action book loan: " . $e->getMessage()
+            ]);
         }
+    }
+
+    // 🔁 Reusable helper methods
+
+    protected function shouldRedirectIfNotStudent()
+    {
+        return Auth::check() && Auth::user()->role_id != 2
+            ? redirect()->route('bookloans.index')
+            : null;
+    }
+
+    protected function userCampusId()
+    {
+        return Auth::user()->campus_id;
+    }
+
+    protected function isDeleted(BookLoan $bookloan)
+    {
+        return $bookloan->is_deleted === 1;
+    }
+
+    protected function getLoanableUsers()
+    {
+        return User::loaners($this->userCampusId())->get()->toArray();
     }
 }

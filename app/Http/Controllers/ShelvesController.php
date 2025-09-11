@@ -20,23 +20,24 @@ class ShelvesController extends Controller
         ]);
     }
 
-
     public function create()
     {
-        $redirect = $this->shouldRedirect();
-        if ($redirect !== true) {
+        if ($redirect = $this->shouldRedirectIfNotStudent()) {
             return $redirect;
         }
+
         return Inertia::render('Shelves/Create', [
-            'bookcases' => Bookcase::select('id', 'code')
-                ->where('campus_id', Auth::user()->campus_id)
-                ->get(),
+            'bookcases' => $this->getBookcasesForCampus(),
         ]);
     }
+
     public function show(Shelf $shelf)
     {
-        $redirect = $this->shouldRedirect();
-        if ($redirect !== true) {
+        if (!$this->belongsToUserCampus($shelf)) {
+            return abort(404, 'Not Found');
+        }
+
+        if ($redirect = $this->shouldRedirectIfNotStudent()) {
             return $redirect;
         }
 
@@ -53,8 +54,7 @@ class ShelvesController extends Controller
                 'required',
                 'exists:bookcases,id',
                 function ($attribute, $value, $fail) {
-                    $bookcase = Bookcase::find($value);
-                    if ($bookcase && $bookcase->campus_id !== Auth::user()->campus_id) {
+                    if (!$this->bookcaseBelongsToUserCampus($value)) {
                         $fail('The selected bookcase does not belong to your campus.');
                     }
                 },
@@ -62,16 +62,23 @@ class ShelvesController extends Controller
         ]);
 
         Shelf::create($validated + ['campus_id' => Auth::user()->campus_id]);
+
         return redirect()->route('shelves.index')->with('message', 'Shelf created successfully.');
     }
 
     public function edit(Shelf $shelf)
     {
+        if (!$this->belongsToUserCampus($shelf)) {
+            return abort(404, 'Not Found');
+        }
+
+        if ($redirect = $this->shouldRedirectIfNotStudent()) {
+            return $redirect;
+        }
+
         return Inertia::render('Shelves/Edit', [
             'shelf' => $shelf,
-            'bookcases' => Bookcase::select('id', 'code')
-                ->where('campus_id', Auth::user()->campus_id)
-                ->get(),
+            'bookcases' => $this->getBookcasesForCampus(),
             'flash' => ['message' => session('message')],
         ]);
     }
@@ -84,8 +91,7 @@ class ShelvesController extends Controller
                 'required',
                 'exists:bookcases,id',
                 function ($attribute, $value, $fail) {
-                    $bookcase = Bookcase::find($value);
-                    if ($bookcase && $bookcase->campus_id !== Auth::user()->campus_id) {
+                    if (!$this->bookcaseBelongsToUserCampus($value)) {
                         $fail('The selected bookcase does not belong to your campus.');
                     }
                 },
@@ -93,15 +99,34 @@ class ShelvesController extends Controller
         ]);
 
         $shelf->update($validated);
+
         return redirect()->route('shelves.show', $shelf->id)->with('message', 'Shelf updated successfully.');
     }
 
-    public function shouldRedirect()
+    // 🔁 Reusable helper methods
+
+    protected function shouldRedirectIfNotStudent()
     {
-        if (Auth::check() && Auth::user()->role_id!=2) {
-            return redirect()->route('bookcases.index');
-        }
-        return true ;
+        return Auth::check() && Auth::user()->role_id != 2
+            ? redirect()->route('bookcases.index')
+            : null;
     }
 
+    protected function belongsToUserCampus($model)
+    {
+        return $model->campus_id === Auth::user()->campus_id;
+    }
+
+    protected function getBookcasesForCampus()
+    {
+        return Bookcase::select('id', 'code')
+            ->where('campus_id', Auth::user()->campus_id)
+            ->get();
+    }
+
+    protected function bookcaseBelongsToUserCampus($bookcaseId)
+    {
+        $bookcase = Bookcase::find($bookcaseId);
+        return $bookcase && $bookcase->campus_id === Auth::user()->campus_id;
+    }
 }

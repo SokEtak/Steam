@@ -12,18 +12,18 @@ class BookcaseController extends Controller
 {
     public function index()
     {
-        $books=Bookcase::withBookCountsAndBooks()
-            ->where('campus_id', Auth::user()->campus_id)
+        $bookcases = Bookcase::withBookCountsAndBooks()
+            ->where('campus_id', $this->userCampusId())
             ->get();
+
         return Inertia::render('Bookcases/Index', [
-            'bookcases' => $books,
+            'bookcases' => $bookcases,
         ]);
     }
 
     public function create()
     {
-        $redirect = $this->shouldRedirect();
-        if ($redirect !== true) {
+        if ($redirect = $this->shouldRedirectIfNotStudent()) {
             return $redirect;
         }
 
@@ -32,49 +32,67 @@ class BookcaseController extends Controller
 
     public function store(StoreBookcaseRequest $request)
     {
-        Bookcase::create($request->validated() + ['campus_id' => Auth::user()->campus_id]);
+        Bookcase::create($request->validated() + ['campus_id' => $this->userCampusId()]);
         return redirect()->route('bookcases.index')->with('message', 'Bookcase created successfully.');
     }
 
     public function show(Bookcase $bookcase)
     {
-        $redirect = $this->shouldRedirect();
-        if ($redirect !== true) {
+        if ($redirect = $this->shouldRedirectIfNotStudent()) {
             return $redirect;
         }
 
+        $bookcase = Bookcase::withBookCountsAndBooks()
+            ->where('campus_id', $this->userCampusId())
+            ->findOrFail($bookcase->id);
+
         return Inertia::render('Bookcases/Show', [
-            'bookcase' => Bookcase::withBookCountsAndBooks()
-                ->where('campus_id', Auth::user()->campus_id)
-                ->findOrFail($bookcase->id),
-            'flash' => ['message' => session('message')]
+            'bookcase' => $bookcase,
+            'flash' => ['message' => session('message')],
         ]);
     }
 
     public function edit(Bookcase $bookcase)
     {
-        $redirect = $this->shouldRedirect();
-        if ($redirect !== true) {
+        if (!$this->belongsToUserCampus($bookcase)) {
+            return abort(404, 'Not Found.');
+        }
+
+        if ($redirect = $this->shouldRedirectIfNotStudent()) {
             return $redirect;
         }
 
         return Inertia::render('Bookcases/Edit', [
             'bookcase' => $bookcase,
-            'flash' => ['message' => session('message')]
+            'flash' => ['message' => session('message')],
         ]);
     }
 
     public function update(Request $request, Bookcase $bookcase)
     {
-        $bookcase->update($request->validate(['code' => 'required|string|max:255']));
+        $bookcase->update($request->validate([
+            'code' => 'required|string|max:255',
+        ]));
+
         return redirect()->route('bookcases.index')->with('message', 'Bookcase updated successfully.');
     }
 
-    public function shouldRedirect()
+    // 🔁 Reusable helper methods
+
+    protected function shouldRedirectIfNotStudent()
     {
-        if (Auth::check() && Auth::user()->role_id!=2) {
-            return redirect()->route('bookcases.index');
-        }
-        return true ;
+        return Auth::check() && Auth::user()->role_id != 2
+            ? redirect()->route('bookcases.index')
+            : null;
+    }
+
+    protected function belongsToUserCampus($model)
+    {
+        return $model->campus_id === $this->userCampusId();
+    }
+
+    protected function userCampusId()
+    {
+        return Auth::user()->campus_id;
     }
 }

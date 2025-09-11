@@ -1895,8 +1895,8 @@ function BookIndex() {
 
                     {/* Big Modal on Row Click */}
                     {rowModal && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto ">
-                            <div className="pointer-events-auto h-auto w-full max-w-[95vw] sm:max-w-lg md:max-w-xl lg:max-w-2xl rounded-2xl border border-blue-300 bg-white p-3 sm:p-4 md:p-6 shadow-2xl dark:border-blue-500 dark:bg-gray-800 overflow-y-auto max-h-[85vh]">
+                        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto">
+                            <div className="pointer-events-auto h-auto w-full max-w-[95vw] sm:max-w-lg md:max-w-xl lg:max-w-2xl rounded-2xl border border-blue-300 bg-white p-3 sm:p-4 md:p-6 shadow-2xl dark:border-blue-500 dark:bg-gray-800 overflow-y-auto max-h-[100vh]">
                                 <div className="mb-4 flex items-center justify-between">
                                     <h2 className="flex items-center gap-2 text-2xl font-bold text-blue-700 dark:text-blue-200">{rowModal.title}</h2>
                                     <Button

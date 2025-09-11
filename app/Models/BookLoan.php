@@ -7,9 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 class BookLoan extends Model
 {
     protected $fillable = ['return_date', 'book_id', 'user_id','campus_id','is_deleted'];
-    public function scopeActive($query)
+    public function scopeActive($query,$campus_id)
     {
-        return $query->where('is_deleted', false);
+        return $query->where([
+            'is_deleted'=>false,
+            'campus_id'=>$campus_id
+        ]);
     }
 
     public function book()

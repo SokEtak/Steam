@@ -43,11 +43,13 @@ interface SharedData {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const { auth } = usePage<SharedData>().props;
 
-    //set role
+    // Set role
     const roleMap: { [key: number]: string } = {
         2: 'Librarian',
         3: 'Super Librarian',
+        999: 'Admin', // Added role for User tab access
     };
+
     // Prepare the user object, providing a default avatar if none exists
     const user = auth.user
         ? {
@@ -55,7 +57,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             email: auth.user.email,
             role: roleMap[auth.user.role_id] || 'Unknown',
             avatar: auth.user.avatar || "/avatars/default.jpg",
-
         }
         : null;
 
@@ -74,9 +75,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 {
                     title: "Physical Books",
                     url: "/admin/library/books?type=physical",
-                },{
-                    title: "Recycle Books",
-                    url: "/admin/library/books/deleted",
                 },
             ],
         },
@@ -118,6 +116,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         },
     ];
 
+    // Determine visible navigation items based on role_id
+    const visibleNavItems = auth.user
+        ? auth.user.role_id === 999
+            ? navMain.filter(item => item.title === "User") // Only "User" tab for role_id 999
+            : auth.user.role_id === 2 || auth.user.role_id === 3
+                ? navMain.filter(item => item.title !== "User") // All tabs except "User" for role_id 2 or 3
+                : [] // No tabs for other roles
+        : []; // No tabs if no user
+
     return (
         <Sidebar variant="inset" {...props}>
             <SidebarHeader>
@@ -138,7 +145,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </SidebarMenu>
             </SidebarHeader>
             <SidebarContent>
-                <NavMain items={navMain} />
+                <NavMain items={visibleNavItems} />
             </SidebarContent>
             <SidebarFooter>
                 <NavUser user={user} />
