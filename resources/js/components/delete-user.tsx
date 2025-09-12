@@ -5,16 +5,14 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-
 import HeadingSmall from '@/components/heading-small';
-
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
-export default function DeleteUser() {
+export default function DeactivateUser() {
     const passwordInput = useRef<HTMLInputElement>(null);
     const { data, setData, delete: destroy, processing, reset, errors, clearErrors } = useForm<Required<{ password: string }>>({ password: '' });
 
-    const deleteUser: FormEventHandler = (e) => {
+    const deactivateUser: FormEventHandler = (e) => {
         e.preventDefault();
 
         destroy(route('profile.destroy'), {
@@ -32,24 +30,27 @@ export default function DeleteUser() {
 
     return (
         <div className="space-y-6">
-            <HeadingSmall title="Delete account" description="Delete your account and all of its resources" />
-            <div className="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10">
-                <div className="relative space-y-0.5 text-red-600 dark:text-red-100">
-                    <p className="font-medium">Warning</p>
-                    <p className="text-sm">Please proceed with caution, this cannot be undone.</p>
+            <HeadingSmall title="Deactivate account" description="Temporarily deactivate your account and all of its resources." />
+            <div className="space-y-4 rounded-2xl border border-red-200/50 dark:border-red-500/30 bg-white/50 dark:bg-red-900/20 p-6 shadow-md backdrop-blur-sm">
+                <div className="relative space-y-0.5 text-red-700 dark:text-red-200">
+                    <p className="font-semibold text-xl">Warning</p>
+                    <p className="text-sm">Please proceed with caution, your account will not be accessible until you reactivate it.</p>
                 </div>
 
                 <Dialog>
                     <DialogTrigger asChild>
-                        <Button variant="destructive">Delete account</Button>
+                        <Button variant="destructive" className="bg-gradient-to-r from-red-500 to-rose-500 text-white font-bold py-2 px-6 rounded-full shadow-lg hover:from-red-600 hover:to-rose-600 transition-all duration-300 transform hover:scale-105">
+                            Deactivate Account
+                        </Button>
                     </DialogTrigger>
-                    <DialogContent>
-                        <DialogTitle>Are you sure you want to delete your account?</DialogTitle>
-                        <DialogDescription>
-                            Once your account is deleted, all of its resources and data will also be permanently deleted. Please enter your password
-                            to confirm you would like to permanently delete your account.
+                    <DialogContent className="rounded-3xl bg-white dark:bg-gray-900 p-8 shadow-2xl backdrop-blur-md border border-gray-200 dark:border-gray-700">
+                        <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-gray-50">
+                            Are you sure you want to deactivate your account?
+                        </DialogTitle>
+                        <DialogDescription className="text-gray-600 dark:text-gray-400 mt-2 leading-relaxed">
+                            Once your account is deactivated, all of its data will be temporarily hidden. You can reactivate your account at any time by logging back in. Please enter your password to confirm.
                         </DialogDescription>
-                        <form className="space-y-6" onSubmit={deleteUser}>
+                        <form className="space-y-6" onSubmit={deactivateUser}>
                             <div className="grid gap-2">
                                 <Label htmlFor="password" className="sr-only">
                                     Password
@@ -64,20 +65,20 @@ export default function DeleteUser() {
                                     onChange={(e) => setData('password', e.target.value)}
                                     placeholder="Password"
                                     autoComplete="current-password"
+                                    className="rounded-lg p-3 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
                                 />
 
                                 <InputError message={errors.password} />
                             </div>
 
-                            <DialogFooter className="gap-2">
+                            <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 mt-4">
                                 <DialogClose asChild>
-                                    <Button variant="secondary" onClick={closeModal}>
+                                    <Button variant="secondary" onClick={closeModal} className="w-full sm:w-auto rounded-full font-semibold transition-all duration-300 hover:bg-gray-200 dark:hover:bg-gray-700">
                                         Cancel
                                     </Button>
                                 </DialogClose>
-
-                                <Button variant="destructive" disabled={processing} asChild>
-                                    <button type="submit">Delete account</button>
+                                <Button variant="destructive" disabled={processing} className="w-full sm:w-auto bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-full font-semibold shadow-md hover:from-red-600 hover:to-rose-600 transition-all duration-300">
+                                    <button type="submit">Deactivate Account</button>
                                 </Button>
                             </DialogFooter>
                         </form>

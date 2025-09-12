@@ -1,17 +1,14 @@
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Transition } from '@headlessui/react';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { FormEventHandler, useEffect, useState } from 'react';
+import { Head, usePage, useForm } from '@inertiajs/react';
+import { useState } from 'react';
 
 import DeleteUser from '@/components/delete-user';
 import HeadingSmall from '@/components/heading-small';
-import InputError from '@/components/input-error';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Label } from '@/components/ui/label';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -20,156 +17,65 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-type ProfileForm = {
-    name: string;
-    email: string;
-    password: string;
-};
-
-export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status?: string }) {
+export default function Profile({ status }: { status?: string }) {
     const { auth } = usePage<SharedData>().props;
-
-    const { data, setData, patch, errors, processing, recentlySuccessful, reset } = useForm<Required<ProfileForm>>({
-        name: auth.user.name,
-        email: auth.user.email,
-        password: '',
-    });
-
-    // State for big picture modal and email validation
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [emailError, setEmailError] = useState<string | null>(null);
-
-    // Validate email domain
-    const validateEmail = (email: string) => {
-        if (!email.endsWith('@diu.edu.kh')) {
-            setEmailError('Email must end with @diu.edu.kh');
-            return false;
-        }
-        setEmailError(null);
-        return true;
-    };
-
-    // Handle email input change
-    const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newEmail = e.target.value;
-        setData('email', newEmail);
-        validateEmail(newEmail);
-    };
-
-    const submit: FormEventHandler = (e) => {
-        e.preventDefault();
-
-        // Prevent submission if email is invalid
-        if (!validateEmail(data.email)) {
-            return;
-        }
-
-        patch(route('profile.update'), {
-            preserveScroll: true,
-        });
-    };
-
-    // Clear password field after successful save
-    useEffect(() => {
-        if (recentlySuccessful) {
-            reset('password');
-        }
-    }, [recentlySuccessful, reset]);
+    const { recentlySuccessful } = useForm({});
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Profile settings" />
 
             <SettingsLayout>
-                <div className="space-y-6">
+                <div className="space-y-8">
                     <HeadingSmall title="Profile information" description="Update your name and email address" />
-
-                    <form onSubmit={submit} className="space-y-6">
-                        <div className="grid gap-2">
-                            <Label>Profile Picture</Label>
+                    <div className="relative z-10 p-8 md:p-12 rounded-3xl bg-white/70 dark:bg-gray-800/70 border border-gray-200/50 dark:border-gray-700/50 shadow-2xl backdrop-blur-md transition-all duration-500 ease-in-out">
+                        <div className="flex flex-col md:flex-row items-center space-y-8 md:space-y-0 md:space-x-8">
                             <button
                                 type="button"
                                 onClick={() => setIsModalOpen(true)}
-                                className="focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-full"
+                                className="relative group focus:outline-none focus:ring-4 focus:ring-purple-400/50 rounded-full transition-all duration-500 ease-in-out transform hover:scale-105 hover:shadow-xl"
                             >
-                                <Avatar className="h-16 w-16 rounded-full">
+                                <Avatar className="h-28 w-28 rounded-full border-4 border-purple-300 dark:border-purple-600 shadow-lg transition-all duration-500 ease-in-out group-hover:border-pink-500 group-hover:shadow-2xl group-hover:animate-pulse">
                                     <AvatarImage src={auth.user.avatar ? `/storage/${auth.user.avatar}` : undefined} alt={auth.user.name} />
-                                    <AvatarFallback className="rounded-full">
+                                    <AvatarFallback className="rounded-full text-4xl font-extrabold bg-gradient-to-br from-purple-400 to-pink-500 text-white">
                                         {auth.user.name.split(" ")[0][0]}
                                         {auth.user.name.split(" ")[1]?.[0] ?? ""}
                                     </AvatarFallback>
                                 </Avatar>
+                                <span className="absolute inset-0 rounded-full bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    <span className="text-white text-sm font-semibold tracking-wider">VIEW</span>
+                                </span>
                             </button>
+                            <div className="text-center md:text-left">
+                                <h3 className="text-3xl font-bold text-gray-900 dark:text-gray-50 drop-shadow-md">{auth.user.name}</h3>
+                                <p className="text-md text-gray-600 dark:text-gray-300 mt-1 drop-shadow-sm">{auth.user.email}</p>
+                            </div>
                         </div>
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="name">Name</Label>
-                            <Input
-                                id="name"
-                                className="mt-1 block w-full"
-                                value={data.name}
-                                onChange={(e) => setData('name', e.target.value)}
-                                required
-                                autoComplete="name"
-                                placeholder="Full name"
-                            />
-                            <InputError className="mt-2" message={errors.name} />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
+                            {auth.user.campus && (
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-semibold text-gray-500 dark:text-gray-400">Campus</Label>
+                                    <p className="text-xl font-bold text-gray-900 dark:text-white">{auth.user.campus.name}</p>
+                                </div>
+                            )}
+
+                            {auth.user.role && (
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-semibold text-gray-500 dark:text-gray-400">Role</Label>
+                                    <p className="text-xl font-bold text-gray-900 dark:text-white">{auth.user.role.name}</p>
+                                </div>
+                            )}
                         </div>
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="email">Email address</Label>
-                            <Input
-                                id="email"
-                                type="email"
-                                className="mt-1 block w-full"
-                                value={data.email}
-                                onChange={handleEmailChange}
-                                required
-                                autoComplete="username"
-                                placeholder="yourname@diu.edu.kh"
-                            />
-                            <InputError className="mt-2" message={emailError || errors.email} />
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="password">Password</Label>
-                            <Input
-                                id="password"
-                                type="password"
-                                className="mt-1 block w-full"
-                                value={data.password}
-                                onChange={(e) => setData('password', e.target.value)}
-                                required
-                                autoComplete="current-password"
-                                placeholder="Enter your password to confirm changes"
-                            />
-                            <InputError className="mt-2" message={errors.password} />
-                        </div>
-
-                        {mustVerifyEmail && auth.user.email_verified_at === null && (
-                            <div>
-                                <p className="-mt-4 text-sm text-muted-foreground">
-                                    Your email address is unverified.{' '}
-                                    <Link
-                                        href={route('verification.send')}
-                                        method="post"
-                                        as="button"
-                                        className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
-                                    >
-                                        Click here to resend the verification email.
-                                    </Link>
-                                </p>
-
-                                {status === 'verification-link-sent' && (
-                                    <div className="mt-2 text-sm font-medium text-green-600">
-                                        A new verification link has been sent to your email address.
-                                    </div>
-                                )}
+                        {status === 'verification-link-sent' && (
+                            <div className="mt-8 p-4 bg-green-500/10 dark:bg-green-800/20 text-green-700 dark:text-green-300 rounded-lg text-sm font-medium transition-opacity duration-500 ease-in-out border border-green-500/20 dark:border-green-500/30">
+                                A new verification link has been sent to your email address.
                             </div>
                         )}
 
-                        <div className="flex items-center gap-4">
-                            <Button disabled={processing || !!emailError}>Save</Button>
+                        <div className="mt-8 flex items-center gap-4">
                             <Transition
                                 show={recentlySuccessful}
                                 enter="transition ease-in-out"
@@ -177,34 +83,33 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                                 leave="transition ease-in-out"
                                 leaveTo="opacity-0"
                             >
-                                <p className="text-sm text-neutral-600">Saved</p>
+                                <p className="text-sm text-green-600 dark:text-green-400 font-semibold">Saved successfully! 🎉</p>
                             </Transition>
                         </div>
-                    </form>
+                    </div>
                 </div>
 
-                {/* Big Picture Modal */}
                 {isModalOpen && (
                     <div
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-xl transition-all duration-500 ease-in-out"
                         onClick={() => setIsModalOpen(false)}
                     >
                         <div
-                            className="relative bg-transparent p-4"
+                            className="relative"
                             onClick={(e) => e.stopPropagation()}
                         >
                             <button
                                 type="button"
-                                className="absolute top-0 right-0 text-white bg-black bg-opacity-50 rounded-full p-1 hover:bg-opacity-75"
+                                className="absolute -top-12 right-0 text-white bg-transparent rounded-full p-2 transition-transform duration-300 ease-in-out hover:scale-125"
                                 onClick={() => setIsModalOpen(false)}
                             >
-                                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
-                            <Avatar className="h-64 w-64 rounded-full">
-                                <AvatarImage src={auth.user.avatar ? `/storage/${auth.user.avatar}` : undefined} alt={auth.user.name} />
-                                <AvatarFallback className="rounded-full text-4xl">
+                            <Avatar className="h-[28rem] w-[28rem] rounded-2xl shadow-3xl transform scale-105">
+                                <AvatarImage src={auth.user.avatar ? `/storage/${auth.user.avatar}` : undefined} alt={auth.user.name} className="object-cover w-full h-full rounded-2xl" />
+                                <AvatarFallback className="rounded-2xl text-8xl font-black bg-gray-200/50 dark:bg-gray-700/50">
                                     {auth.user.name.split(" ")[0][0]}
                                     {auth.user.name.split(" ")[1]?.[0] ?? ""}
                                 </AvatarFallback>
@@ -212,10 +117,8 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                         </div>
                     </div>
                 )}
-
                 <DeleteUser />
             </SettingsLayout>
         </AppLayout>
     );
 }
-

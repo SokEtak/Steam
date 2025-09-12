@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Settings\ProfileUpdateRequest;
 use Cassandra\Exception\ValidationException;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
@@ -20,7 +19,11 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        // Eager load the 'campus' and 'role' relationships
+        $user = $request->user()->load(['campus:id,name', 'role:id,name']);
+        $userProps = $user->toArray();
         return Inertia::render('settings/profile', [
+            'user' => $userProps,
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
         ]);
@@ -68,8 +71,8 @@ class ProfileController extends Controller
         $user = $request->user();
 
         Auth::logout();
-
-        $user->delete();
+        //soft deactivate account
+        $user->isActive = 0;
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
