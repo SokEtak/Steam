@@ -116,6 +116,7 @@ export default function BookLoansCreate({ books, users }: BookLoansCreateProps) 
                                         <Input
                                             id="return_date"
                                             type="date"
+                                            min={new Date().toISOString().split("T")[0]}
                                             value={data.return_date}
                                             onChange={(e) => setData("return_date", e.target.value)}
                                             placeholder="Select return date"

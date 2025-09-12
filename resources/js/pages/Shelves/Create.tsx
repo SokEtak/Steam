@@ -95,6 +95,7 @@ export default function ShelvesCreate({ bookcases }: ShelvesCreateProps) {
                                     <TooltipTrigger asChild>
                                         <Input
                                             id="code"
+                                            maxLength={10}
                                             value={data.code}
                                             onChange={(e) => setData("code", e.target.value)}
                                             placeholder="Enter shelf code"

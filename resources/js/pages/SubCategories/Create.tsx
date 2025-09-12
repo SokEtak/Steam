@@ -95,6 +95,7 @@ export default function SubcategoriesCreate({ categories }: SubcategoriesCreateP
                                     <TooltipTrigger asChild>
                                         <Input
                                             id="name"
+                                            maxLength={100}
                                             value={data.name}
                                             onChange={(e) => setData("name", e.target.value)}
                                             placeholder="Enter subcategory name"

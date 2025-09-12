@@ -91,6 +91,7 @@ export default function BookcasesCreate({ flash }: BookcasesCreateProps) {
                                         <Input
                                             id="code"
                                             value={data.code}
+                                            maxLength={10}
                                             onChange={(e) => setData("code", e.target.value)}
                                             placeholder="Enter bookcase code"
                                             className={`w-full px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border ${errors.code ? "border-red-500 dark:border-red-400" : "border-indigo-200 dark:border-indigo-600"} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all duration-200`}

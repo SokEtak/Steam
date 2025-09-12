@@ -49,7 +49,7 @@ class ShelvesController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'code' => 'required|string|max:255',
+            'code' => 'required|string|max:10',
             'bookcase_id' => [
                 'required',
                 'exists:bookcases,id',
@@ -108,7 +108,7 @@ class ShelvesController extends Controller
     protected function shouldRedirectIfNotStudent()
     {
         return Auth::check() && Auth::user()->role_id != 2
-            ? redirect()->route('bookcases.index')
+            ? redirect()->route('shelves.index')
             : null;
     }
 

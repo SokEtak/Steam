@@ -86,6 +86,7 @@ export default function CategoriesCreate({}: CategoriesCreateProps) {
                                     <TooltipTrigger asChild>
                                         <Input
                                             id="name"
+                                            maxLength={100}
                                             value={data.name}
                                             onChange={(e) => setData("name", e.target.value)}
                                             placeholder="Enter category name"
