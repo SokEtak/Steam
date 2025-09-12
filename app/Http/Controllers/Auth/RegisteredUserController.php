@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Campus;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -20,7 +21,10 @@ class RegisteredUserController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('auth/register');
+        //append campus
+        $campus = Campus::all(['id', 'name', 'code']);
+
+        return Inertia::render('auth/register',['campus' => $campus]);
     }
 
     /**
@@ -30,6 +34,8 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+
+//        dd($request->all());
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => [
@@ -48,6 +54,8 @@ class RegisteredUserController extends Controller
                     }
                 },
             ],
+            'campus_id' => 'required|exists:campuses,id',
+            'code' => 'required|exists:campuses,code',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'avatar' => 'nullable|image|max:2048',
         ]);
@@ -65,13 +73,13 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
             'avatar' => $imagePath,
             'role_id' => 1,
-            'campus_id' => 1,
+            'campus_id' => $request->campus_id,
         ]);
 
         event(new Registered($user));
 
         Auth::login($user);
 
-        return redirect()->intended(route('', absolute: false));
+        return redirect()->intended(route('dashboard', absolute: false));
     }
 }

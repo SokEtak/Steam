@@ -1981,19 +1981,6 @@ function BookIndex() {
                                             <strong className="text-blue-600 dark:text-blue-300">Subject:</strong> {rowModal.subject?.name || 'N/A'}
                                         </p>
                                         <p>
-                                            <strong className="text-blue-600 dark:text-blue-300">Bookcase:</strong>{' '}
-                                            {rowModal.bookcase ? (
-                                                <Link
-                                                    href={route('bookcases.show', rowModal.bookcase.id)}
-                                                    className="text-blue-500 underline hover:text-blue-700 dark:text-blue-200 dark:hover:text-blue-100"
-                                                >
-                                                    {rowModal.bookcase.code}
-                                                </Link>
-                                            ) : (
-                                                'N/A'
-                                            )}
-                                        </p>
-                                        <p>
                                             <strong className="text-blue-600 dark:text-blue-300">Shelf:</strong>{' '}
                                             {rowModal.shelf ? (
                                                 <Link

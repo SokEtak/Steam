@@ -65,7 +65,7 @@ export function LoginForm({
                             <div className="flex flex-col items-center text-center">
                                 <h1 className="text-2xl font-bold">Welcome back</h1>
                                 <p className="text-balance text-muted-foreground">
-                                    Login to your Acme Inc account
+                                    Login to your Dewey-Steam account
                                 </p>
                             </div>
                             <div className="grid gap-2">
@@ -73,7 +73,7 @@ export function LoginForm({
                                 <Input
                                     id="email"
                                     type="email"
-                                    placeholder="m@example.com"
+                                    placeholder="vireaksereyboth@diu.edu.kh"
                                     required
                                     autoFocus
                                     autoComplete="email"
@@ -130,7 +130,7 @@ export function LoginForm({
                         <img
                             src="https://scontent.fpnh11-1.fna.fbcdn.net/v/t39.30808-6/514315859_1136521488501765_8750534483930522729_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=WkwBoL88rQcQ7kNvwGk7VRn&_nc_oc=Adn0WusdN4TUbVA25Dq85-QCTm6B4FnPYpd5V0aVD8uyX0mYcHic1uyGRt_U_h9aTvk&_nc_zt=23&_nc_ht=scontent.fpnh11-1.fna&_nc_gid=ALVeZ9bO71FUvkDs6DgBjQ&oh=00_AfYV8k6ltFxdAvRVEAAxHHM2b4pXIfGjFJBRGOUY7lBtfA&oe=68C4929A"
                             alt="Image"
-                            className="absolute inset-0 h-full w-full"
+                            className="absolute inset-0 h-full w-full bottom-10"
                         />
                     </div>
                 </CardContent>

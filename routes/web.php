@@ -13,7 +13,49 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+
 Route::get('/', fn() => Inertia::render('welcome'))->name('home');
+
+//old project
+Route::prefix('digital/resource')->group(function () {
+
+    Route::get('/program', function () {
+        return Inertia::render('E-Books/Program');
+    })->name('program');
+
+    Route::get('/grades', function (Request $request) {
+        $program = $request->query('program');
+
+        return Inertia::render('E-Books/Grade', [
+            'program' => $program,
+        ]);
+    })->name('grade');
+
+    Route::get('/subjects', function (Request $request) {
+        $program = $request->query('program');
+        $grade = $request->query('grade');
+        $subject = $request->query('subject');
+
+        return Inertia::render('E-Books/Subject', [
+            'program' => $program,
+            'grade' => $grade,
+            'subject' => $subject,
+        ]);
+    })->name('subject');
+
+    Route::get('/lessons', function (Request $request) {
+        $program = $request->query('program');
+        $grade = $request->query('grade');
+        $subject = $request->query('subject');
+
+        return Inertia::render('E-Books/Lesson', [
+            'subject' => $subject,
+            'program' => $program,
+            'grade' => $grade,
+        ]);
+    })->name('lesson');
+
+});
 
 //Protected Route
 Route::middleware(['auth', 'verified', 'role:librarian'])
