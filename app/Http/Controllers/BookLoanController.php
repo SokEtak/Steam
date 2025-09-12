@@ -43,9 +43,14 @@ class BookLoanController extends Controller
             'user_id' => 'required|exists:users,id',
         ]);
 
+        // Add campus_id from authenticated user
+        $validated['campus_id'] = Auth::user()->campus_id;
+
         BookLoan::create($validated);
 
-        return redirect()->route('bookloans.index')->with('message', 'Book loan created successfully.');
+        return redirect()
+            ->route('bookloans.index')
+            ->with('message', 'Book loan created successfully.');
     }
 
     public function show(BookLoan $bookloan)
