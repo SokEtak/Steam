@@ -48,18 +48,6 @@ function DashboardCard({ title, value, change, description, Icon, trend }) {
 
 // Main Page component updated to accept props
 export default function Page({ bookStats }) {
-    // We now manage a local state for the timeframe, defaulting to 'Last 6 months'
-    const [currentTimeframe, setCurrentTimeframe] = useState('Last 6 months');
-
-    // Use a useEffect hook to update the page data when the timeframe changes
-    useEffect(() => {
-        router.get(route('dashboard'), { timeframe: currentTimeframe }, {
-            preserveState: true,
-            preserveScroll: true,
-            only: ['bookLoansData', 'bookReturnsData'],
-        });
-    }, [currentTimeframe]);
-
     // Function to determine trend based on percentage
     const getTrend = (change) => {
         if (change.startsWith('+') && change !== '+0.0%') {
@@ -82,11 +70,6 @@ export default function Page({ bookStats }) {
             value: bookStats.physicalBookCount,
             Icon: ArrowDownRight,
         },
-        // {
-        //     title: 'Book Loans Today',
-        //     value: bookStats.bookLoansToday,
-        //     Icon: getTrend(bookStats.bookLoansChange) === 'up' ? ArrowUpRight : getTrend(bookStats.bookLoansChange) === 'down' ? ArrowDownRight : SlidersHorizontal,
-        // },
         {
             title: 'New Books Added Today',
             value: bookStats.newBooksAddedToday,
