@@ -15,7 +15,7 @@ class IsAccountActivated
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (auth()->user() && auth()->user()->isActive !== 1) {
+        if (auth()->user() && !auth()->user()->isActive ) {
             auth()->logout();
 
             // Redirect with a flash warning instead of status
