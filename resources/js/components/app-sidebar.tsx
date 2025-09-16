@@ -9,7 +9,8 @@ import {
     Library,
     LibrarySquare,
     Sheet,
-    User
+    User,
+    LayoutDashboard
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -62,6 +63,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
     // Define navigation items
     const navMain = [
+        {
+            title: "Dashboard",
+            url: "/admin/library/dashboard",
+            icon: LayoutDashboard,
+            isActive: false,
+        },
         {
             title: "Books",
             url: "/admin/library/books",
