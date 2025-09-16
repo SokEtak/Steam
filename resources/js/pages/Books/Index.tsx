@@ -319,8 +319,8 @@ const getColumns = (
             cell: ({ row }) =>
                 row.getValue('cover') ? (
                     //for local
-                    // <img src={'/storage/' + row.getValue('cover')} alt="Book cover" className="h-12 w-8 object-cover" />
-                    <img src={row.getValue('cover')} alt="Book cover" className="h-12 w-8 object-cover" />
+                    <img src={'/storage/' + row.getValue('cover')} alt="Book cover" className="h-12 w-8 object-cover" />
+                    // <img src={row.getValue('cover')} alt="Book cover" className="h-12 w-8 object-cover" />
                 ) : (
                     <ImageOff className="h-10 w-8 text-red-500 dark:text-red-300" />
                 ),

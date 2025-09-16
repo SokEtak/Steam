@@ -88,7 +88,8 @@ class BookController extends Controller
         $book = new Book(array_merge($validated, ['user_id' => Auth::id()]));
 
         if ($request->hasFile('cover')) {
-            $book->cover = $request->file('cover')->store('covers', 'public');
+            $path = $request->file('cover')->storePublicly('covers', 's3'); // Use storePublicly for public access
+            $book->cover = Storage::disk('s3')->url($path);
         }
 
         if ($this->isEbook($validated) && $request->hasFile('pdf_url')) {
@@ -112,12 +113,19 @@ class BookController extends Controller
         ]);
 
         if ($request->hasFile('cover')) {
-            $book->cover && Storage::disk('r2')->delete($book->cover);
-            $bookData['cover'] = $request->file('cover')->store('covers', 'r2');
+            if ($book->cover) {
+                $path = parse_url($book->cover, PHP_URL_PATH);
+                Storage::disk('s3')->delete(ltrim($path, '/'));
+            }
+            $path = $request->file('cover')->storePublicly('covers', 's3');
+            $bookData['cover'] = Storage::disk('s3')->url($path);
         }
 
         if ($this->isEbook($validated) && $request->hasFile('pdf_url')) {
-            $book->pdf_url && Storage::disk('r2')->delete($book->pdf_url);
+            if ($book->pdf_url) {
+                $path = parse_url($book->pdf_url, PHP_URL_PATH);
+                Storage::disk('s3')->delete(ltrim($path, '/'));
+            }
             $bookData['pdf_url'] = $this->storePdf($request);
         }
 
