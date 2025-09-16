@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Book\BaseBookRequest;
 use App\Models\{Book, Bookcase, Campus, Category, Shelf, SubCategory, Grade, Subject};
-use Illuminate\Support\Facades\{Auth, Storage};
+use Illuminate\Support\Facades\{Auth, Storage, Log};
 use Inertia\Inertia;
 use Illuminate\Http\RedirectResponse;
 use Aws\S3\Exception\S3Exception;
@@ -89,13 +89,15 @@ class BookController extends Controller
         $book = new Book(array_merge($validated, ['user_id' => Auth::id()]));
 
         try {
-            if ($request->hasFile('cover')) {
+            if ($request->hasFile('cover') && $request->file('cover')->isValid()) {
+                Log::info('Starting cover upload to R2', ['filename' => $request->file('cover')->getClientOriginalName()]);
                 $path = $request->file('cover')->storePublicly('covers', 'r2');
                 $book->cover = Storage::disk('r2')->url($path);
+                Log::info('Cover uploaded successfully', ['path' => $path, 'url' => $book->cover]);
                 // $book->cover = Storage::disk('public')->url($path); // Local storage
             }
 
-            if ($this->isEbook($validated) && $request->hasFile('pdf_url')) {
+            if ($this->isEbook($validated) && $request->hasFile('pdf_url') && $request->file('pdf_url')->isValid()) {
                 $book->pdf_url = $this->storePdf($request);
             }
 
@@ -103,10 +105,12 @@ class BookController extends Controller
 
             return redirect()->route('books.index')->with('message', 'Book created successfully!');
         } catch (S3Exception $e) {
+            Log::error('R2 S3Exception during store', ['error' => $e->getMessage(), 'code' => $e->getStatusCode() ?? 'N/A']);
             return redirect()->back()->with('flash', [
                 'error' => 'Upload failed: R2 storage error - ' . $e->getMessage()
             ]);
         } catch (\Exception $e) {
+            Log::error('General exception during book store', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return redirect()->back()->with('flash', [
                 'error' => 'Book creation failed: ' . $e->getMessage()
             ]);
@@ -125,22 +129,26 @@ class BookController extends Controller
         ]);
 
         try {
-            if ($request->hasFile('cover')) {
+            if ($request->hasFile('cover') && $request->file('cover')->isValid()) {
                 if ($book->cover) {
-                    $path = parse_url($book->cover, PHP_URL_PATH);
-                    Storage::disk('r2')->delete(ltrim($path, '/'));
-                    // Storage::disk('public')->delete(ltrim($path, '/')); // Local storage
+                    $parsedPath = parse_url($book->cover, PHP_URL_PATH);
+                    if ($parsedPath) {
+                        Storage::disk('r2')->delete(ltrim($parsedPath, '/'));
+                        // Storage::disk('public')->delete(ltrim($parsedPath, '/')); // Local storage
+                    }
                 }
                 $path = $request->file('cover')->storePublicly('covers', 'r2');
                 $bookData['cover'] = Storage::disk('r2')->url($path);
                 // $bookData['cover'] = Storage::disk('public')->url($path); // Local storage
             }
 
-            if ($this->isEbook($validated) && $request->hasFile('pdf_url')) {
+            if ($this->isEbook($validated) && $request->hasFile('pdf_url') && $request->file('pdf_url')->isValid()) {
                 if ($book->pdf_url) {
-                    $path = parse_url($book->pdf_url, PHP_URL_PATH);
-                    Storage::disk('r2')->delete(ltrim($path, '/'));
-                    // Storage::disk('public')->delete(ltrim($path, '/')); // Local storage
+                    $parsedPath = parse_url($book->pdf_url, PHP_URL_PATH);
+                    if ($parsedPath) {
+                        Storage::disk('r2')->delete(ltrim($parsedPath, '/'));
+                        // Storage::disk('public')->delete(ltrim($parsedPath, '/')); // Local storage
+                    }
                 }
                 $bookData['pdf_url'] = $this->storePdf($request);
             }
@@ -149,10 +157,12 @@ class BookController extends Controller
 
             return redirect()->route('books.index')->with('message', 'Book updated successfully!');
         } catch (S3Exception $e) {
+            Log::error('R2 S3Exception during update', ['error' => $e->getMessage(), 'code' => $e->getStatusCode() ?? 'N/A']);
             return redirect()->back()->with('flash', [
                 'error' => 'Update failed: R2 storage error - ' . $e->getMessage()
             ]);
         } catch (\Exception $e) {
+            Log::error('General exception during book update', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return redirect()->back()->with('flash', [
                 'error' => 'Book update failed: ' . $e->getMessage()
             ]);
@@ -167,16 +177,27 @@ class BookController extends Controller
                     $book->update(['is_deleted' => true]);
                     $message = 'Book deleted successfully!';
                 } else {
-                    $book->cover && Storage::disk('r2')->delete($book->cover);
-                    $book->pdf_url && Storage::disk('r2')->delete($book->pdf_url);
-                    // $book->cover && Storage::disk('public')->delete($book->cover); // Local storage
-                    // $book->pdf_url && Storage::disk('public')->delete($book->pdf_url); // Local storage
+                    if ($book->cover) {
+                        $parsedPath = parse_url($book->cover, PHP_URL_PATH);
+                        if ($parsedPath) {
+                            Storage::disk('r2')->delete(ltrim($parsedPath, '/'));
+                            // Storage::disk('public')->delete(ltrim($parsedPath, '/')); // Local storage
+                        }
+                    }
+                    if ($book->pdf_url) {
+                        $parsedPath = parse_url($book->pdf_url, PHP_URL_PATH);
+                        if ($parsedPath) {
+                            Storage::disk('r2')->delete(ltrim($parsedPath, '/'));
+                            // Storage::disk('public')->delete(ltrim($parsedPath, '/')); // Local storage
+                        }
+                    }
                     $book->delete();
                     $message = 'Book permanently deleted!';
                 }
 
                 return redirect()->route('books.index')->with('message', $message);
             } catch (S3Exception $e) {
+                Log::error('R2 S3Exception during destroy', ['error' => $e->getMessage(), 'code' => $e->getStatusCode() ?? 'N/A']);
                 return redirect()->back()->with('flash', [
                     'error' => 'Deletion failed: R2 storage error - ' . $e->getMessage()
                 ]);
@@ -189,6 +210,7 @@ class BookController extends Controller
         try {
             return $operation();
         } catch (\Exception $e) {
+            Log::error("Book operation ($action) failed", ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return redirect()->back()->with('flash', [
                 'error' => "Failed to $action book: " . $e->getMessage()
             ]);
@@ -234,11 +256,15 @@ class BookController extends Controller
         try {
             $pdfFile = $request->file('pdf_url');
             $originalFilename = $pdfFile->getClientOriginalName();
+            Log::info('Starting PDF upload to R2', ['filename' => $originalFilename]);
             $path = $pdfFile->storeAs('pdfs', $originalFilename, 'r2');
             // $path = $pdfFile->storeAs('pdfs', $originalFilename, 'public'); // Local storage
-            return Storage::disk('r2')->url($path);
+            $url = Storage::disk('r2')->url($path);
+            Log::info('PDF uploaded successfully', ['path' => $path, 'url' => $url]);
+            return $url;
             // return Storage::disk('public')->url($path); // Local storage
         } catch (S3Exception $e) {
+            Log::error('R2 S3Exception during PDF store', ['error' => $e->getMessage(), 'code' => $e->getStatusCode() ?? 'N/A']);
             throw new \Exception('PDF upload failed: ' . $e->getMessage());
         }
     }
