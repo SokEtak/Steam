@@ -19,12 +19,18 @@ interface LoginProps {
     className?: string;
     status?: string;
     canResetPassword: boolean;
+    flash?: {
+        message?: string;
+        error?: string;
+        warning?: string;
+    };
 }
 
 export function LoginForm({
                               className,
                               status,
                               canResetPassword,
+                              flash,
                               ...props
                           }: LoginProps) {
     const { data, setData, post, processing, errors, reset } = useForm<Required<LoginForm>>({
@@ -55,6 +61,11 @@ export function LoginForm({
         }
     };
 
+    // Determine which flash message to display
+    const flashMessage = flash?.message || flash?.error || flash?.warning;
+    const isError = flash?.error;
+    const isWarning = flash?.warning;
+
     return (
         <div className={cn("flex flex-col gap-6", className)} {...props}>
             <Head title="Log in" />
@@ -63,11 +74,34 @@ export function LoginForm({
                     <form className="p-6 md:p-8" onSubmit={submit}>
                         <div className="flex flex-col gap-6">
                             <div className="flex flex-col items-center text-center">
-                                <h1 className="text-2xl font-bold">Welcome back</h1>
+                                <h1 className="text-2xl font-bold">Dewey Steam</h1>
                                 <p className="text-balance text-muted-foreground">
                                     Login to your Dewey-Steam account
                                 </p>
                             </div>
+                            {/* Display general status messages */}
+                            {status && (
+                                <div className="mb-4 text-center text-sm font-medium text-green-600">
+                                    {status}
+                                </div>
+                            )}
+
+                            {/* Display flash messages with appropriate styling */}
+                            {flashMessage && (
+                                <div
+                                    className={cn(
+                                        "mb-4 text-center text-sm font-medium",
+                                        isError
+                                            ? "text-red-600 dark:text-red-400"
+                                            : isWarning
+                                                ? "text-yellow-600 dark:text-yellow-400"
+                                                : "text-green-600 dark:text-green-400"
+                                    )}
+                                >
+                                    {flashMessage}
+                                </div>
+                            )}
+
                             <div className="grid gap-2">
                                 <Label htmlFor="email">Email</Label>
                                 <Input
@@ -135,7 +169,6 @@ export function LoginForm({
                     </div>
                 </CardContent>
             </Card>
-            {status && <div className="mb-4 text-center text-sm font-medium text-green-600">{status}</div>}
             <div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 hover:[&_a]:text-primary">
                 By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
                 and <a href="#">Privacy Policy</a>.

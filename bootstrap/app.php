@@ -2,11 +2,11 @@
 
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\IsAccountActivated;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
-use App\Http\Middleware\RedirectIfNotSpecificRole;
 use App\Http\Middleware\Role;
 
 
@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
         //hardcoded middleware
         $middleware->alias([
             'role' => Role::class,
+            'is_account_activated'=>IsAccountActivated::class,
         ]);
 
 

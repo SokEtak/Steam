@@ -7,6 +7,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ShelvesController;
 use App\Http\Controllers\SubCategoryController;
 use App\Models\Book;
+use App\Http\Middleware\IsAccountActivated;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Http;
@@ -17,7 +18,7 @@ use Inertia\Inertia;
 Route::get('/', fn() => Inertia::render('welcome'))->name('home');
 
 //Protected Route
-Route::middleware(['auth', 'verified', 'role:librarian'])
+Route::middleware(['auth', 'verified', 'role:librarian','is_account_activated'])
         ->prefix('admin/library')
         ->group(function () {
 //    Route::get('/dashboard', fn() => Inertia::render('dashboard'))->name('dashboard');//original
