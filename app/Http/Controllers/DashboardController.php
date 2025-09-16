@@ -57,63 +57,6 @@ class DashboardController extends Controller
             ->whereNull('return_date')
             ->count();
         $bookLoansChange = $this->calculatePercentageChange($bookLoansToday, $bookLoansYesterday);
-        // --- End of trend calculations ---
-
-        // Get the timeframe from the request
-        $timeframe = $request->input('timeframe', 'Last 6 months');
-
-        // Define the date range based on the timeframe
-        $startDate = match ($timeframe) {
-            'Last 3 months' => $phnomPenhTime->copy()->subMonths(3),
-            'Last 30 days' => $phnomPenhTime->copy()->subDays(30),
-            'Last 7 days' => $phnomPenhTime->copy()->subDays(7),
-            'Today' => $phnomPenhTime->copy()->startOfDay(),
-            default => $phnomPenhTime->copy()->subMonths(6),
-        };
-
-        // Define the grouping for the chart data
-        $groupBy = match ($timeframe) {
-            'Today' => 'hour',
-            'Last 7 days', 'Last 30 days' => 'date',
-            default => 'month',
-        };
-
-        // Fetch and prepare real data for the loan chart
-        $bookLoansData = BookLoan::active($campusId)
-            ->selectRaw('COUNT(*) as uv, ' . $this->getGroupByExpression($groupBy) . ' as time_unit')
-            ->where('created_at', '>=', $startDate)
-            ->groupBy('time_unit')
-            ->orderBy('time_unit')
-            ->get()
-            ->map(function ($item) use ($groupBy) {
-                return ['name' => $this->formatTimeUnit($item->time_unit, $groupBy), 'uv' => $item->uv];
-            });
-
-        // Fetch and prepare real data for the returns chart
-        $bookReturnsData = BookLoan::active($campusId)
-            ->selectRaw('COUNT(*) as uv, ' . $this->getGroupByExpression($groupBy) . ' as time_unit')
-            ->where('return_date', '>=', $startDate)
-            ->groupBy('time_unit')
-            ->orderBy('time_unit')
-            ->get()
-            ->map(function ($item) use ($groupBy) {
-                return ['name' => $this->formatTimeUnit($item->time_unit, $groupBy), 'uv' => $item->uv];
-            });
-
-        // Fetch and prepare data for a recent loans table
-        $recentLoans = BookLoan::active($campusId)
-            ->with('book', 'user')
-            ->latest()
-            ->take(10)
-            ->get()
-            ->map(function ($loan) {
-                return [
-                    'title' => $loan->book->title,
-                    'borrower' => $loan->user->name,
-                    'loan_date' => Carbon::parse($loan->created_at)->format('M d, Y'),
-                    'status' => $loan->return_date ? 'Returned' : 'Loaned',
-                ];
-            });
 
         return Inertia::render('dashboard', [
             'bookStats' => [
@@ -124,9 +67,6 @@ class DashboardController extends Controller
                 'bookLoansChange' => $bookLoansChange,
                 'newBooksChange' => $newBooksChange,
             ],
-            'bookLoansData' => $bookLoansData,
-            'bookReturnsData' => $bookReturnsData,
-            'recentLoans' => $recentLoans,
         ]);
     }
 
@@ -140,30 +80,5 @@ class DashboardController extends Controller
         }
         $change = (($current - $previous) / $previous) * 100;
         return ($change > 0 ? '+' : '') . number_format($change, 1) . '%';
-    }
-
-    /**
-     * Helper function to get the correct SQL grouping expression.
-     */
-    private function getGroupByExpression($groupBy)
-    {
-        return match ($groupBy) {
-            'hour' => 'HOUR(created_at)',
-            'date' => 'DATE(created_at)',
-            default => 'MONTH(created_at)',
-        };
-    }
-
-    /**
-     * Helper function to format the time unit for the frontend.
-     */
-    private function formatTimeUnit($timeUnit, $groupBy)
-    {
-        return match ($groupBy) {
-            'hour' => "{$timeUnit}:00",
-            'date' => Carbon::parse($timeUnit)->format('M d'),
-            'month' => Carbon::createFromDate(null, $timeUnit, 1)->format('M'),
-            default => $timeUnit,
-        };
     }
 }
