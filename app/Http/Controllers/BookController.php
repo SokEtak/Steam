@@ -3,11 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Book\BaseBookRequest;
-use Aws\S3\Exception\S3Exception;
 use App\Models\{Book, Bookcase, Campus, Category, Shelf, SubCategory, Grade, Subject};
 use Illuminate\Support\Facades\{Auth, Storage};
 use Inertia\Inertia;
 use Illuminate\Http\RedirectResponse;
+use Aws\S3\Exception\S3Exception;
 
 class BookController extends Controller
 {
@@ -15,7 +15,7 @@ class BookController extends Controller
     {
         $book_type = request()->query('type', null);
 
-        if (!in_array($book_type, ['physical', 'ebook']) && $book_type !== null) {
+        if (!in_array($book_type, ['physical', 'ebook', 'delbook']) && $book_type !== null) {
             $book_type = 'physical';
         }
 
@@ -92,7 +92,7 @@ class BookController extends Controller
             if ($request->hasFile('cover')) {
                 $path = $request->file('cover')->storePublicly('covers', 'r2');
                 $book->cover = Storage::disk('r2')->url($path);
-                // $book->cover = Storage::disk('public')->url($path); // Local fallback
+                // $book->cover = Storage::disk('public')->url($path); // Local storage
             }
 
             if ($this->isEbook($validated) && $request->hasFile('pdf_url')) {
@@ -103,12 +103,10 @@ class BookController extends Controller
 
             return redirect()->route('books.index')->with('message', 'Book created successfully!');
         } catch (S3Exception $e) {
-            // R2/S3-specific error
             return redirect()->back()->with('flash', [
                 'error' => 'Upload failed: R2 storage error - ' . $e->getMessage()
             ]);
         } catch (\Exception $e) {
-            // General error
             return redirect()->back()->with('flash', [
                 'error' => 'Book creation failed: ' . $e->getMessage()
             ]);
@@ -131,19 +129,18 @@ class BookController extends Controller
                 if ($book->cover) {
                     $path = parse_url($book->cover, PHP_URL_PATH);
                     Storage::disk('r2')->delete(ltrim($path, '/'));
-                    // Storage::disk('public')->delete(ltrim($path, '/')); // Local fallback
+                    // Storage::disk('public')->delete(ltrim($path, '/')); // Local storage
                 }
                 $path = $request->file('cover')->storePublicly('covers', 'r2');
-                // $path = $request->file('cover')->storePublicly('covers', 'public'); // Local fallback
                 $bookData['cover'] = Storage::disk('r2')->url($path);
-                // $bookData['cover'] = Storage::disk('public')->url($path); // Local fallback
+                // $bookData['cover'] = Storage::disk('public')->url($path); // Local storage
             }
 
             if ($this->isEbook($validated) && $request->hasFile('pdf_url')) {
                 if ($book->pdf_url) {
                     $path = parse_url($book->pdf_url, PHP_URL_PATH);
                     Storage::disk('r2')->delete(ltrim($path, '/'));
-                    // Storage::disk('public')->delete(ltrim($path, '/')); // Local fallback
+                    // Storage::disk('public')->delete(ltrim($path, '/')); // Local storage
                 }
                 $bookData['pdf_url'] = $this->storePdf($request);
             }
@@ -165,19 +162,25 @@ class BookController extends Controller
     public function destroy(Book $book): RedirectResponse
     {
         return $this->handleBookOperation(function () use ($book) {
-            if (!$book->is_deleted) {
-                $book->update(['is_deleted' => true]);
-                $message = 'Book deleted successfully!';
-            } else {
-                $book->cover && Storage::disk('r2')->delete($book->cover);
-                $book->pdf_url && Storage::disk('r2')->delete($book->pdf_url);
-                // $book->cover && Storage::disk('public')->delete($book->cover); // Local storage
-                // $book->pdf_url && Storage::disk('public')->delete($book->pdf_url); // Local storage
-                $book->delete();
-                $message = 'Book permanently deleted!';
-            }
+            try {
+                if (!$book->is_deleted) {
+                    $book->update(['is_deleted' => true]);
+                    $message = 'Book deleted successfully!';
+                } else {
+                    $book->cover && Storage::disk('r2')->delete($book->cover);
+                    $book->pdf_url && Storage::disk('r2')->delete($book->pdf_url);
+                    // $book->cover && Storage::disk('public')->delete($book->cover); // Local storage
+                    // $book->pdf_url && Storage::disk('public')->delete($book->pdf_url); // Local storage
+                    $book->delete();
+                    $message = 'Book permanently deleted!';
+                }
 
-            return redirect()->route('books.index')->with('message', $message);
+                return redirect()->route('books.index')->with('message', $message);
+            } catch (S3Exception $e) {
+                return redirect()->back()->with('flash', [
+                    'error' => 'Deletion failed: R2 storage error - ' . $e->getMessage()
+                ]);
+            }
         }, 'delete');
     }
 
@@ -228,12 +231,16 @@ class BookController extends Controller
 
     protected function storePdf($request)
     {
-        $pdfFile = $request->file('pdf_url');
-        $originalFilename = $pdfFile->getClientOriginalName();
-        $path = $pdfFile->storeAs('pdfs', $originalFilename, 'r2');
-        // $path = $pdfFile->storeAs('pdfs', $originalFilename, 'public'); // Local fallback
-        return Storage::disk('r2')->url($path);
-        // return Storage::disk('public')->url($path); // Local fallback
+        try {
+            $pdfFile = $request->file('pdf_url');
+            $originalFilename = $pdfFile->getClientOriginalName();
+            $path = $pdfFile->storeAs('pdfs', $originalFilename, 'r2');
+            // $path = $pdfFile->storeAs('pdfs', $originalFilename, 'public'); // Local storage
+            return Storage::disk('r2')->url($path);
+            // return Storage::disk('public')->url($path); // Local storage
+        } catch (S3Exception $e) {
+            throw new \Exception('PDF upload failed: ' . $e->getMessage());
+        }
     }
 
     protected function getShelvesForCampus()
