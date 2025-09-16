@@ -14,7 +14,7 @@ class BookController extends Controller
     {
         $book_type = request()->query('type', null);
 
-        if (!in_array($book_type, ['physical', 'ebook', 'delbook']) && $book_type !== null) {
+        if (!in_array($book_type, ['physical', 'ebook']) && $book_type !== null) {
             $book_type = 'physical';
         }
 

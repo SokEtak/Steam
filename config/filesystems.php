@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'default' => env('FILESYSTEM_DISK', 's3'),
+    'default' => env('FILESYSTEM_DISK', 'r2'),
 
     'disks' => [
         'local' => [
@@ -18,7 +18,7 @@ return [
             'throw' => false,
         ],
 
-        's3' => [
+        'r2' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
             'secret' => env('AWS_SECRET_ACCESS_KEY'),
