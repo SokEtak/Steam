@@ -88,8 +88,9 @@ class BookController extends Controller
         $book = new Book(array_merge($validated, ['user_id' => Auth::id()]));
 
         if ($request->hasFile('cover')) {
-            $path = $request->file('cover')->storePublicly('covers', 's3'); // Use storePublicly for public access
-            $book->cover = Storage::disk('s3')->url($path);
+            $path = $request->file('cover')->storePublicly('covers', 'r2');
+            $book->cover = Storage::disk('r2')->url($path);
+            // $book->cover = Storage::disk('public')->url($path); // Local storage
         }
 
         if ($this->isEbook($validated) && $request->hasFile('pdf_url')) {
@@ -115,16 +116,19 @@ class BookController extends Controller
         if ($request->hasFile('cover')) {
             if ($book->cover) {
                 $path = parse_url($book->cover, PHP_URL_PATH);
-                Storage::disk('s3')->delete(ltrim($path, '/'));
+                Storage::disk('r2')->delete(ltrim($path, '/'));
+                // Storage::disk('public')->delete(ltrim($path, '/')); // Local storage
             }
-            $path = $request->file('cover')->storePublicly('covers', 's3');
-            $bookData['cover'] = Storage::disk('s3')->url($path);
+            $path = $request->file('cover')->storePublicly('covers', 'r2');
+            $bookData['cover'] = Storage::disk('r2')->url($path);
+            // $bookData['cover'] = Storage::disk('public')->url($path); // Local storage
         }
 
         if ($this->isEbook($validated) && $request->hasFile('pdf_url')) {
             if ($book->pdf_url) {
                 $path = parse_url($book->pdf_url, PHP_URL_PATH);
-                Storage::disk('s3')->delete(ltrim($path, '/'));
+                Storage::disk('r2')->delete(ltrim($path, '/'));
+                // Storage::disk('public')->delete(ltrim($path, '/')); // Local storage
             }
             $bookData['pdf_url'] = $this->storePdf($request);
         }
@@ -143,6 +147,8 @@ class BookController extends Controller
             } else {
                 $book->cover && Storage::disk('r2')->delete($book->cover);
                 $book->pdf_url && Storage::disk('r2')->delete($book->pdf_url);
+                // $book->cover && Storage::disk('public')->delete($book->cover); // Local storage
+                // $book->pdf_url && Storage::disk('public')->delete($book->pdf_url); // Local storage
                 $book->delete();
                 $message = 'Book permanently deleted!';
             }
@@ -200,7 +206,10 @@ class BookController extends Controller
     {
         $pdfFile = $request->file('pdf_url');
         $originalFilename = $pdfFile->getClientOriginalName();
-        return $pdfFile->storeAs('pdfs', $originalFilename, 'r2');
+        $path = $pdfFile->storeAs('pdfs', $originalFilename, 'r2');
+        // $path = $pdfFile->storeAs('pdfs', $originalFilename, 'public'); // Local storage
+        return Storage::disk('r2')->url($path);
+        // return Storage::disk('public')->url($path); // Local storage
     }
 
     protected function getShelvesForCampus()
