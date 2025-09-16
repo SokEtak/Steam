@@ -314,6 +314,20 @@ const getColumns = (
             cell: ({ row }) => <div className="px-3">{row.getValue('author')}</div>,
         },
         {
+            accessorKey: 'cover',
+            header: 'Cover',
+            cell: ({ row }) =>
+                row.getValue('cover') ? (
+                    //for local
+                    // <img src={'/storage/' + row.getValue('cover')} alt="Book cover" className="h-12 w-8 object-cover" />
+                    <img src={row.getValue('cover')} alt="Book cover" className="h-12 w-8 object-cover" />
+                ) : (
+                    <ImageOff className="h-10 w-8 text-red-500 dark:text-red-300" />
+                ),
+            enableSorting: false,
+            enableHiding: true,
+        },
+        {
             accessorKey: 'description',
             header: 'Description',
             cell: ({ row }) => <div className="max-w-xs truncate px-3">{row.getValue('description') || 'N/A'}</div>,
@@ -478,18 +492,6 @@ const getColumns = (
             enableHiding: true,
         },
         {
-            accessorKey: 'cover',
-            header: 'Cover',
-            cell: ({ row }) =>
-                row.getValue('cover') ? (
-                    <img src={'/storage/' + row.getValue('cover')} alt="Book cover" className="h-12 w-8 object-cover" />
-                ) : (
-                    <ImageOff className="h-8 w-8 text-red-500 dark:text-red-300" />
-                ),
-            enableSorting: false,
-            enableHiding: true,
-        },
-        {
             accessorKey: 'pdf_url',
             header: 'PDF',
             cell: ({ row }) =>
@@ -606,7 +608,7 @@ const getColumns = (
         {
             accessorKey: 'code',
             header: 'Code',
-            cell: ({ row }) => <div className="px-3">{row.getValue('code') || 'N/A'}</div>,
+            cell: ({ row }) => <div className="px-0">{row.getValue('code') || 'N/A'}</div>,
             enableHiding: true,
         },
         {
@@ -1328,7 +1330,7 @@ function BookIndex() {
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
         description: false,
-        page_count: true,
+        page_count: false,
         publisher: false,
         language: true,
         pdf_url: false,
@@ -1338,18 +1340,19 @@ function BookIndex() {
         isbn: false,
         cover: true,
         type: true,
-        downloadable: true,
+        downloadable: false,
         'Posted By': isSuperLibrarian,
         is_available: true,
-        created_at: false,
-        updated_at: false,
-        category: true,
+        category: false,
         subcategory: false,
         subject: false,
         bookcase: true,
-        shelf: true,
+        shelf: false,
         grade: false,
-        campus: isSuperLibrarian
+        published_at: false,
+        campus: isSuperLibrarian,
+        created_at: false,
+        updated_at: false,
     });
     const [rowSelection, setRowSelection] = useState({});
     const [pagination, setPagination] = useState<PaginationState>({
@@ -1509,7 +1512,7 @@ function BookIndex() {
                             placeholder="Search"
                             value={globalFilter ?? ''}
                             onChange={(event) => setGlobalFilter(event.target.value)}
-                            className="max-w-2xl flex-grow sm:flex-grow-0"
+                            className="sm:max-w-4xl max-w-2xl  flex-grow sm:flex-grow-0"
                             disabled={isTableLoading || processing}
                         />
                     </div>
