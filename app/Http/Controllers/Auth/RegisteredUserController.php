@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -34,8 +35,7 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-
-//        dd($request->all());
+        dd(Storage::disk('r2')->put('test.txt', 'Hello, R2!'));
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => [
@@ -44,12 +44,10 @@ class RegisteredUserController extends Controller
                 'lowercase',
                 'email',
                 'max:255',
-                'unique:' . User::class,
+                'unique:'.User::class,
                 function ($attribute, $value, $fail) {
-                    // Allowed domain(s)
                     $allowedDomain = 'diu.edu.kh';
-
-                    if (!str_ends_with($value, '@' . $allowedDomain)) {
+                    if (!str_ends_with($value, '@'.$allowedDomain)) {
                         $fail("Only Dewey Organization's email addresses are allowed to register.");
                     }
                 },
@@ -57,21 +55,25 @@ class RegisteredUserController extends Controller
             'campus_id' => 'required|exists:campuses,id',
             'code' => 'required|exists:campuses,code',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'avatar' => 'nullable|image|max:2048',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Max 2MB
         ]);
-
-
 
         $imagePath = null;
         if ($request->hasFile('avatar')) {
-            $imagePath = $request->file('avatar')->store('avatars', 's3');//change public to s3 for production
+            try {
+                // Store the file publicly on the r2 disk
+                $imagePath = $request->file('avatar')->storePublicly('avatars', 'r2');
+            } catch (\Exception $e) {
+                \Log::error('Failed to upload avatar to R2: ' . $e->getMessage());
+                return back()->withErrors(['avatar' => 'Failed to upload avatar. Please try again.']);
+            }
         }
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'avatar' => $imagePath,
+            'avatar' => $imagePath ? Storage::disk('r2')->url($imagePath) : null, // Store full URL
             'role_id' => 1,
             'campus_id' => $request->campus_id,
         ]);
