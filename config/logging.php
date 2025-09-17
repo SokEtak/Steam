@@ -52,18 +52,10 @@ return [
 
     'channels' => [
 
-        'channels' => [
-            'stack' => [
-                'driver' => 'stack',
-                'channels' => ['daily', 'sentry'], // Add Sentry or similar for production
-                'ignore_exceptions' => false,
-            ],
-            'daily' => [
-                'driver' => 'daily',
-                'path' => storage_path('logs/laravel.log'),
-                'level' => env('LOG_LEVEL', 'error'), // Set to 'error' or 'warning' in production
-                'days' => 14,
-            ],
+        'stack' => [
+            'driver' => 'stack',
+            'channels' => explode(',', env('LOG_STACK', 'single')),
+            'ignore_exceptions' => false,
         ],
 
         'single' => [

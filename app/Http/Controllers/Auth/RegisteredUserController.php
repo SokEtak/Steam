@@ -64,7 +64,7 @@ class RegisteredUserController extends Controller
 
         $imagePath = null;
         if ($request->hasFile('avatar')) {
-            $imagePath = $request->file('avatar')->store('avatars', 'public');//change public to s3 for production
+            $imagePath = $request->file('avatar')->store('avatars', 's3');//change public to s3 for production
         }
 
         $user = User::create([
