@@ -59,20 +59,39 @@ Route::prefix('digital/resource')->group(function () {
 });
 
 //Protected Route
-Route::middleware(['auth', 'verified', 'role:librarian','is_account_activated'])
-        ->prefix('admin/library')
-        ->group(function () {
-            Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::resources([
-        'books' => BookController::class,
-        'bookcases' => BookcaseController::class,
-        'bookloans' => BookLoanController::class,
-        'shelves' => ShelvesController::class,
-        'categories' => CategoryController::class,
-        'subcategories' => SubCategoryController::class,
-        'users' => UserController::class,
-    ]);
-});
+Route::middleware(['auth', 'verified', 'role:librarian', 'is_account_activated'])
+    ->prefix('admin/library')
+    ->as('admin.library.')
+    ->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+        Route::resources([
+            'books' => BookController::class,
+            'bookcases' => BookcaseController::class,
+            'bookloans' => BookLoanController::class,
+            'shelves' => ShelvesController::class,
+            'categories' => CategoryController::class,
+            'subcategories' => SubCategoryController::class,
+            'users' => UserController::class,
+        ]);
+    });
+
+
+//old
+//Route::middleware(['auth', 'verified', 'role:librarian','is_account_activated'])
+//        ->prefix('admin/library')
+//        ->group(function () {
+//            Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+//    Route::resources([
+//        'books' => BookController::class,
+//        'bookcases' => BookcaseController::class,
+//        'bookloans' => BookLoanController::class,
+//        'shelves' => ShelvesController::class,
+//        'categories' => CategoryController::class,
+//        'subcategories' => SubCategoryController::class,
+//        'users' => UserController::class,
+//    ]);
+//});
 
 //for regular user
 //at this point should create another page that can be reusable (pass books,.. as prop)
