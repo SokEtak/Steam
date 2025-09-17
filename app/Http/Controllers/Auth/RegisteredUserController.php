@@ -35,7 +35,6 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        dd(Storage::disk('r2')->put('test.txt', 'Hello, R2!'));
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => [
@@ -44,10 +43,10 @@ class RegisteredUserController extends Controller
                 'lowercase',
                 'email',
                 'max:255',
-                'unique:'.User::class,
+                'unique:' . User::class,
                 function ($attribute, $value, $fail) {
                     $allowedDomain = 'diu.edu.kh';
-                    if (!str_ends_with($value, '@'.$allowedDomain)) {
+                    if (!str_ends_with($value, '@' . $allowedDomain)) {
                         $fail("Only Dewey Organization's email addresses are allowed to register.");
                     }
                 },
@@ -61,11 +60,13 @@ class RegisteredUserController extends Controller
         $imagePath = null;
         if ($request->hasFile('avatar')) {
             try {
-                // Store the file publicly on the r2 disk
-                $imagePath = $request->file('avatar')->storePublicly('avatars', 'r2');
+                // Store the file on the r2 disk with public visibility
+                $imagePath = $request->file('avatar')->store('avatars', 'r2');
+                // Optionally set visibility explicitly (if not configured in disk)
+                Storage::disk('r2')->setVisibility($imagePath, 'public');
             } catch (\Exception $e) {
                 \Log::error('Failed to upload avatar to R2: ' . $e->getMessage());
-                return back()->withErrors(['avatar' => 'Failed to upload avatar. Please try again.']);
+                return back()->withErrors(['avatar' => 'Failed to upload avatar. Please try again later.']);
             }
         }
 
@@ -73,7 +74,7 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'avatar' => $imagePath ? Storage::disk('r2')->url($imagePath) : null, // Store full URL
+            'avatar' => $imagePath, // Store the path, generate URL dynamically when needed
             'role_id' => 1,
             'campus_id' => $request->campus_id,
         ]);

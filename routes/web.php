@@ -13,7 +13,13 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Storage;
 
+Route::get('/test-s3', function () {
+    Storage::disk('s3')->put('test.txt', 'Hello from R2!');
+    $url = Storage::disk('s3')->url('test.txt');
+    return "File uploaded! URL: $url";
+});
 
 Route::get('/', fn() => Inertia::render('welcome'))->name('home');
 
