@@ -37,7 +37,8 @@ export default function Profile({ status }: { status?: string }) {
                                 className="relative group focus:outline-none focus:ring-4 focus:ring-purple-400/50 rounded-full transition-all duration-500 ease-in-out transform hover:scale-105 hover:shadow-xl"
                             >
                                 <Avatar className="h-28 w-28 rounded-full border-4 border-purple-300 dark:border-purple-600 shadow-lg transition-all duration-500 ease-in-out group-hover:border-pink-500 group-hover:shadow-2xl group-hover:animate-pulse">
-                                    <AvatarImage src={auth.user.avatar ? `/storage/${auth.user.avatar}` : undefined} alt={auth.user.name} />
+                                    {/*<AvatarImage src={auth.user.avatar ? `/storage/${auth.user.avatar}` : undefined} alt={auth.user.name} />*/}
+                                    <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
                                     <AvatarFallback className="rounded-full text-4xl font-extrabold bg-gradient-to-br from-purple-400 to-pink-500 text-white">
                                         {auth.user.name.split(" ")[0][0]}
                                         {auth.user.name.split(" ")[1]?.[0] ?? ""}
@@ -54,19 +55,19 @@ export default function Profile({ status }: { status?: string }) {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
-                            {/*{auth.user.campus && (*/}
-                            {/*    <div className="space-y-2">*/}
-                            {/*        <Label className="text-sm font-semibold text-gray-500 dark:text-gray-400">Campus</Label>*/}
-                            {/*        <p className="text-xl font-bold text-gray-900 dark:text-white">{auth.user.campus.name}</p>*/}
-                            {/*    </div>*/}
-                            {/*)}*/}
+                            {auth.user.campus && (
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-semibold text-gray-500 dark:text-gray-400">Campus</Label>
+                                    <p className="text-xl font-bold text-gray-900 dark:text-white">{auth.user.campus.name}</p>
+                                </div>
+                            )}
 
-                            {/*{auth.user.role && (*/}
-                            {/*    <div className="space-y-2">*/}
-                            {/*        <Label className="text-sm font-semibold text-gray-500 dark:text-gray-400">Role</Label>*/}
-                            {/*        <p className="text-xl font-bold text-gray-900 dark:text-white">{auth.user.role.name}</p>*/}
-                            {/*    </div>*/}
-                            {/*)}*/}
+                            {auth.user.role && (
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-semibold text-gray-500 dark:text-gray-400">Role</Label>
+                                    <p className="text-xl font-bold text-gray-900 dark:text-white">{auth.user.role.name}</p>
+                                </div>
+                            )}
                         </div>
 
                         {status === 'verification-link-sent' && (
@@ -108,14 +109,14 @@ export default function Profile({ status }: { status?: string }) {
                                 </svg>
                             </button>
                             {/*{console.log(auth.user.avatar)}*/}
-                            <Avatar className="h-[28rem] w-[28rem] rounded-2xl shadow-3xl transform scale-105">
-                                {/*<AvatarImage src={auth.user.avatar ? `/storage/${auth.user.avatar}` : undefined} alt={auth.user.name} className="object-cover w-full h-full rounded-2xl" />*/}
-                                <AvatarImage src={"https://fls-9fd96a88-703c-423b-a3c6-5b74b203b091.laravel.cloud/"+auth.user.avatar} alt={auth.user.name} className="object-cover w-full h-full rounded-2xl" />
-                                <AvatarFallback className="rounded-2xl text-8xl font-black bg-gray-200/50 dark:bg-gray-700/50">
-                                    {auth.user.name.split(" ")[0][0]}
-                                    {auth.user.name.split(" ")[1]?.[0] ?? ""}
-                                </AvatarFallback>
-                            </Avatar>
+                            {/*<Avatar className="h-[28rem] w-[28rem] rounded-2xl shadow-3xl transform scale-105">*/}
+                            {/*    /!*<AvatarImage src={auth.user.avatar ? `/storage/${auth.user.avatar}` : undefined} alt={auth.user.name} className="object-cover w-full h-full rounded-2xl" />*!/*/}
+                            {/*    <AvatarImage src={"https://fls-9fd96a88-703c-423b-a3c6-5b74b203b091.laravel.cloud/"+auth.user.avatar} alt={auth.user.name} className="object-cover w-full h-full rounded-2xl" />*/}
+                            {/*    <AvatarFallback className="rounded-2xl text-8xl font-black bg-gray-200/50 dark:bg-gray-700/50">*/}
+                            {/*        /!*{auth.user.name.split(" ")[0][0]}*!/*/}
+                            {/*        /!*{auth.user.name.split(" ")[1]?.[0] ?? ""}*!/*/}
+                            {/*    </AvatarFallback>*/}
+                            {/*</Avatar>*/}
                         </div>
                     </div>
                 )}
