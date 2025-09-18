@@ -85,39 +85,44 @@ class BookController extends Controller
     public function store(Book $request)
     {
         $validated = $request->validated();
-        $book = new Book($validated + ['user_id' => Auth::id()]);
+        $book = new Book(array_merge($validated, ['user_id' => Auth::id()]));
 
         try {
             if ($request->hasFile('cover') && $request->file('cover')->isValid()) {
-                $mimes = ['image/jpeg', 'image/png', 'image/gif'];
-                if (!in_array($request->file('cover')->getMimeType(), $mimes)) {
-                    return back()->with('flash', ['error' => 'Invalid cover format']);
+                $allowedMimes = ['image/jpeg', 'image/png', 'image/gif'];
+                if (!in_array($request->file('cover')->getMimeType(), $allowedMimes)) {
+                    return redirect()->back()->with('flash', ['error' => 'Invalid cover image format.']);
                 }
-                $coverFile = 'covers/' . uniqid('cover_', true) . '.' . $request->file('cover')->extension();
-                $path = $request->file('cover')->storeAs('', $coverFile, 'public');
+                Log::info('Starting cover upload to local storage', ['filename' => $request->file('cover')->getClientOriginalName()]);
+                // Generate a unique filename to avoid overwriting
+                $coverExtension = $request->file('cover')->getClientOriginalExtension();
+                $coverFilename = 'covers/' . uniqid('cover_', true) . '.' . $coverExtension;
+                $path = $request->file('cover')->storeAs('', $coverFilename, 'public');
                 $book->cover = Storage::disk('public')->url($path);
-                Log::info('Cover uploaded', ['path' => $path, 'url' => $book->cover]);
+                Log::info('Cover uploaded successfully', ['path' => $path, 'url' => $book->cover]);
             }
 
             if ($this->isEbook($validated) && $request->hasFile('pdf_url') && $request->file('pdf_url')->isValid()) {
                 if ($request->file('pdf_url')->getMimeType() !== 'application/pdf') {
-                    return back()->with('flash', ['error' => 'Invalid PDF format']);
+                    return redirect()->back()->with('flash', ['error' => 'Invalid PDF file format.']);
                 }
-                $pdfFile = 'pdfs/' . uniqid('pdf_', true) . '.' . $request->file('pdf_url')->extension();
-                $path = $request->file('pdf_url')->storeAs('', $pdfFile, 'public');
+                // Generate a unique filename for the PDF
+                $pdfExtension = $request->file('pdf_url')->getClientOriginalExtension();
+                $pdfFilename = 'pdfs/' . uniqid('pdf_', true) . '.' . $pdfExtension;
+                $path = $request->file('pdf_url')->storeAs('', $pdfFilename, 'public');
                 $book->pdf_url = Storage::disk('public')->url($path);
-                Log::info('PDF uploaded', ['path' => $path, 'url' => $book->pdf_url]);
+                Log::info('PDF uploaded successfully', ['path' => $path, 'url' => $book->pdf_url]);
             }
 
             $book->save();
 
-            return redirect()->route('books.index')->with('message', 'Book created!');
+            return redirect()->route('books.index')->with('message', 'Book created successfully!');
         } catch (\Illuminate\Database\QueryException $e) {
-            Log::error('DB error in book store', ['error' => $e->getMessage()]);
-            return back()->with('flash', ['error' => 'DB error: Unable to save']);
+            Log::error('Database error during book store', ['error' => $e->getMessage()]);
+            return redirect()->back()->with('flash', ['error' => 'Database error: Unable to save book']);
         } catch (\Exception $e) {
-            Log::error('Error in book store', ['error' => $e->getMessage()]);
-            return back()->with('flash', ['error' => 'Book creation failed']);
+            Log::error('General exception during book store', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return redirect()->back()->with('flash', ['error' => 'Book creation failed']);
         }
     }
 
