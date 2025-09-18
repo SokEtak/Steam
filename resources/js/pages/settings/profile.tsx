@@ -54,19 +54,19 @@ export default function Profile({ status }: { status?: string }) {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
-                            {auth.user.campus && (
-                                <div className="space-y-2">
-                                    <Label className="text-sm font-semibold text-gray-500 dark:text-gray-400">Campus</Label>
-                                    <p className="text-xl font-bold text-gray-900 dark:text-white">{auth.user.campus.name}</p>
-                                </div>
-                            )}
+                            {/*{auth.user.campus && (*/}
+                            {/*    <div className="space-y-2">*/}
+                            {/*        <Label className="text-sm font-semibold text-gray-500 dark:text-gray-400">Campus</Label>*/}
+                            {/*        <p className="text-xl font-bold text-gray-900 dark:text-white">{auth.user.campus.name}</p>*/}
+                            {/*    </div>*/}
+                            {/*)}*/}
 
-                            {auth.user.role && (
-                                <div className="space-y-2">
-                                    <Label className="text-sm font-semibold text-gray-500 dark:text-gray-400">Role</Label>
-                                    <p className="text-xl font-bold text-gray-900 dark:text-white">{auth.user.role.name}</p>
-                                </div>
-                            )}
+                            {/*{auth.user.role && (*/}
+                            {/*    <div className="space-y-2">*/}
+                            {/*        <Label className="text-sm font-semibold text-gray-500 dark:text-gray-400">Role</Label>*/}
+                            {/*        <p className="text-xl font-bold text-gray-900 dark:text-white">{auth.user.role.name}</p>*/}
+                            {/*    </div>*/}
+                            {/*)}*/}
                         </div>
 
                         {status === 'verification-link-sent' && (
@@ -107,7 +107,7 @@ export default function Profile({ status }: { status?: string }) {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
-                            {console.log(auth.user.avatar)}
+                            {/*{console.log(auth.user.avatar)}*/}
                             <Avatar className="h-[28rem] w-[28rem] rounded-2xl shadow-3xl transform scale-105">
                                 {/*<AvatarImage src={auth.user.avatar ? `/storage/${auth.user.avatar}` : undefined} alt={auth.user.name} className="object-cover w-full h-full rounded-2xl" />*/}
                                 <AvatarImage src={"https://fls-9fd96a88-703c-423b-a3c6-5b74b203b091.laravel.cloud/"+auth.user.avatar} alt={auth.user.name} className="object-cover w-full h-full rounded-2xl" />
