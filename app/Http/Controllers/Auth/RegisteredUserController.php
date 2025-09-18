@@ -55,27 +55,28 @@ class RegisteredUserController extends Controller
             'code' => 'required|exists:campuses,code',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Max 2MB
+//            'role_id' => 'nullable|exists:roles,id'
         ]);
 
         $imagePath = null;
         if ($request->hasFile('avatar')) {
             try {
                 // Store the file on the r2 disk with public visibility
-                $imagePath = $request->file('avatar')->store('avatars', 'r2');
+                $imagePath = $request->file('avatar')->store('avatars', 'public');
                 // Optionally set visibility explicitly (if not configured in disk)
-                Storage::disk('r2')->setVisibility($imagePath, 'public');
+                Storage::disk('public')->setVisibility($imagePath, 'public');
             } catch (\Exception $e) {
                 \Log::error('Failed to upload avatar to R2: ' . $e->getMessage());
                 return back()->withErrors(['avatar' => 'Failed to upload avatar. Please try again later.']);
             }
         }
-
+        $role = $request->role_id;
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'avatar' => $imagePath, // Store the path, generate URL dynamically when needed
-            'role_id' => 1,
+            'role_id' => $request->role_id? $role:1,// pass 1 for user if not provide
             'campus_id' => $request->campus_id,
         ]);
 

@@ -6,22 +6,41 @@ use App\Http\Controllers\BookLoanController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ShelvesController;
 use App\Http\Controllers\SubCategoryController;
-use App\Models\Book;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DashboardController;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
 
-Route::get('/test-s3', function () {
-    Storage::disk('s3')->put('test.txt', 'Hello from R2!');
-    $url = Storage::disk('s3')->url('test.txt');
-    return "File uploaded! URL: $url";
-});
 
 Route::get('/', fn() => Inertia::render('welcome'))->name('home');
+
+//Protected Route
+Route::middleware(['auth', 'verified', 'role:librarian','is_account_activated'])
+    ->prefix('admin/library')
+    ->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::resources([
+            'books' => BookController::class,
+            'bookcases' => BookcaseController::class,
+            'bookloans' => BookLoanController::class,
+            'shelves' => ShelvesController::class,
+            'categories' => CategoryController::class,
+            'subcategories' => SubCategoryController::class,
+            'users' => UserController::class,
+        ]);
+    });
+//for test
+Route::get('/test-r2', function () {
+    try {
+        Storage::disk('r2')->put('test.txt', 'Hello, R2!');
+        $exists = Storage::disk('r2')->exists('test.txt');
+        dd(['exists' => $exists]);
+    } catch (\Exception $e) {
+        dd('Error: ' . $e->getMessage());
+    }
+});
 
 //unauthenticated
 Route::prefix('digital/resource')->group(function () {
@@ -64,52 +83,7 @@ Route::prefix('digital/resource')->group(function () {
 
 });
 
-//Protected Route
-Route::middleware(['auth', 'verified', 'role:librarian','is_account_activated'])
-        ->prefix('admin/library')
-        ->group(function () {
-            Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::resources([
-        'books' => BookController::class,
-        'bookcases' => BookcaseController::class,
-        'bookloans' => BookLoanController::class,
-        'shelves' => ShelvesController::class,
-        'categories' => CategoryController::class,
-        'subcategories' => SubCategoryController::class,
-        'users' => UserController::class,
-    ]);
-});
 
-//for regular user
-//at this point should create another page that can be reusable (pass books,.. as prop)
-Route::get('/iconic/library',function(){
-    //api practice
-    try {//fix
-        $response = Http::get('http://localhost:8000/api/library/v1/books');
-
-        // Check if the request was successful
-        if ($response->successful()) {
-            $books = $response->json(); // Get JSON data from response
-            // For debugging, dump the response
-            dd($books);
-        } else {
-            // Handle non-2xx responses
-            abort($response->status(), 'Failed to fetch books: ' . $response->reason());
-        }
-    } catch (\Exception $e) {
-        // Handle request exceptions (e.g., network issues)
-        abort(500, 'Error fetching books: ' . $e->getMessage());
-    }
-});
-
-Route::get('/bmc/library',function(){
-    $books = Book::select('id','title')
-        ->where([
-            'is_deleted'=>0,
-            'campus_id'=>2,
-        ])->get()->toArray();
-    dd($books);
-});
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

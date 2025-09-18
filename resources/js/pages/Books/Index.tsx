@@ -319,9 +319,9 @@ const getColumns = (
             cell: ({ row }) =>
                 row.getValue('cover') ? (
                     //for local
-                    // <img src={'/storage/' + row.getValue('cover')} alt="Book cover" className="h-12 w-8 object-cover" />
+                    <img src={'/storage/' + row.getValue('cover')} alt="Book cover" className="h-12 w-8 object-cover" />
                     //for production
-                    <img src={row.getValue('cover')} alt="Book cover" className="h-12 w-8 object-cover" />
+                    // <img src={row.getValue('cover')} alt="Book cover" className="h-12 w-8 object-cover" />
                 ) : (
                     <ImageOff className="h-10 w-8 text-red-500 dark:text-red-300" />
                 ),
@@ -1527,7 +1527,8 @@ function BookIndex() {
                                         <TooltipTrigger asChild>
                                             {/*hide button*/}
                                             {!isSuperLibrarian&&
-                                                <Link href={route('books.create')} className="flex items-center gap-2">
+                                                // <Link href={route('books.create')} className="flex items-center gap-2">
+                                                 <Link href={route('admin.library.books.create')} className="flex items-center gap-2">
                                                     <Button
                                                         className="h-8 cursor-pointer rounded-lg border-blue-300 bg-blue-400 text-black hover:bg-blue-600 dark:border-blue-500 dark:bg-gray-800 dark:text-blue-200 dark:hover:bg-blue-700"
                                                         size="sm"
@@ -2140,7 +2141,8 @@ function BookIndex() {
 
                                     {!isSuperLibrarian && (
                                         <>
-                                            {/*<Link href={route('books.edit', rowModal.id)}>*/}
+                                            {/*<Link href={route('books.create', rowModal.id)}>*/}
+                                            {/*<Link href={route('admin.library.books.create', rowModal.id)}>*/}
                                             {/*    <Button*/}
                                             {/*        variant="outline"*/}
                                             {/*        size="sm"*/}
