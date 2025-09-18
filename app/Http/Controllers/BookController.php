@@ -96,7 +96,7 @@ class BookController extends Controller
                 Log::info('Starting cover upload to local storage', ['filename' => $request->file('cover')->getClientOriginalName()]);
                 // Generate a unique filename to avoid overwriting
                 $coverExtension = $request->file('cover')->getClientOriginalExtension();
-                $coverFilename = 'covers/' . uniqid('cover_', true) . '.' . $coverExtension;
+                $coverFilename = 'covers/' . uniqid('', false) . '.' . $coverExtension;
                 $path = $request->file('cover')->storeAs('', $coverFilename, 'public');
                 $book->cover = Storage::disk('public')->url($path);
                 Log::info('Cover uploaded successfully', ['path' => $path, 'url' => $book->cover]);

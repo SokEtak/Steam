@@ -265,20 +265,9 @@ const getColumns = (
             enableSorting: false,
         },
         {
-            accessorKey: 'id',
-            header: ({ column }) => (
-                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                    ID
-                    {column.getIsSorted() === 'asc' ? (
-                        <ArrowUp className={`ml-2 h-4 w-4 ${getArrowColor('asc')}`} />
-                    ) : column.getIsSorted() === 'desc' ? (
-                        <ArrowDown className={`ml-2 h-4 w-4 ${getArrowColor('desc')}`} />
-                    ) : (
-                        <ArrowUpDown className={`ml-2 h-4 w-4 ${getArrowColor(false)}`} />
-                    )}
-                </Button>
-            ),
-            cell: ({ row }) => <div className="px-3">{row.getValue('id')}</div>,
+            accessorKey: 'code',
+            header: 'Code',
+            cell: ({ row }) => <div className="px-0">{row.getValue('code') || 'N/A'}</div>,
             enableHiding: true,
         },
         {
@@ -357,11 +346,11 @@ const getColumns = (
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
                     Publisher
                     {column.getIsSorted() === 'asc' ? (
-                        <ArrowUp className="ml-2 h-4 w-4" />
+                        <ArrowUp className="h-4 w-4" />
                     ) : column.getIsSorted() === 'desc' ? (
-                        <ArrowDown className="ml-2 h-4 w-4" />
+                        <ArrowDown className="h-4 w-4" />
                     ) : (
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                        <ArrowUpDown className="h-4 w-4" />
                     )}
                 </Button>
             ),
@@ -497,7 +486,8 @@ const getColumns = (
             header: 'PDF',
             cell: ({ row }) =>
                 row.getValue('pdf_url') ? (
-                    <a href={'/storage/' + row.getValue('pdf_url')} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
+                    // <a href={'/storage/' + row.getValue('pdf_url')} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
+                    <a href={row.getValue('pdf_url')} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
                         View PDF
                     </a>
                 ) : (
@@ -607,15 +597,9 @@ const getColumns = (
             enableHiding: true,
         },
         {
-            accessorKey: 'code',
-            header: 'Code',
-            cell: ({ row }) => <div className="px-0">{row.getValue('code') || 'N/A'}</div>,
-            enableHiding: true,
-        },
-        {
             accessorKey: 'isbn',
             header: 'ISBN',
-            cell: ({ row }) => <div className="px-3">{row.getValue('isbn') || 'N/A'}</div>,
+            cell: ({ row }) => <div className="px-0">{row.getValue('isbn') || 'N/A'}</div>,
             enableHiding: true,
         },
         {
@@ -1293,7 +1277,6 @@ function BookIndex() {
     const [isTableLoading, setIsTableLoading] = useState(true);
     const [rowModal, setRowModal] = useState<Book | null>(null);
     const [hoveredRow, setHoveredRow] = useState<Book | null>(null);
-    const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
 
     useEffect(() => {
         if (flash.message) {
@@ -1338,7 +1321,7 @@ function BookIndex() {
         flip_link: false,
         view: false,
         code: true,
-        isbn: false,
+        isbn: true,
         cover: true,
         type: true,
         downloadable: false,
@@ -1813,7 +1796,8 @@ function BookIndex() {
                                                             <strong className="text-blue-200">PDF URL:</strong>{' '}
                                                             {row.original.pdf_url ? (
                                                                 <a
-                                                                    href={`/storage/${row.original.pdf_url}`}
+                                                                    // href={`/storage/${row.original.pdf_url}`}
+                                                                    href={row.original.pdf_url}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
                                                                     className="text-sm text-blue-300 underline hover:text-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
@@ -1873,7 +1857,8 @@ function BookIndex() {
                                                             <strong className="text-blue-200">Cover:</strong>{' '}
                                                             {row.original.cover ? (
                                                                 <img
-                                                                    src={'/storage/' + row.original.cover}
+                                                                    // src={'/storage/' + row.original.cover}
+                                                                    src={row.original.cover}
                                                                     alt="Book cover"
                                                                     className="h-36 w-26 rounded border border-blue-300 object-cover shadow"
                                                                 />
@@ -2009,7 +1994,8 @@ function BookIndex() {
                                             <strong className="text-blue-600 dark:text-blue-300">PDF URL:</strong>{' '}
                                             {rowModal.pdf_url ? (
                                                 <a
-                                                    href={`/storage/${rowModal.pdf_url}`}
+                                                    // href={`/storage/${rowModal.pdf_url}`}
+                                                    href={rowModal.pdf_url}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="text-blue-500 underline hover:text-blue-700 dark:text-blue-200 dark:hover:text-blue-100"
@@ -2038,7 +2024,8 @@ function BookIndex() {
                                             <strong className="text-blue-600 dark:text-blue-300">Cover:</strong>{' '}
                                             {rowModal.cover ? (
                                                 <img
-                                                    src={`/storage/${rowModal.cover}`}
+                                                    // src={`/storage/${rowModal.cover}`}
+                                                    src={rowModal.cover}
                                                     alt="Book cover"
                                                     className="h-full w-60 rounded border border-blue-300 object-cover shadow"
                                                     onError={(e) => (e.currentTarget.src = '/images/fallback-cover.jpg')}

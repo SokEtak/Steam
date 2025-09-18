@@ -108,7 +108,8 @@ export default function Profile({ status }: { status?: string }) {
                                 </svg>
                             </button>
                             <Avatar className="h-[28rem] w-[28rem] rounded-2xl shadow-3xl transform scale-105">
-                                <AvatarImage src={auth.user.avatar ? `/storage/${auth.user.avatar}` : undefined} alt={auth.user.name} className="object-cover w-full h-full rounded-2xl" />
+                                {/*<AvatarImage src={auth.user.avatar ? `/storage/${auth.user.avatar}` : undefined} alt={auth.user.name} className="object-cover w-full h-full rounded-2xl" />*/}
+                                <AvatarImage src={auth.user.avatar ? `https://fls-9fd96a88-703c-423b-a3c6-5b74b203b091.laravel.cloud/${auth.user.avatar}` : undefined} alt={auth.user.name} className="object-cover w-full h-full rounded-2xl" />
                                 <AvatarFallback className="rounded-2xl text-8xl font-black bg-gray-200/50 dark:bg-gray-700/50">
                                     {auth.user.name.split(" ")[0][0]}
                                     {auth.user.name.split(" ")[1]?.[0] ?? ""}
