@@ -65,7 +65,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const navMain = [
         {
             title: "Dashboard",
-            url: "/admin/library/dashboard",
+            url: "/admin/dashboard",
             icon: LayoutDashboard,
             isActive: false,
         },

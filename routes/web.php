@@ -15,11 +15,12 @@ use Inertia\Inertia;
 
 Route::get('/', fn() => Inertia::render('welcome'))->name('home');
 
+Route::get('admin/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('auth');
+
 //Protected Route
 Route::middleware(['auth', 'verified', 'role:librarian','is_account_activated'])
     ->prefix('admin/library')
     ->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::resources([
             'books' => BookController::class,
             'bookcases' => BookcaseController::class,
