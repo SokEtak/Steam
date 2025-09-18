@@ -1527,10 +1527,7 @@ function BookIndex() {
                                         <TooltipTrigger asChild>
                                             {/*hide button*/}
                                             {!isSuperLibrarian&&
-                                                //not work in local(work in production)
                                                 <Link href={route('books.create')} className="flex items-center gap-2">
-                                                {/*not work in production(work in local)*/}
-                                                {/* <Link href={route('admin.library.books.create')} className="flex items-center gap-2">*/}
                                                     <Button
                                                         className="h-8 cursor-pointer rounded-lg border-blue-300 bg-blue-400 text-black hover:bg-blue-600 dark:border-blue-500 dark:bg-gray-800 dark:text-blue-200 dark:hover:bg-blue-700"
                                                         size="sm"
@@ -2144,7 +2141,6 @@ function BookIndex() {
                                     {!isSuperLibrarian && (
                                         <>
                                             <Link href={route('books.edit', rowModal.id)}>
-                                            {/*<Link href={route('admin.library.books.edit', rowModal.id)}>*/}
                                                 <Button
                                                     variant="outline"
                                                     size="sm"

@@ -82,7 +82,7 @@ class BookController extends Controller
         ]);
     }
 
-    public function store(Book $request)
+    public function store(BaseBookRequest $request)
     {
         $validated = $request->validated();
         $book = new Book(array_merge($validated, ['user_id' => Auth::id()]));
@@ -106,9 +106,18 @@ class BookController extends Controller
                 if ($request->file('pdf_url')->getMimeType() !== 'application/pdf') {
                     return redirect()->back()->with('flash', ['error' => 'Invalid PDF file format.']);
                 }
-                // Generate a unique filename for the PDF
+                // Use the original filename for the PDF, sanitized to prevent security issues
+                $originalPdfName = pathinfo($request->file('pdf_url')->getClientOriginalName(), PATHINFO_FILENAME);
                 $pdfExtension = $request->file('pdf_url')->getClientOriginalExtension();
-                $pdfFilename = 'pdfs/' . uniqid('pdf_', true) . '.' . $pdfExtension;
+                // Sanitize the filename to remove invalid characters
+                $sanitizedPdfName = preg_replace('/[^A-Za-z0-9\-_]/', '', $originalPdfName);
+                $pdfFilename = 'pdfs/' . $sanitizedPdfName . '.' . $pdfExtension;
+                // Check if file already exists to avoid overwriting
+                $counter = 1;
+                while (Storage::disk('public')->exists($pdfFilename)) {
+                    $pdfFilename = 'pdfs/' . $sanitizedPdfName . '_' . $counter . '.' . $pdfExtension;
+                    $counter++;
+                }
                 $path = $request->file('pdf_url')->storeAs('', $pdfFilename, 'public');
                 $book->pdf_url = Storage::disk('public')->url($path);
                 Log::info('PDF uploaded successfully', ['path' => $path, 'url' => $book->pdf_url]);
