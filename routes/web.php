@@ -11,7 +11,6 @@ use App\Http\Controllers\DashboardController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Storage;
 
 
 Route::get('/', fn() => Inertia::render('welcome'))->name('home');
@@ -31,18 +30,8 @@ Route::middleware(['auth', 'verified', 'role:librarian','is_account_activated'])
             'users' => UserController::class,
         ]);
     });
-//for test
-Route::get('/test-r2', function () {
-    try {
-        Storage::disk('r2')->put('test.txt', 'Hello, R2!');
-        $exists = Storage::disk('r2')->exists('test.txt');
-        dd(['exists' => $exists]);
-    } catch (\Exception $e) {
-        dd('Error: ' . $e->getMessage());
-    }
-});
 
-//unauthenticated
+//old project
 Route::prefix('digital/resource')->group(function () {
 
     Route::get('/program', function () {

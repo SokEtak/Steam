@@ -227,20 +227,20 @@ const getColumns = (
                                 </DropdownMenuItem>
                                 {!isSuperLibrarian &&
                                     <>
-                                        {/*<DropdownMenuItem asChild className="p-1">*/}
-                                        {/*    <Link href={route('books.edit', book.id)}>*/}
-                                        {/*        <Tooltip>*/}
-                                        {/*            <TooltipTrigger asChild>*/}
-                                        {/*                <Button variant="ghost" className="h-4 w-4 cursor-pointer p-0">*/}
-                                        {/*                    <PencilIcon className="h-4 w-4 text-yellow-500 dark:text-yellow-400" />*/}
-                                        {/*                </Button>*/}
-                                        {/*            </TooltipTrigger>*/}
-                                        {/*            <TooltipContent side="right" align="center">*/}
-                                        {/*                Edit*/}
-                                        {/*            </TooltipContent>*/}
-                                        {/*        </Tooltip>*/}
-                                        {/*    </Link>*/}
-                                        {/*</DropdownMenuItem>*/}
+                                        <DropdownMenuItem asChild className="p-1">
+                                            <Link href={route('books.edit', book.id)}>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button variant="ghost" className="h-4 w-4 cursor-pointer p-0">
+                                                            <PencilIcon className="h-4 w-4 text-yellow-500 dark:text-yellow-400" />
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent side="right" align="center">
+                                                        Edit
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </Link>
+                                        </DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => setBookToDelete(book)} className="p-1 text-red-600" disabled={processing}>
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
@@ -1527,8 +1527,10 @@ function BookIndex() {
                                         <TooltipTrigger asChild>
                                             {/*hide button*/}
                                             {!isSuperLibrarian&&
-                                                // <Link href={route('books.create')} className="flex items-center gap-2">
-                                                 <Link href={route('admin.library.books.create')} className="flex items-center gap-2">
+                                                //not work in local(work in production)
+                                                <Link href={route('books.create')} className="flex items-center gap-2">
+                                                {/*not work in production(work in local)*/}
+                                                {/* <Link href={route('admin.library.books.create')} className="flex items-center gap-2">*/}
                                                     <Button
                                                         className="h-8 cursor-pointer rounded-lg border-blue-300 bg-blue-400 text-black hover:bg-blue-600 dark:border-blue-500 dark:bg-gray-800 dark:text-blue-200 dark:hover:bg-blue-700"
                                                         size="sm"
@@ -2141,16 +2143,16 @@ function BookIndex() {
 
                                     {!isSuperLibrarian && (
                                         <>
-                                            {/*<Link href={route('books.create', rowModal.id)}>*/}
-                                            {/*<Link href={route('admin.library.books.create', rowModal.id)}>*/}
-                                            {/*    <Button*/}
-                                            {/*        variant="outline"*/}
-                                            {/*        size="sm"*/}
-                                            {/*        className="flex h-8 cursor-pointer items-center gap-1 rounded-lg border-blue-300 bg-white text-blue-700 hover:bg-blue-100 dark:border-blue-500 dark:bg-gray-800 dark:text-blue-200 dark:hover:bg-blue-700"*/}
-                                            {/*    >*/}
-                                            {/*        <PencilIcon className="h-4 w-4" /> Edit*/}
-                                            {/*    </Button>*/}
-                                            {/*</Link>*/}
+                                            <Link href={route('books.edit', rowModal.id)}>
+                                            {/*<Link href={route('admin.library.books.edit', rowModal.id)}>*/}
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="flex h-8 cursor-pointer items-center gap-1 rounded-lg border-blue-300 bg-white text-blue-700 hover:bg-blue-100 dark:border-blue-500 dark:bg-gray-800 dark:text-blue-200 dark:hover:bg-blue-700"
+                                                >
+                                                    <PencilIcon className="h-4 w-4" /> Edit
+                                                </Button>
+                                            </Link>
 
                                             <Button
                                                 variant="outline"
