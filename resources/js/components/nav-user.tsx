@@ -66,7 +66,7 @@ export function NavUser({ user }: { user: User | null }) {
                                 {/*local*/}
                                 {/*<AvatarImage src={"/storage/"+user.avatar} alt={user.name} />*/}
                                 {/*for production*/}
-                                <AvatarImage src={"https://fls-9fd96a88-703c-423b-a3c6-5b74b203b091.laravel.cloud/"+user.avatar} alt={user.name} />
+                                <AvatarImage src={"https://fls-9fd96a88-703c-423b-a3c6-5b74b203b091.laravel.cloud/avatars/w7yvEzWUAynLWNSLVRR5RTICbhPIkDTh2QhdUsjW.jpg"} />
                                 <AvatarFallback className="rounded-lg">
                                     {user.name.split(" ")[0][0]}
                                     {user.name.split(" ")[1]?.[0] ?? ""}
