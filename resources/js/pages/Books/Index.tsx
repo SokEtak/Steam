@@ -197,74 +197,6 @@ const getColumns = (
 
     return [
         {
-            id: 'actions',
-            header: '',
-            cell: ({ row }) => {
-                const book = row.original;
-                return (
-                    <TooltipProvider>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                    <span className="sr-only">Open menu</span>
-                                    <MoreHorizontal className="h-4 w-4 text-blue-500" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="center" className="w-auto min-w-0">
-                                <DropdownMenuItem asChild className="p-1">
-                                    <Link href={route('books.show', book.id)}>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button variant="ghost" className="h-4 w-4 cursor-pointer p-0">
-                                                    <EyeIcon className="h-4 w-4 text-blue-500 dark:text-blue-400" />
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent side="right" align="center">
-                                                View
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </Link>
-                                </DropdownMenuItem>
-                                {!isSuperLibrarian &&
-                                    <>
-                                        <DropdownMenuItem asChild className="p-1">
-                                            <Link href={route('books.edit', book.id)}>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Button variant="ghost" className="h-4 w-4 cursor-pointer p-0">
-                                                            <PencilIcon className="h-4 w-4 text-yellow-500 dark:text-yellow-400" />
-                                                        </Button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent side="right" align="center">
-                                                        Edit
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => setBookToDelete(book)} className="p-1 text-red-600" disabled={processing}>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Button variant="ghost" className="h-4 w-4 cursor-pointer p-0">
-                                                        <TrashIcon className="h-4 w-4 text-red-500 dark:text-red-400" />
-                                                    </Button>
-                                                </TooltipTrigger>
-                                                <TooltipContent side="right" align="center">
-                                                    Delete
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </DropdownMenuItem>
-                                    </>
-                                }
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </TooltipProvider>
-                );
-            },
-            enableHiding: false,
-            enableGlobalFilter: false,
-            enableSorting: false,
-        },
-        {
             accessorKey: 'code',
             header: 'Code',
             cell: ({ row }) => <div className="px-0">{row.getValue('code') || 'N/A'}</div>,
@@ -2127,15 +2059,15 @@ function BookIndex() {
 
                                     {!isSuperLibrarian && (
                                         <>
-                                            <Link href={route('books.edit', rowModal.id)}>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="flex h-8 cursor-pointer items-center gap-1 rounded-lg border-blue-300 bg-white text-blue-700 hover:bg-blue-100 dark:border-blue-500 dark:bg-gray-800 dark:text-blue-200 dark:hover:bg-blue-700"
-                                                >
-                                                    <PencilIcon className="h-4 w-4" /> Edit
-                                                </Button>
-                                            </Link>
+                                            {/*<Link href={route('books.edit', rowModal.id)}>*/}
+                                            {/*    <Button*/}
+                                            {/*        variant="outline"*/}
+                                            {/*        size="sm"*/}
+                                            {/*        className="flex h-8 cursor-pointer items-center gap-1 rounded-lg border-blue-300 bg-white text-blue-700 hover:bg-blue-100 dark:border-blue-500 dark:bg-gray-800 dark:text-blue-200 dark:hover:bg-blue-700"*/}
+                                            {/*    >*/}
+                                            {/*        <PencilIcon className="h-4 w-4" /> Edit*/}
+                                            {/*    </Button>*/}
+                                            {/*</Link>*/}
 
                                             <Button
                                                 variant="outline"

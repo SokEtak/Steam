@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Book\BaseBookRequest;
+use App\Http\Requests\Book\StoreBookRequest;
+use App\Http\Requests\Book\UpdateBookRequest;
 use App\Models\{Book, Bookcase, Campus, Category, Shelf, SubCategory, Grade, Subject};
 use Illuminate\Support\Facades\{Auth, Storage, Log};
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Http\RedirectResponse;
 
@@ -32,7 +35,7 @@ class BookController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
         if ($redirect = $this->shouldRedirectIfNotStudent()) {
             return $redirect;
@@ -46,43 +49,11 @@ class BookController extends Controller
             'grades' => Grade::all(['id', 'name']),
             'subjects' => Subject::all(['id', 'name']),
             'type' => request('type', 'physical'),
+            'lang' => $request->query('lang', 'en'),
         ]);
     }
 
-    public function show(Book $book)
-    {
-        if ($this->isDeleted($book)) {
-            return abort(404);
-        }
-
-        if (!$this->belongsToUserCampus($book)) {
-            return abort(403, 'Unauthorized action.');
-        }
-
-        return Inertia::render('Books/Show', ['book' => $book]);
-    }
-
-    public function edit(Book $book)
-    {
-        abort(403, 'Unauthorized action. Temporary disabled.');
-
-        if ($redirect = $this->shouldRedirectIfNotStudent()) {
-            return $redirect;
-        }
-
-        return Inertia::render('Books/Edit', [
-            'book' => $book->toArray(),
-            'categories' => Category::all(['id', 'name']),
-            'subcategories' => SubCategory::all(['id', 'name']),
-            'shelves' => Shelf::all(['id', 'code']),
-            'bookcases' => Bookcase::all(['id', 'code']),
-            'grades' => Grade::all(['id', 'name']),
-            'subjects' => Subject::all(['id', 'name']),
-            'flash' => session('flash', []),
-        ]);
-    }
-
-    public function store(BaseBookRequest $request)
+    public function store(StoreBookRequest $request)
     {
         $validated = $request->validated();
         $book = new Book(array_merge($validated, ['user_id' => Auth::id()]));
@@ -135,51 +106,101 @@ class BookController extends Controller
         }
     }
 
-    public function update(BaseBookRequest $request, Book $book)
+    public function show(Book $book)
     {
-        $validated = $request->validated();
-
-        $bookData = array_merge($validated, [
-            'user_id' => Auth::id(),
-            'is_available' => $validated['is_available'] ?? $book->is_available,
-            'downloadable' => $validated['downloadable'] ?? $book->downloadable,
-            'view' => $validated['view'] ?? $book->view,
-        ]);
-
-        try {
-            if ($request->hasFile('cover') && $request->file('cover')->isValid()) {
-                if ($book->cover) {
-                    $parsedPath = parse_url($book->cover, PHP_URL_PATH);
-                    if ($parsedPath) {
-                        Storage::disk('public')->delete(ltrim($parsedPath, '/storage/'));
-                    }
-                }
-                $coverExtension = $request->file('cover')->getClientOriginalExtension();
-                $coverFilename = 'covers/' . uniqid('cover_', true) . '.' . $coverExtension;
-                $path = $request->file('cover')->storeAs('', $coverFilename, 'public');
-                $bookData['cover'] = Storage::disk('public')->url($path);
-            }
-
-            if ($this->isEbook($validated) && $request->hasFile('pdf_url') && $request->file('pdf_url')->isValid()) {
-                if ($book->pdf_url) {
-                    $parsedPath = parse_url($book->pdf_url, PHP_URL_PATH);
-                    if ($parsedPath) {
-                        Storage::disk('public')->delete(ltrim($parsedPath, '/storage/'));
-                    }
-                }
-                $bookData['pdf_url'] = $this->storePdf($request);
-            }
-
-            $book->update($bookData);
-
-            return redirect()->route('books.index')->with('message', 'Book updated successfully!');
-        } catch (\Exception $e) {
-            Log::error('General exception during book update', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
-            return redirect()->back()->with('flash', [
-                'error' => 'Book update failed: ' . $e->getMessage()
-            ]);
+        if ($this->isDeleted($book)) {
+            return abort(404);
         }
+
+        if (!$this->belongsToUserCampus($book)) {
+            return abort(403, 'Unauthorized action.');
+        }
+
+        return Inertia::render('Books/Show', ['book' => $book]);
     }
+
+
+//    public function edit(Book $book)
+//    {
+//        abort(403, 'Temporary disabled.');
+//        // Ensure the user has permission to edit the book
+//        if ($book->user_id !== Auth::id() && Auth::user()->role_id !== 2) {
+//            abort(403, 'Unauthorized action.');
+//        }
+//
+//        return Inertia::render('Books/Edit', [
+//            'book' => $book->load('category', 'subcategory', 'shelf', 'bookcase', 'grade', 'subject'),
+//            'categories' => Category::all(['id', 'name']),
+//            'subcategories' => SubCategory::all(['id', 'name']),
+//            'shelves' => Shelf::all(['id', 'code']),
+//            'bookcases' => Bookcase::all(['id', 'code']),
+//            'grades' => Grade::all(['id', 'name']),
+//            'subjects' => Subject::all(['id', 'name']),
+//            'type' => $book->type,
+//        ]);
+//    }
+//
+//    public function update(UpdateBookRequest $request, Book $book)
+//    {
+//        abort(400,'Bad Request');
+//        $validated = $request->validated();
+//
+//        try {
+//            // Update book attributes
+//            $book->fill($validated);
+//
+//            // Handle cover image upload
+//            if ($request->hasFile('cover') && $request->file('cover')->isValid()) {
+//                $allowedMimes = ['image/jpeg', 'image/png', 'image/gif'];
+//                if (!in_array($request->file('cover')->getMimeType(), $allowedMimes)) {
+//                    return redirect()->back()->with('flash', ['error' => 'Invalid cover image format.']);
+//                }
+//                Log::info('Starting cover upload to local storage', ['filename' => $request->file('cover')->getClientOriginalName()]);
+//                // Delete old cover if it exists
+//                if ($book->cover) {
+//                    Storage::disk('public')->delete(parse_url($book->cover, PHP_URL_PATH));
+//                }
+//                $coverExtension = $request->file('cover')->getClientOriginalExtension();
+//                $coverFilename = 'covers/' . uniqid('', false) . '.' . $coverExtension;
+//                $path = $request->file('cover')->storeAs('', $coverFilename, 'public');
+//                $book->cover = Storage::disk('public')->url($path);
+//                Log::info('Cover uploaded successfully', ['path' => $path, 'url' => $book->cover]);
+//            }
+//
+//            // Handle PDF upload for e-books
+//            if ($this->isEbook($validated) && $request->hasFile('pdf_url') && $request->file('pdf_url')->isValid()) {
+//                if ($request->file('pdf_url')->getMimeType() !== 'application/pdf') {
+//                    return redirect()->back()->with('flash', ['error' => 'Invalid PDF file format.']);
+//                }
+//                // Delete old PDF if it exists
+//                if ($book->pdf_url) {
+//                    Storage::disk('public')->delete(parse_url($book->pdf_url, PHP_URL_PATH));
+//                }
+//                $originalPdfName = pathinfo($request->file('pdf_url')->getClientOriginalName(), PATHINFO_FILENAME);
+//                $pdfExtension = $request->file('pdf_url')->getClientOriginalExtension();
+//                $sanitizedPdfName = preg_replace('/[^A-Za-z0-9\-_]/', '', $originalPdfName);
+//                $pdfFilename = 'pdfs/' . $sanitizedPdfName . '.' . $pdfExtension;
+//                $counter = 1;
+//                while (Storage::disk('public')->exists($pdfFilename)) {
+//                    $pdfFilename = 'pdfs/' . $sanitizedPdfName . '_' . $counter . '.' . $pdfExtension;
+//                    $counter++;
+//                }
+//                $path = $request->file('pdf_url')->storeAs('', $pdfFilename, 'public');
+//                $book->pdf_url = Storage::disk('public')->url($path);
+//                Log::info('PDF uploaded successfully', ['path' => $path, 'url' => $book->pdf_url]);
+//            }
+//
+//            $book->save();
+//
+//            return redirect()->route('books.index')->with('message', 'Book updated successfully!');
+//        } catch (\Illuminate\Database\QueryException $e) {
+//            Log::error('Database error during book update', ['error' => $e->getMessage()]);
+//            return redirect()->back()->with('flash', ['error' => 'Database error: Unable to update book']);
+//        } catch (\Exception $e) {
+//            Log::error('General exception during book update', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+//            return redirect()->back()->with('flash', ['error' => 'Book update failed']);
+//        }
+//    }
 
     public function destroy(Book $book): RedirectResponse
     {
