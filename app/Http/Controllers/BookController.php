@@ -17,8 +17,8 @@ class BookController extends Controller
     {
         $book_type = request()->query('type', null);
 
-        if (!in_array($book_type, ['physical', 'ebook', 'delbook']) && $book_type !== null) {
-            $book_type = 'physical';
+        if (!in_array($book_type, ['physical', 'ebook', 'miss']) && $book_type !== null) {
+            $book_type = null;
         }
 
         return Inertia::render('Books/Index', [

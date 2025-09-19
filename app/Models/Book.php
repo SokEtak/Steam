@@ -69,13 +69,20 @@ class Book extends Model
 
         if ($role_id == 2) {
             $conditions['campus_id'] = Auth::user()->campus_id;
-        } elseif ($role_id != 3) {//use not equal for user to adapt with user and admin
+        } elseif ($role_id != 3) {//get all book from multiple campuses for super librarian
             return $query->where('is_deleted', 999);
         }
 
         if ($book_type !== null) {
-            $conditions['type'] = $book_type; // Filter by type (e.g., 'physical' or 'ebook')
+            if ($book_type === 'miss') {
+                $conditions['is_available'] = 0; // From SQL query: is_available = 1
+                $query->where('type', '!=', 'ebook'); // From SQL query: NOT type="ebook"
+            } else {
+                $conditions['type'] = $book_type; // Filter by type (e.g., 'physical', 'ebook', 'delbook')
+            }
         }
+        // When $book_type is null, no is_available filter is applied, fetching all books
+
         return $query->where($conditions)->select(self::$selectColumns);
     }
 
