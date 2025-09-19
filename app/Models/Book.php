@@ -74,24 +74,33 @@ class Book extends Model
     // Scope for active (non-deleted) books which belong to a specific user
     public function scopeActive($query, $book_type)
     {
-        $conditions = ['is_deleted' => 0];
+        $conditions = [];
         $role_id = Auth::user()->role_id;
 
+        // Default to non-deleted books unless specified otherwise
+        $conditions['is_deleted'] = 0;
+
+        // Apply campus_id filter only for role_id = 2
         if ($role_id == 2) {
             $conditions['campus_id'] = Auth::user()->campus_id;
-        } elseif ($role_id != 3) {//get all book from multiple campuses for super librarian
-            return $query->where('is_deleted', 999);
         }
+        // For role_id = 3, no campus_id filter (access all campuses)
 
         if ($book_type !== null) {
-            if ($book_type === 'miss') {
-                $conditions['is_available'] = 0; // From SQL query: is_available = 1
-                $query->where('type', '!=', 'ebook'); // From SQL query: NOT type="ebook"
+            if ($book_type === 'delBook') {
+                $conditions['is_deleted'] = 1; // For deleted books
+                // Hardcode campus_id = 1 for delBook, or rely on role_id = 2 filter
+                // $conditions['campus_id'] = 1; // Uncomment to hardcode campus_id = 1
+            } elseif ($book_type === 'miss') {
+                $conditions['is_available'] = 0; // For missing books (not found at bookcase/shelf)
+                $conditions['is_deleted'] = 0; // Ensure non-deleted
             } else {
-                $conditions['type'] = $book_type; // Filter by type (e.g., 'physical', 'ebook', 'delbook')
+                $conditions['type'] = $book_type; // Filter by type (e.g., 'physical', 'ebook')
+                $conditions['is_available'] = 1; // Other types require is_available = 1
+                $conditions['is_deleted'] = 0; // Ensure non-deleted
             }
         }
-        // When $book_type is null, no is_available filter is applied, fetching all books
+        // When $book_type is null, no is_available or type filters are applied
 
         return $query->where($conditions)->select(self::$selectColumns);
     }

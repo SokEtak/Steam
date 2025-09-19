@@ -76,7 +76,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             isActive: false,
             items: [
                 {
-                    title: "Digital Book",
+                    title: "E-Book",
                     url: "/admin/library/books?type=ebook",
                 },
                 {
@@ -86,6 +86,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 {
                     title: "Missing Book",
                     url: "/admin/library/books?type=miss",
+                },
+                {
+                    title: "Deleted Book",
+                    url: "/admin/library/books?type=delBook",
                 },
             ],
         },

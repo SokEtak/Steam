@@ -17,12 +17,15 @@ class BookController extends Controller
     {
         $book_type = request()->query('type', null);
 
-        if (!in_array($book_type, ['physical', 'ebook', 'miss']) && $book_type !== null) {
-            $book_type = null;
+        // Allow 'miss' and 'delBook' as valid book_types
+        if (!in_array($book_type, ['physical', 'ebook', 'miss', 'delBook']) && $book_type !== null) {
+            $book_type = null; // Default to null to fetch all non-deleted books
         }
 
+        $books = Book::active($book_type)->get();
+
         return Inertia::render('Books/Index', [
-            'books' => Book::active($book_type)->get(),
+            'books' => $books,
             'availableCategories' => Category::all(),
             'availableSubjects' => Subject::all(),
             'availableShelves' => Shelf::select(['id', 'code'])->get(),
