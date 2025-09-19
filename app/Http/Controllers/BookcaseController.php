@@ -12,9 +12,7 @@ class BookcaseController extends Controller
 {
     public function index()
     {
-        $bookcases = Bookcase::withBookCountsAndBooks()
-            ->where('campus_id', $this->userCampusId())
-            ->get();
+        $bookcases = Bookcase::forCurrentCampusWithBooks()->get();
 
         return Inertia::render('Bookcases/Index', [
             'bookcases' => $bookcases,
@@ -32,7 +30,8 @@ class BookcaseController extends Controller
 
     public function store(StoreBookcaseRequest $request)
     {
-        Bookcase::create($request->validated() + ['campus_id' => $this->userCampusId()]);
+        Bookcase::create($request->validated() + ['campus_id' => Auth::user()->campus_id]);
+
         return redirect()->route('bookcases.index')->with('message', 'Bookcase created successfully.');
     }
 
@@ -42,9 +41,7 @@ class BookcaseController extends Controller
             return $redirect;
         }
 
-        $bookcase = Bookcase::withBookCountsAndBooks()
-            ->where('campus_id', $this->userCampusId())
-            ->findOrFail($bookcase->id);
+        $bookcase = Bookcase::forCurrentCampusWithBooks()->findOrFail($bookcase->id);
 
         return Inertia::render('Bookcases/Show', [
             'bookcase' => $bookcase,
@@ -54,7 +51,7 @@ class BookcaseController extends Controller
 
     public function edit(Bookcase $bookcase)
     {
-        if (!$this->belongsToUserCampus($bookcase)) {
+        if ($bookcase->campus_id !== Auth::user()->campus_id) {
             return abort(404, 'Not Found.');
         }
 
@@ -77,22 +74,12 @@ class BookcaseController extends Controller
         return redirect()->route('bookcases.index')->with('message', 'Bookcase updated successfully.');
     }
 
-    // 🔁 Reusable helper methods
+    // 🔁 Reusable helper method
 
     protected function shouldRedirectIfNotStudent()
     {
         return Auth::check() && Auth::user()->role_id != 2
             ? redirect()->route('bookcases.index')
             : null;
-    }
-
-    protected function belongsToUserCampus($model)
-    {
-        return $model->campus_id === $this->userCampusId();
-    }
-
-    protected function userCampusId()
-    {
-        return Auth::user()->campus_id;
     }
 }

@@ -11,9 +11,7 @@ class ShelvesController extends Controller
 {
     public function index()
     {
-        $shelves = Shelf::withActiveBooks()
-            ->where('campus_id', Auth::user()->campus_id)
-            ->get();
+        $shelves = Shelf::forCurrentCampusWithActiveBooks()->get();
 
         return Inertia::render('Shelves/Index', [
             'shelves' => $shelves,
@@ -41,8 +39,10 @@ class ShelvesController extends Controller
             return $redirect;
         }
 
+        $shelf->loadActiveBooks();
+
         return Inertia::render('Shelves/Show', [
-            'shelf' => $shelf->loadActiveBooks(),
+            'shelf' => $shelf,
         ]);
     }
 

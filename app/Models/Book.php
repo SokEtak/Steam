@@ -61,6 +61,16 @@ class Book extends Model
         'downloadable' => 'integer',
     ];
 
+    //used by bookcase
+    public function scopePhysicalAndActiveForCampus($query)
+    {
+        return $query->where([
+            'type' => 'physical',
+            'is_deleted' => 0,
+            'campus_id' => Auth::user()->campus_id,
+        ]);
+    }
+
     // Scope for active (non-deleted) books which belong to a specific user
     public function scopeActive($query, $book_type)
     {

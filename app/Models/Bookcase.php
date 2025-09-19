@@ -3,12 +3,25 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasMany; use Illuminate\Support\Facades\Auth;
 
 class Bookcase extends Model
 {
     protected $fillable = ['code', 'campus_id'];
     public $timestamps = false;
+
+    public function scopeForCurrentCampusWithBooks($query)
+    {
+        return $query->where('campus_id', Auth::user()->campus_id)
+            ->with([
+                'books' => fn($q) => $q->physicalAndActiveForCampus()
+                    ->select(['id', 'title', 'code', 'is_available', 'bookcase_id'])
+            ])
+            ->withCount([
+                'books as total_books_count',
+                'books as active_books_count' => fn($q) => $q->physicalAndActiveForCampus()
+            ]);
+    }
 
     public function books(): HasMany
     {
@@ -23,15 +36,5 @@ class Bookcase extends Model
     public function campus()
     {
         return $this->belongsTo(Campus::class);
-    }
-
-    public function scopeWithBookCountsAndBooks($query)
-    {
-        return $query->with(['books' => fn($q) => $q->where('is_deleted', 0)
-            ->select(['id', 'title', 'code', 'is_available', 'bookcase_id'])
-        ])->withCount([
-            'books as total_books_count',
-            'books as active_books_count' => fn($q) => $q->where('is_deleted', 0)
-        ]);
     }
 }
