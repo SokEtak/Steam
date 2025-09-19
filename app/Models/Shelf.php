@@ -45,6 +45,15 @@ class Shelf extends Model
         ]);
     }
 
+    public function scopeActive($query, $campusId = null)
+    {
+        $query->where('is_active', 1);
+        if ($campusId) {
+            $query->where('campus_id', $campusId);
+        }
+        return $query;
+    }
+
     public function scopeForCurrentCampusWithActiveBooks($query)
     {
         return $query->forCurrentCampus()->withActiveBooks();
