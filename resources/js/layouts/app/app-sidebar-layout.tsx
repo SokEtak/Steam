@@ -18,9 +18,7 @@ interface SharedData {
 
 export default function AppSidebarLayout({ children, breadcrumbs = [] }: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[] }>) {
     const { auth } = usePage<SharedData>().props;
-
-    // Determine if sidebar should be shown
-    const showSidebar = auth.user?.role_id !== 1; // role_id=1 hides sidebar
+    const showSidebar = auth.user?.role_id !== 1;
 
     return (
         <AppShell variant={showSidebar ? "sidebar" : "plain"}>
