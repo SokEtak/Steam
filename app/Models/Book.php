@@ -93,7 +93,7 @@ class Book extends Model
                 $conditions['is_deleted'] = 0;// Ensure non-deleted
             } else {
                 $conditions['type'] = $book_type; // Filter by type (e.g., 'physical', 'ebook')
-                $conditions['is_deleted'] = 0;
+                $conditions['is_available'] = 1;
             }
         }
         // When $book_type is null, no is_available or type filters are applied
