@@ -146,13 +146,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <a href="#">
-                                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                                    <University className="size-4 text-white dark:text-black" />
+                            <a href="#" className="flex items-center gap-3">
+                                <div className="p-1 flex w-12 h-10 items-center justify-center rounded-lg bg-sidebar-primary transition-transform duration-300 hover:scale-110">
+                                    <img
+                                        src="/images/DIS(no back).png"
+                                        alt="Logo"
+                                        className="w-full h-full"
+                                    />
                                 </div>
                                 <div className="grid flex-1 text-left text-sm leading-tight">
-                                    <span className="truncate font-semibold">Dewey Steam</span>
-                                    <span className="truncate text-xs">{user?.role}</span>
+                                    <span className="truncate font-semibold text-green-600 dark:text-green-400">Dewey Steam</span>
+                                    <span className="truncate text-xs text-orange-500 dark:text-orange-400 mx-4">{user?.role}</span>
                                 </div>
                             </a>
                         </SidebarMenuButton>
