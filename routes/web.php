@@ -9,6 +9,8 @@ use App\Http\Controllers\SubCategoryController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Http\Request;
+use App\Models\Book;
+
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -33,7 +35,10 @@ Route::middleware(['auth', 'verified', 'role:librarian','is_account_activated'])
     });
 
 Route::get('/iconic/library', function () {
-
+    $books = Book::active("physical")->get();
+    return Inertia::render('Client/Library/Index', [
+        'books' => $books,
+    ]);
 });
 
 

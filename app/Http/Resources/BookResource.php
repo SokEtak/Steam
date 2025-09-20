@@ -14,8 +14,8 @@ class BookResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // Define the structure of a single book resource
         return [
+            //comment to hide response field
             'id' => $this->id,
             'title' => $this->title,
             'description' => $this->description,
@@ -26,14 +26,13 @@ class BookResource extends JsonResource
             'cover' => $this->cover,
             'pdf_url' => $this->pdf_url,
             'flip_link' => $this->flip_link,
-            'view' => $this->view,
+//            'view' => $this->view,
             'is_available' => $this->is_available,
             'author' => $this->author,
             'code' => $this->code,
             'isbn' => $this->isbn,
-            'type' => $this->type,
-            'downloadable' => $this->downloadable,
-            'is_deleted' => $this->is_deleted,
+//            'type' => $this->type,
+//            'downloadable' => $this->downloadable,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
 

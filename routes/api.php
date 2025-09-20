@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\BookController;
+use App\Http\Controllers\api\BookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
