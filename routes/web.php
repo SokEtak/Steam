@@ -32,6 +32,11 @@ Route::middleware(['auth', 'verified', 'role:librarian','is_account_activated'])
         ]);
     });
 
+Route::get('/iconic/library', function () {
+
+});
+
+
 //old project
 Route::prefix('digital/resource')->group(function () {
 

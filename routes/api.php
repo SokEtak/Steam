@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -8,5 +9,5 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 //60 request per minute
-//Route::middleware('throttle:60,1')->apiResource('/library/v1/books',BookController::class );
+Route::middleware('throttle:60,1')->apiResource('/library/v1/books',BookController::class );
 //Route::apiResource('/v1/users',UserController::class );

@@ -75,9 +75,8 @@ class Book extends Model
     public function scopeActive($query, $book_type)
     {
         $conditions = [];
-        $role_id = Auth::user()->role_id;
+        $role_id = Auth::user()->role_id || 1;
 
-        // Default to non-deleted books unless specified otherwise
         $conditions['is_deleted'] = 0;
 
         // Apply campus_id filter only for role_id = 2
@@ -89,15 +88,12 @@ class Book extends Model
         if ($book_type !== null) {
             if ($book_type === 'delBook') {
                 $conditions['is_deleted'] = 1; // For deleted books
-                // Hardcode campus_id = 1 for delBook, or rely on role_id = 2 filter
-                // $conditions['campus_id'] = 1; // Uncomment to hardcode campus_id = 1
             } elseif ($book_type === 'miss') {
                 $conditions['is_available'] = 0; // For missing books (not found at bookcase/shelf)
-                $conditions['is_deleted'] = 0; // Ensure non-deleted
+                $conditions['is_deleted'] = 0;// Ensure non-deleted
             } else {
                 $conditions['type'] = $book_type; // Filter by type (e.g., 'physical', 'ebook')
-                $conditions['is_available'] = 1; // Other types require is_available = 1
-                $conditions['is_deleted'] = 0; // Ensure non-deleted
+                $conditions['is_deleted'] = 0;
             }
         }
         // When $book_type is null, no is_available or type filters are applied
