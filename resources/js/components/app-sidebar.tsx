@@ -87,10 +87,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     title: "Missing Book",
                     url: "/admin/library/books?type=miss",
                 },
-                {
-                    title: "Deleted Book",
-                    url: "/admin/library/books?type=delBook",
-                },
+                // {
+                //     title: "Deleted Book",
+                //     url: "/admin/library/books?type=delBook",
+                // },
             ],
         },
         {

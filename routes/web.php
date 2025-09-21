@@ -40,7 +40,7 @@ Route::get('/iconic/library', function () {
     return Inertia::render('Client/Library/Index', [
         'books' => $books,
     ]);
-});
+})->middleware('auth');
 
 
 //old project
