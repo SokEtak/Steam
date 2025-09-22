@@ -33,6 +33,12 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+//        dd(Auth::user()->toArray());
+
+        if (Auth::check() && Auth::user()->role_id===1){
+            return redirect()->intended(route('home', absolute: false));
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

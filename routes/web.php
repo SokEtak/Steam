@@ -34,7 +34,7 @@ Route::middleware(['auth', 'verified', 'role:librarian','is_account_activated'])
         ]);
     });
 
-Route::get('/iconic/library', function () {
+Route::get('/global/library', function () {
     $books = Book::active("physical")->get();
 //    dd($books->toArray());
     return Inertia::render('Client/Library/Index', [
