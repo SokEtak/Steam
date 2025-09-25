@@ -296,13 +296,13 @@ export default function BookIndex() {
                                             {book.is_available ? "Available" : "Unavailable"}
                                         </p>
                                         <div className="text-xs text-muted-foreground border-t pt-2 mt-2 space-y-1">
-                                            {book.category?.name && <p><span className="font-medium">Category:</span> {book.category.name}</p>}
+                                            {/*{book.category?.name && <p><span className="font-medium">Category:</span> {book.category.name}</p>}*/}
                                             {book.subcategory?.name && <p><span className="font-medium">Sub-Category:</span> {book.subcategory.name}</p>}
                                             {book.bookcase?.code && <p><span className="font-medium">Bookcase:</span> {book.bookcase.code}</p>}
                                             {book.shelf?.code && <p><span className="font-medium">Shelf:</span> {book.shelf.code}</p>}
                                             {book.grade?.name && <p><span className="font-medium">Grade:</span> {book.grade.name}</p>}
                                             {book.subject?.name && <p><span className="font-medium">Subject:</span> {book.subject.name}</p>}
-                                            {book.campus?.name && <p><span className="font-medium">Campus:</span> {book.campus.name}</p>}
+                                            {book.campus?.name && scope !== "local" && <p><span className="font-medium">Campus:</span> {book.campus.name}</p>}
                                             {book.language && <p><span className="font-medium">Language:</span> {book.language}</p>}
                                             {book.publisher && <p><span className="font-medium">Publisher:</span> {book.publisher}</p>}
                                             {book.isbn && <p><span className="font-medium">ISBN:</span> {book.isbn}</p>}
