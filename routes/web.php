@@ -52,6 +52,18 @@ Route::get('/local/library', function () {
     ]);
 })->middleware('auth');
 
+// For global eBook library
+Route::get('/e-library', function () {
+    try {
+        $books = Book::globalEbooks()->get();
+        return Inertia::render('Client/Library/Index', [
+            'books' => $books,
+            'bookType' => 'ebook',
+        ]);
+    } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+        return Inertia::render('Error', ['status' => 403, 'message' => $e->getMessage()]);
+    }
+})->middleware('auth');
 
 //old project
 Route::prefix('digital/resource')->group(function () {

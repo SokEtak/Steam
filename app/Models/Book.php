@@ -70,7 +70,6 @@ class Book extends Model
             'campus_id' => Auth::user()->campus_id,
         ]);
     }
-
     // Scope for active (non-deleted) books which belong to a specific user
     public function scopeActive($query, $book_type, $scope = null)
     {
@@ -105,6 +104,15 @@ class Book extends Model
         }
         // When $book_type is null, no is_available or type filters are applied
 
+        return $query->where($conditions)->select(self::$selectColumns);
+    }
+
+    //for e-book
+    public function scopeGlobalEbooks($query)
+    {
+        $conditions = [];
+        $conditions['is_deleted'] = 0;
+        $conditions['type'] = 'ebook'; // Restrict to eBooks only
         return $query->where($conditions)->select(self::$selectColumns);
     }
 

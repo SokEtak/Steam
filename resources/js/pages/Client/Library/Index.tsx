@@ -24,6 +24,7 @@ interface Book {
     type: string;
     flip_link?: string | null;
     is_available: boolean;
+    downloadable: number;
 
     // Relations
     category?: { id: number; name: string };
@@ -44,15 +45,12 @@ interface PageProps {
     flash: { message?: string };
     books: Book[];
     auth: { user: AuthUser };
-    scope?: 'local' | 'global'; // Add scope to PageProps
+    scope?: 'local' | 'global'; // Only used for physical books
+    bookType?: 'ebook' | 'physical';
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: "Books Library", href: "/books" },
-];
-
-export default function BookIndex() {
-    const { books, flash, auth, scope } = usePage<PageProps>().props;
+export default function Index() {
+    const { books, flash, auth, scope, bookType = 'physical' } = usePage<PageProps>().props;
     const [search, setSearch] = useState("");
     const [filterCategory, setFilterCategory] = useState("All");
     const [filterSubCategory, setFilterSubCategory] = useState("All");
@@ -62,6 +60,8 @@ export default function BookIndex() {
     const [filterSubject, setFilterSubject] = useState("All");
     const [filterCampus, setFilterCampus] = useState("All");
     const [filterLanguage, setFilterLanguage] = useState("All");
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedBook, setSelectedBook] = useState<Book | null>(null);
 
     // Collect unique filter options
     const categories = useMemo(() => Array.from(new Set(books.map((b) => b.category?.name).filter(Boolean))), [books]);
@@ -76,7 +76,7 @@ export default function BookIndex() {
     // Filtered books logic
     const filteredBooks = useMemo(() => {
         return books.filter((book) => {
-            if (book.type !== "physical") return false;
+            if (book.type !== bookType) return false;
 
             const matchesSearch =
                 book.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -84,11 +84,11 @@ export default function BookIndex() {
 
             const matchesCategory = filterCategory === "All" || book.category?.name === filterCategory;
             const matchesSubCategory = filterSubCategory === "All" || book.subcategory?.name === filterSubCategory;
-            const matchesBookcase = filterBookcase === "All" || book.bookcase?.code === filterBookcase;
-            const matchesShelf = filterShelf === "All" || book.shelf?.code === filterShelf;
+            const matchesBookcase = bookType === 'ebook' || filterBookcase === "All" || book.bookcase?.code === filterBookcase;
+            const matchesShelf = bookType === 'ebook' || filterShelf === "All" || book.shelf?.code === filterShelf;
             const matchesGrade = filterGrade === "All" || book.grade?.name === filterGrade;
             const matchesSubject = filterSubject === "All" || book.subject?.name === filterSubject;
-            const matchesCampus = filterCampus === "All" || book.campus?.name === filterCampus;
+            const matchesCampus = bookType === 'ebook' || scope !== 'local' || filterCampus === "All" || book.campus?.name === filterCampus;
             const matchesLanguage = filterLanguage === "All" || book.language === filterLanguage;
 
             return (
@@ -103,7 +103,7 @@ export default function BookIndex() {
                 matchesLanguage
             );
         });
-    }, [books, search, filterCategory, filterSubCategory, filterBookcase, filterShelf, filterGrade, filterSubject, filterCampus, filterLanguage]);
+    }, [books, search, filterCategory, filterSubCategory, filterBookcase, filterShelf, filterGrade, filterSubject, filterCampus, filterLanguage, bookType, scope]);
 
     // Sound effect setup
     const hoverSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -118,13 +118,18 @@ export default function BookIndex() {
         }
     };
 
+    // Dynamic breadcrumbs based on bookType
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: bookType === 'ebook' ? "eBooks Library" : "Books Library", href: bookType === 'ebook' ? "/e-library" : `/${scope || 'global'}/books` },
+    ];
+
     return (
         <AppLayout breadcrumbs={breadcrumbs} user={auth.user}>
-            <Head title="Books Library" />
+            <Head title={bookType === 'ebook' ? "eBooks Library" : "Books Library"} />
 
-            {/* Main content container with no horizontal padding to fill full width */}
-            <div className="py-4 space-y-8 bg-background transition-colors duration-300 w-full lg:pl-30 lg:pr-30">
-                {/* 🔹 Top Bar (now uses padding to prevent content from touching edges) */}
+            {/* Main content container with fixed size across all URLs */}
+            <div className="py-4 space-y-8 bg-background transition-colors duration-300 w-full md:pl-40 md:pr-40 lg:pl-70 max-w-8xl mx-auto">
+                {/* Top Bar (now uses padding to prevent content from touching edges) */}
                 <div className="flex items-center justify-between mb-6 px-4 md:px-12">
                     <Link href="/" className="flex items-center space-x-2">
                         <img src="/images/DIS(no back).png" alt="Logo" className="h-12 w-12 object-contain" />
@@ -137,20 +142,24 @@ export default function BookIndex() {
 
                 {/* Flash message */}
                 {flash.message && (
-                    <div className="p-4 bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100 rounded-md shadow mx-4 md:mx-12">
+                    <div className="p-4 bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100 rounded-md shadow mx-4 md:px-12">
                         {flash.message}
                     </div>
                 )}
 
                 {/* Main Content Header */}
                 <div className="space-y-2 px-4 md:px-12">
-                    <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Books Library</h1>
-                    <p className="text-muted-foreground">Browse and filter the school's collection of physical books.</p>
+                    <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+                        {bookType === 'ebook' ? "eBooks Library" : "Books Library"}
+                    </h1>
+                    <p className="text-muted-foreground">
+                        Browse and filter the school's collection of {bookType === 'ebook' ? "eBooks" : "physical books"}.
+                    </p>
                     <hr className="my-6 border-t border-border" />
                 </div>
 
                 {/* Filters */}
-                <div className="flex flex-wrap items-center gap-4 px-4 md:px-12">
+                <div className="flex flex-wrap items-center gap-4 px-4 md:px-12 max-w-7xl mx-auto">
                     <Input
                         placeholder="Search any keyword"
                         value={search}
@@ -184,33 +193,37 @@ export default function BookIndex() {
                         </SelectContent>
                     </Select>
 
-                    {/* Bookcase */}
-                    <Select value={filterBookcase} onValueChange={setFilterBookcase}>
-                        <SelectTrigger className="w-full sm:w-40">
-                            <SelectValue placeholder="Bookcase" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="All">All Bookcases</SelectItem>
-                            {bookcases.map((bc) => (
-                                <SelectItem key={bc} value={bc}>{bc}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    {/* Bookcase (physical books only) */}
+                    {bookType === 'physical' && (
+                        <Select value={filterBookcase} onValueChange={setFilterBookcase}>
+                            <SelectTrigger className="w-full sm:w-40">
+                                <SelectValue placeholder="Bookcase" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="All">All Bookcases</SelectItem>
+                                {bookcases.map((bc) => (
+                                    <SelectItem key={bc} value={bc}>{bc}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
 
-                    {/* Shelf */}
-                    <Select value={filterShelf} onValueChange={setFilterShelf}>
-                        <SelectTrigger className="w-full sm:w-40">
-                            <SelectValue placeholder="Shelf" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="All">All Shelves</SelectItem>
-                            {shelves.map((sh) => (
-                                <SelectItem key={sh} value={sh}>{sh}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    {/* Shelf (physical books only) */}
+                    {bookType === 'physical' && (
+                        <Select value={filterShelf} onValueChange={setFilterShelf}>
+                            <SelectTrigger className="w-full sm:w-40">
+                                <SelectValue placeholder="Shelf" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="All">All Shelves</SelectItem>
+                                {shelves.map((sh) => (
+                                    <SelectItem key={sh} value={sh}>{sh}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
 
-                    {/* Language with conditional labels */}
+                    {/* Language */}
                     <Select value={filterLanguage} onValueChange={setFilterLanguage}>
                         <SelectTrigger className="w-full sm:w-40">
                             <SelectValue placeholder="Language" />
@@ -219,7 +232,7 @@ export default function BookIndex() {
                             <SelectItem value="All">All Languages</SelectItem>
                             {languages.map((lang) => (
                                 <SelectItem key={lang} value={lang}>
-                                    {lang === 'en' ? 'English' : 'Khmer'}
+                                    {lang === 'en' ? 'English' : lang === 'kh' ? 'Khmer' : lang}
                                 </SelectItem>
                             ))}
                         </SelectContent>
@@ -251,8 +264,8 @@ export default function BookIndex() {
                         </SelectContent>
                     </Select>
 
-                    {/* Campus (hidden for 'local' scope) */}
-                    {scope !== 'local' && (
+                    {/* Campus (physical books only, hidden for 'local' scope) */}
+                    {bookType === 'physical' && scope !== 'local' && (
                         <Select value={filterCampus} onValueChange={setFilterCampus}>
                             <SelectTrigger className="w-full sm:w-40">
                                 <SelectValue placeholder="Campus" />
@@ -269,12 +282,13 @@ export default function BookIndex() {
 
                 {/* Book Grid */}
                 <TooltipProvider>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 md:gap-8 px-4 md:px-12">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6 px-4 md:px-12 max-w-7xl mx-auto">
                         {filteredBooks.length > 0 ? (
                             filteredBooks.map((book) => (
                                 <Tooltip key={book.id}>
                                     <TooltipTrigger
                                         onMouseEnter={playHoverSound}
+                                        onClick={() => { setIsModalOpen(true); setSelectedBook(book); }}
                                         className="flex flex-col items-center space-y-2 cursor-pointer transition-transform duration-200 hover:scale-105"
                                     >
                                         {/* Book Cover */}
@@ -285,61 +299,94 @@ export default function BookIndex() {
                                                 className="absolute inset-0 w-full h-full object-cover rounded-md shadow-lg"
                                             />
                                         </div>
-                                        {/*<p className="text-sm font-medium text-center truncate w-full px-1">{book.title}</p>*/}
                                     </TooltipTrigger>
 
                                     {/* Extended Tooltip Content */}
                                     <TooltipContent side="right" className="max-w-xs p-4 space-y-2 rounded-lg shadow-xl">
                                         <h3 className="text-lg font-semibold">{book.title}</h3>
                                         <p className="text-sm"><span className="font-medium">Author:</span> {book.author}</p>
-                                        <p className={`text-sm font-medium ${book.is_available ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
-                                            {book.is_available ? "Available" : "Unavailable"}
-                                        </p>
+                                        {bookType === 'physical' && (
+                                            <p className={`text-sm font-medium ${book.is_available ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+                                                {book.is_available ? "Available" : "Unavailable"}
+                                            </p>
+                                        )}
                                         <div className="text-xs text-muted-foreground border-t pt-2 mt-2 space-y-1">
-                                            {/*{book.category?.name && <p><span className="font-medium">Category:</span> {book.category.name}</p>}*/}
+                                            {book.category?.name && <p><span className="font-medium">Category:</span> {book.category.name}</p>}
                                             {book.subcategory?.name && <p><span className="font-medium">Sub-Category:</span> {book.subcategory.name}</p>}
-                                            {book.bookcase?.code && <p><span className="font-medium">Bookcase:</span> {book.bookcase.code}</p>}
-                                            {book.shelf?.code && <p><span className="font-medium">Shelf:</span> {book.shelf.code}</p>}
+                                            {bookType === 'physical' && book.bookcase?.code && <p><span className="font-medium">Bookcase:</span> {book.bookcase.code}</p>}
+                                            {bookType === 'physical' && book.shelf?.code && <p><span className="font-medium">Shelf:</span> {book.shelf.code}</p>}
                                             {book.grade?.name && <p><span className="font-medium">Grade:</span> {book.grade.name}</p>}
                                             {book.subject?.name && <p><span className="font-medium">Subject:</span> {book.subject.name}</p>}
-                                            {book.campus?.name && scope !== "local" && <p><span className="font-medium">Campus:</span> {book.campus.name}</p>}
-                                            {book.language && <p><span className="font-medium">Language:</span> {book.language}</p>}
+                                            {bookType === 'physical' && book.campus?.name && scope !== 'local' && (
+                                                <p><span className="font-medium">Campus:</span> {book.campus.name}</p>
+                                            )}
+                                            {book.language && (
+                                                <p><span className="font-medium">Language:</span> {book.language === 'en' ? 'English' : book.language === 'kh' ? 'Khmer' : book.language}</p>
+                                            )}
                                             {book.publisher && <p><span className="font-medium">Publisher:</span> {book.publisher}</p>}
                                             {book.isbn && <p><span className="font-medium">ISBN:</span> {book.isbn}</p>}
                                             {book.code && <p><span className="font-medium">Code:</span> {book.code}</p>}
                                             {book.page_count && <p><span className="font-medium">Pages:</span> {book.page_count}</p>}
+                                            {bookType === 'ebook' && <p><span className="font-medium">Downloadable:</span> {book.downloadable ? 'Yes' : 'No'}</p>}
                                             {book.description && <p className="mt-2">{book.description}</p>}
                                         </div>
-                                        <div className="flex flex-col items-start gap-2 pt-2 border-t mt-2">
-                                            {book.flip_link && (
-                                                <a
-                                                    href={book.flip_link}
-                                                    target="_blank"
-                                                    className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline transition-colors"
-                                                >
-                                                    Open Flipbook
-                                                </a>
-                                            )}
-                                            {book.pdf_url && (
-                                                <a
-                                                    href={book.pdf_url}
-                                                    target="_blank"
-                                                    className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline transition-colors"
-                                                >
-                                                    Download PDF
-                                                </a>
-                                            )}
-                                        </div>
+                                        {bookType === 'ebook' && (
+                                            <div className="flex flex-col items-start gap-2 pt-2 border-t mt-2">
+                                                {book.flip_link && (
+                                                    <a
+                                                        href={book.flip_link}
+                                                        target="_blank"
+                                                        className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline transition-colors"
+                                                    >
+                                                        Open Flipbook
+                                                    </a>
+                                                )}
+                                                {book.pdf_url && book.downloadable === 1 && (
+                                                    <a
+                                                        href={book.pdf_url}
+                                                        target="_blank"
+                                                        className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline transition-colors"
+                                                    >
+                                                        Download as PDF
+                                                    </a>
+                                                )}
+                                            </div>
+                                        )}
                                     </TooltipContent>
                                 </Tooltip>
                             ))
                         ) : (
                             <p className="text-center text-gray-500 dark:text-gray-400 col-span-full py-12">
-                                No books found. Please adjust your filters.
+                                No {bookType === 'ebook' ? 'eBooks' : 'books'} found. Please adjust your filters.
                             </p>
                         )}
                     </div>
                 </TooltipProvider>
+
+                {/* Modal for Book Display */}
+                {isModalOpen && selectedBook && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-5xl h-[90vh] flex flex-col">
+                            <div className="flex justify-end">
+                                <button
+                                    onClick={() => setIsModalOpen(false)}
+                                    className="text-red-500 hover:text-red-700 text-2xl font-bold"
+                                >
+                                    &times;
+                                </button>
+                            </div>
+                            <h2 className="text-xl font-bold mb-4">{selectedBook.title}</h2>
+                            <div className="flex-1 overflow-auto">
+                                <iframe
+                                    src={selectedBook.flip_link || selectedBook.pdf_url || ""}
+                                    title={selectedBook.title}
+                                    className="w-full h-full border-0"
+                                    sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                                ></iframe>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </AppLayout>
     );
