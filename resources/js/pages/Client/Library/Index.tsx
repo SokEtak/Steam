@@ -66,7 +66,7 @@ export default function BookIndex() {
     const categories = useMemo(() => Array.from(new Set(books.map((b) => b.category?.name).filter(Boolean))), [books]);
     const subcategories = useMemo(() => Array.from(new Set(books.map((b) => b.subcategory?.name).filter(Boolean))), [books]);
     const bookcases = useMemo(() => Array.from(new Set(books.map((b) => b.bookcase?.code).filter(Boolean))), [books]);
-    const shelves = useMemo(() => Array.from(new Set(books.map((b) => b.shelf?.name).filter(Boolean))), [books]);
+    const shelves = useMemo(() => Array.from(new Set(books.map((b) => b.shelf?.code).filter(Boolean))), [books]);
     const grades = useMemo(() => Array.from(new Set(books.map((b) => b.grade?.name).filter(Boolean))), [books]);
     const subjects = useMemo(() => Array.from(new Set(books.map((b) => b.subject?.name).filter(Boolean))), [books]);
     const campuses = useMemo(() => Array.from(new Set(books.map((b) => b.campus?.name).filter(Boolean))), [books]);
@@ -84,7 +84,7 @@ export default function BookIndex() {
             const matchesCategory = filterCategory === "All" || book.category?.name === filterCategory;
             const matchesSubCategory = filterSubCategory === "All" || book.subcategory?.name === filterSubCategory;
             const matchesBookcase = filterBookcase === "All" || book.bookcase?.code === filterBookcase;
-            const matchesShelf = filterShelf === "All" || book.shelf?.name === filterShelf;
+            const matchesShelf = filterShelf === "All" || book.shelf?.code === filterShelf;
             const matchesGrade = filterGrade === "All" || book.grade?.name === filterGrade;
             const matchesSubject = filterSubject === "All" || book.subject?.name === filterSubject;
             const matchesCampus = filterCampus === "All" || book.campus?.name === filterCampus;
