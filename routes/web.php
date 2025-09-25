@@ -37,17 +37,18 @@ Route::middleware(['auth', 'verified', 'role:librarian','is_account_activated'])
 //for global library
 Route::get('/global/library', function () {
     $books = Book::active("physical","global")->get();
-    //    dd($books->toArray());
     return Inertia::render('Client/Library/Index', [
         'books' => $books,
+        'scope' => 'global',
     ]);
 })->middleware('auth');
 
+//for local library
 Route::get('/local/library', function () {
     $books = Book::active("physical","local")->get();
-    //    dd($books->toArray());
     return Inertia::render('Client/Library/Index', [
         'books' => $books,
+        'scope' => 'local',
     ]);
 })->middleware('auth');
 

@@ -44,6 +44,7 @@ interface PageProps {
     flash: { message?: string };
     books: Book[];
     auth: { user: AuthUser };
+    scope?: 'local' | 'global'; // Add scope to PageProps
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -51,7 +52,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function BookIndex() {
-    const { books, flash, auth } = usePage<PageProps>().props;
+    const { books, flash, auth, scope } = usePage<PageProps>().props;
     const [search, setSearch] = useState("");
     const [filterCategory, setFilterCategory] = useState("All");
     const [filterSubCategory, setFilterSubCategory] = useState("All");
@@ -250,18 +251,20 @@ export default function BookIndex() {
                         </SelectContent>
                     </Select>
 
-                    {/* Campus */}
-                    <Select value={filterCampus} onValueChange={setFilterCampus}>
-                        <SelectTrigger className="w-full sm:w-40">
-                            <SelectValue placeholder="Campus" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="All">All Campuses</SelectItem>
-                            {campuses.map((c) => (
-                                <SelectItem key={c} value={c}>{c}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    {/* Campus (hidden for 'local' scope) */}
+                    {scope !== 'local' && (
+                        <Select value={filterCampus} onValueChange={setFilterCampus}>
+                            <SelectTrigger className="w-full sm:w-40">
+                                <SelectValue placeholder="Campus" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="All">All Campuses</SelectItem>
+                                {campuses.map((c) => (
+                                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
                 </div>
 
                 {/* Book Grid */}
