@@ -68,6 +68,7 @@ interface BooksCreateProps {
 // Translation object for English and Khmer
 const translations = {
   en: {
+      go_back: 'Book List',
     createBook: 'Create New Book',
     createEBook: 'Create E-Book',
     createPhysicalBook: 'Create Physical Book',
@@ -163,7 +164,7 @@ const translations = {
     preview: 'Preview',
     createButton: 'Create Book',
     creating: 'Creating...',
-    cancel: 'Cancel',
+    cancel: 'Cancel,Go Back to Books List',
     coverPreview: 'Cover Preview',
     pdfPreview: 'PDF Preview',
     noCoverAvailable: 'No cover image available.',
@@ -175,114 +176,115 @@ const translations = {
     audio: 'Audio',
     comingSoon: '(Coming Soon)',
   },
-  // kh: {
-  //   createBook: 'បង្កើតសៀវភៅថ្មី',
-  //   createEBook: 'បង្កើតសៀវភៅអេឡិចត្រូនិក',
-  //   createPhysicalBook: 'បង្កើតសៀវភៅក្រដាស',
-  //   error: 'កំហុស',
-  //   tryAgain: 'សាកល្បងម្តងទៀត',
-  //   somethingWentWrong: 'មានកំហុសកើតឡើង',
-  //   errorDescription: 'មានកំហុសកើតឡើងនៅពេលបង្កើតសៀវភៅ។ សូមសាកល្បងម្តងទៀត ឬទាក់ទងផ្នែកជំនួយ។',
-  //   basicInformation: 'ព័ត៌មានមូលដ្ឋាន',
-  //   title: 'ចំណងជើង',
-  //   titlePlaceholder: 'បញ្ចូលចំណងជើងសៀវភៅ',
-  //   titleError: 'សូមបញ្ចូលចំណងជើងត្រឹមត្រូវ (អតិបរមា ២៥៥ តួអក្សរ)។',
-  //   titleHelper: 'អតិបរមា ២៥៥ តួអក្សរ។',
-  //   description: 'ការពិពណ៌នា',
-  //   descriptionPlaceholder: 'បញ្ចូលការពិពណ៌នាសៀវភៅ',
-  //   descriptionError: 'សូមបញ្ចូលការពិពណ៌នាត្រឹមត្រូវ។',
-  //   descriptionHelper: 'ការពិពណ៌នាសង្ខេបនៃសៀវភៅ។',
-  //   pageCount: 'ចំនួនទំព័រ',
-  //   pageCountPlaceholder: 'បញ្ចូលចំនួនទំព័រ',
-  //   pageCountError: 'សូមបញ្ចូលចំនួនទំព័រត្រឹមត្រូវ (អប្បបរមា ១)។',
-  //   pageCountHelper: 'ចំនួនទំព័រសរុប។',
-  //   publisher: 'អ្នកបោះពុម្ព',
-  //   publisherPlaceholder: 'បញ្ចូលឈ្មោះអ្នកបោះពុម្ព',
-  //   publisherError: 'សូមបញ្ចូលឈ្មោះអ្នកបោះពុម្ពត្រឹមត្រូវ (អតិបរមា ២៥៥ តួអក្សរ)។',
-  //   publisherHelper: 'អតិបរមា ២៥៥ តួអក្សរ។',
-  //   language: 'ភាសា',
-  //   languagePlaceholder: 'ជ្រើសរើសភាសា',
-  //   languageError: 'សូមជ្រើសរើសភាសាត្រឹមត្រូវ។',
-  //   languageHelper: 'ភាសាចម្បងនៃសៀវភៅ។',
-  //   publishedAt: 'កាលបរិច្ឆេទបោះពុម្ព',
-  //   publishedAtPlaceholder: 'ជ្រើសរើសកាលបរិច្ឆេទ',
-  //   publishedAtError: 'សូមជ្រើសរើសកាលបរិច្ឆេទបោះពុម្ពត្រឹមត្រូវ។',
-  //   publishedAtHelper: 'កាលបរិច្ឆេទបោះពុម្ព (ស្រេចចិត្ត)។',
-  //   author: 'អ្នកនិពន្ធ',
-  //   authorPlaceholder: 'បញ្ចូលឈ្មោះអ្នកនិពន្ធ',
-  //   authorError: 'សូមបញ្ចូលឈ្មោះអ្នកនិពន្ធត្រឹមត្រូវ (អតិបរមា ២៥៥ តួអក្សរ)។',
-  //   authorHelper: 'ស្រេចចិត្ត អតិបរមា ២៥៥ តួអក្សរ។',
-  //   flipLink: 'តំណភ្ជាប់ឌីជីថល',
-  //   flipLinkPlaceholder: 'បញ្ចូល URL នៃការមើលជាមុនឌីជីថល',
-  //   flipLinkError: 'សូមបញ្ចូល URL ត្រឹមត្រូវសម្រាប់ការមើលជាមុនឌីជីថល។',
-  //   flipLinkHelper: 'តំណភ្ជាប់ឌីជីថលសម្រាប់មើលជាមុន (ស្រេចចិត្ត)។',
-  //   code: 'កូដ',
-  //   codePlaceholder: 'បង្កើតដោយស្វ័យប្រវត្តិបន្ទាប់ពីជ្រើសរើសប្រភេទ',
-  //   codeError: 'សូមបញ្ចូលកូដសៀវភៅត្រឹមត្រូវ (អតិបរមា ១០ តួអក្សរ)។',
-  //   codeHelper: 'អតិបរមា ១០ តួអក្សរ បង្កើតដោយស្វ័យប្រវត្តិ។',
-  //   isbn: 'ISBN',
-  //   isbnPlaceholder: 'បញ្ចូល ISBN',
-  //   isbnError: 'សូមបញ្ចូល ISBN ត្រឹមត្រូវ (អតិបរមា ១៣ តួអក្សរ)។',
-  //   isbnHelper: 'ស្រេចចិត្ត ១៣ តួអក្សរ។',
-  //   availability: 'ភាពអាចរកបាន',
-  //   downloadable: 'អាចទាញយកបាន',
-  //   availabilityError: 'សូមជ្រើសរើសជម្រើសភាពអាចរកបាន។',
-  //   availabilityHelper: 'បញ្ជាក់ថាតើសៀវភៅនេះអាចរកបានឬអត់។',
-  //   downloadableHelper: 'អនុញ្ញាតឱ្យអ្នកប្រើទាញយកសៀវភៅអេឡិចត្រូនិក។',
-  //   yes: 'បាទ/ចាស',
-  //   no: 'ទេ',
-  //   classification: 'ការចាត់ថ្នាក់',
-  //   category: 'ប្រភេទ',
-  //   categoryPlaceholder: 'ជ្រើសរើសប្រភេទ',
-  //   categoryError: 'សូមជ្រើសរើសប្រភេទត្រឹមត្រូវ។',
-  //   categoryHelper: 'ជ្រើសរើសប្រភេទសម្រាប់សៀវភៅ។',
-  //   subcategory: 'ប្រភេទរង',
-  //   subcategoryPlaceholder: 'ជ្រើសរើសប្រភេទរង',
-  //   subcategoryError: 'សូមជ្រើសរើសប្រភេទរងត្រឹមត្រូវ។',
-  //   subcategoryHelper: 'ប្រភេទរងសម្រាប់សៀវភៅ (ស្រេចចិត្ត)។',
-  //   grade: 'កម្រិត',
-  //   gradePlaceholder: 'ជ្រើសរើសកម្រិត',
-  //   gradeError: 'សូមជ្រើសរើសកម្រិតត្រឹមត្រូវ។',
-  //   gradeHelper: 'កម្រិតសម្រាប់សៀវភៅ (ស្រេចចិត្ត)។',
-  //   subject: 'មុខវិជ្ជា',
-  //   subjectPlaceholder: 'ជ្រើសរើសមុខវិជ្ជា',
-  //   subjectError: 'សូមជ្រើសរើសមុខវិជ្ជាត្រឹមត្រូវ។',
-  //   subjectHelper: 'មុខវិជ្ជាសម្រាប់សៀវភៅ (ស្រេចចិត្ត)។',
-  //   location: 'ទីតាំង',
-  //   bookcase: 'ទូសៀវភៅ',
-  //   bookcasePlaceholder: 'ជ្រើសរើសទូសៀវភៅ',
-  //   bookcaseError: 'សូមជ្រើសរើសទូសៀវភៅត្រឹមត្រូវ។',
-  //   bookcaseHelper: 'ជ្រើសរើសទូសៀវភៅសម្រាប់សៀវភៅក្រដាស។',
-  //   shelf: 'ធ្នើរ',
-  //   shelfPlaceholder: 'ជ្រើសរើសធ្នើរ',
-  //   shelfError: 'សូមជ្រើសរើសធ្នើរត្រឹមត្រូវ។',
-  //   shelfHelper: 'ជ្រើសរើសធ្នើរសម្រាប់សៀវភៅក្រដាស។',
-  //   files: 'ឯកសារ',
-  //   cover: 'គម្រប (ណែនាំជាទម្រង់បញ្ឈរ)',
-  //   coverPlaceholder: 'បញ្ចូលរូបភាពគម្រប',
-  //   coverError: 'សូមបញ្ចូលរូបភាពគម្របត្រឹមត្រូវ (JPEG/PNG, អតិបរមា ២MB)។',
-  //   coverHelper: 'ស្រេចចិត្ត៖ JPEG ឬ PNG, អតិបរមា ២MB។',
-  //   pdfFile: 'ឯកសារ PDF (អតិបរមា ១០MB)',
-  //   pdfFilePlaceholder: 'បញ្ចូលឯកសារ PDF',
-  //   pdfFileError: 'សូមបញ្ចូលឯកសារ PDF ត្រឹមត្រូវ (អតិបរមា ១០MB)។',
-  //   pdfFileHelper: 'តម្រូវ៖ PDF, អតិបរមា ១០MB។',
-  //   browse: 'រកមើល',
-  //   remove: 'លុប',
-  //   preview: 'មើលជាមុន',
-  //   createButton: 'បង្កើតសៀវភៅ',
-  //   creating: 'កំពុងបង្កើត...',
-  //   cancel: 'បោះបង់',
-  //   coverPreview: 'មើលគម្របជាមុន',
-  //   pdfPreview: 'មើល PDF ជាមុន',
-  //   noCoverAvailable: 'គ្មានរូបភាពគម្រប។',
-  //   noPdfAvailable: 'គ្មានឯកសារ PDF។',
-  //   saveBook: 'រក្សាទុកសៀវភៅថ្មី',
-  //   returnToBooks: 'ត្រឡប់ទៅបញ្ជីសៀវភៅ',
-  //   physical: 'សៀវភៅក្រដាស',
-  //   ebook: 'សៀវភៅអេឡិចត្រូនិក',
-  //   audio: 'សៀវភៅសំឡេង',
-  //   comingSoon: '(នឹងមកដល់ឆាប់ៗនេះ)',
-  // },
+  kh: {
+      go_back: "បញ្ជីសៀវភៅ",
+    createBook: 'បង្កើតសៀវភៅថ្មី',
+    createEBook: 'បង្កើតសៀវភៅអេឡិចត្រូនិក',
+    createPhysicalBook: 'បង្កើតសៀវភៅក្រដាស',
+    error: 'កំហុស',
+    tryAgain: 'សាកល្បងម្តងទៀត',
+    somethingWentWrong: 'មានកំហុសកើតឡើង',
+    errorDescription: 'មានកំហុសកើតឡើងនៅពេលបង្កើតសៀវភៅ។ សូមសាកល្បងម្តងទៀត ឬទាក់ទងផ្នែកជំនួយ។',
+    basicInformation: 'ព័ត៌មានមូលដ្ឋាន',
+    title: 'ចំណងជើង',
+    titlePlaceholder: 'បញ្ចូលចំណងជើងសៀវភៅ',
+    titleError: 'សូមបញ្ចូលចំណងជើងត្រឹមត្រូវ (អតិបរមា ២៥៥ តួអក្សរ)។',
+    titleHelper: 'អតិបរមា ២៥៥ តួអក្សរ។',
+    description: 'ការពិពណ៌នា',
+    descriptionPlaceholder: 'បញ្ចូលការពិពណ៌នាសៀវភៅ',
+    descriptionError: 'សូមបញ្ចូលការពិពណ៌នាត្រឹមត្រូវ។',
+    descriptionHelper: 'ការពិពណ៌នាសង្ខេបនៃសៀវភៅ។',
+    pageCount: 'ចំនួនទំព័រ',
+    pageCountPlaceholder: 'បញ្ចូលចំនួនទំព័រ',
+    pageCountError: 'សូមបញ្ចូលចំនួនទំព័រត្រឹមត្រូវ (អប្បបរមា ១)។',
+    pageCountHelper: 'ចំនួនទំព័រសរុប។',
+    publisher: 'អ្នកបោះពុម្ព',
+    publisherPlaceholder: 'បញ្ចូលឈ្មោះអ្នកបោះពុម្ព',
+    publisherError: 'សូមបញ្ចូលឈ្មោះអ្នកបោះពុម្ពត្រឹមត្រូវ (អតិបរមា ២៥៥ តួអក្សរ)។',
+    publisherHelper: 'អតិបរមា ២៥៥ តួអក្សរ។',
+    language: 'ភាសា',
+    languagePlaceholder: 'ជ្រើសរើសភាសា',
+    languageError: 'សូមជ្រើសរើសភាសាត្រឹមត្រូវ។',
+    languageHelper: 'ភាសាចម្បងនៃសៀវភៅ។',
+    publishedAt: 'កាលបរិច្ឆេទបោះពុម្ព',
+    publishedAtPlaceholder: 'ជ្រើសរើសកាលបរិច្ឆេទ',
+    publishedAtError: 'សូមជ្រើសរើសកាលបរិច្ឆេទបោះពុម្ពត្រឹមត្រូវ។',
+    publishedAtHelper: 'កាលបរិច្ឆេទបោះពុម្ព (ស្រេចចិត្ត)។',
+    author: 'អ្នកនិពន្ធ',
+    authorPlaceholder: 'បញ្ចូលឈ្មោះអ្នកនិពន្ធ',
+    authorError: 'សូមបញ្ចូលឈ្មោះអ្នកនិពន្ធត្រឹមត្រូវ (អតិបរមា ២៥៥ តួអក្សរ)។',
+    authorHelper: 'ស្រេចចិត្ត អតិបរមា ២៥៥ តួអក្សរ។',
+    flipLink: 'តំណភ្ជាប់ឌីជីថល',
+    flipLinkPlaceholder: 'បញ្ចូល URL នៃការមើលជាមុនឌីជីថល',
+    flipLinkError: 'សូមបញ្ចូល URL ត្រឹមត្រូវសម្រាប់ការមើលជាមុនឌីជីថល។',
+    flipLinkHelper: 'តំណភ្ជាប់ឌីជីថលសម្រាប់មើលជាមុន (ស្រេចចិត្ត)។',
+    code: 'កូដ',
+    codePlaceholder: 'បង្កើតដោយស្វ័យប្រវត្តិបន្ទាប់ពីជ្រើសរើសប្រភេទ',
+    codeError: 'សូមបញ្ចូលកូដសៀវភៅត្រឹមត្រូវ (អតិបរមា ១០ តួអក្សរ)។',
+    codeHelper: 'អតិបរមា ១០ តួអក្សរ បង្កើតដោយស្វ័យប្រវត្តិ។',
+    isbn: 'ISBN',
+    isbnPlaceholder: 'បញ្ចូល ISBN',
+    isbnError: 'សូមបញ្ចូល ISBN ត្រឹមត្រូវ (អតិបរមា ១៣ តួអក្សរ)។',
+    isbnHelper: 'ស្រេចចិត្ត ១៣ តួអក្សរ។',
+    availability: 'ភាពអាចរកបាន',
+    downloadable: 'អាចទាញយកបាន',
+    availabilityError: 'សូមជ្រើសរើសជម្រើសភាពអាចរកបាន។',
+    availabilityHelper: 'បញ្ជាក់ថាតើសៀវភៅនេះអាចរកបានឬអត់។',
+    downloadableHelper: 'អនុញ្ញាតឱ្យអ្នកប្រើទាញយកសៀវភៅអេឡិចត្រូនិក។',
+    yes: 'បាទ/ចាស',
+    no: 'ទេ',
+    classification: 'ការចាត់ថ្នាក់',
+    category: 'ប្រភេទ',
+    categoryPlaceholder: 'ជ្រើសរើសប្រភេទ',
+    categoryError: 'សូមជ្រើសរើសប្រភេទត្រឹមត្រូវ។',
+    categoryHelper: 'ជ្រើសរើសប្រភេទសម្រាប់សៀវភៅ។',
+    subcategory: 'ប្រភេទរង',
+    subcategoryPlaceholder: 'ជ្រើសរើសប្រភេទរង',
+    subcategoryError: 'សូមជ្រើសរើសប្រភេទរងត្រឹមត្រូវ។',
+    subcategoryHelper: 'ប្រភេទរងសម្រាប់សៀវភៅ (ស្រេចចិត្ត)។',
+    grade: 'កម្រិត',
+    gradePlaceholder: 'ជ្រើសរើសកម្រិត',
+    gradeError: 'សូមជ្រើសរើសកម្រិតត្រឹមត្រូវ។',
+    gradeHelper: 'កម្រិតសម្រាប់សៀវភៅ (ស្រេចចិត្ត)។',
+    subject: 'មុខវិជ្ជា',
+    subjectPlaceholder: 'ជ្រើសរើសមុខវិជ្ជា',
+    subjectError: 'សូមជ្រើសរើសមុខវិជ្ជាត្រឹមត្រូវ។',
+    subjectHelper: 'មុខវិជ្ជាសម្រាប់សៀវភៅ (ស្រេចចិត្ត)។',
+    location: 'ទីតាំង',
+    bookcase: 'ទូសៀវភៅ',
+    bookcasePlaceholder: 'ជ្រើសរើសទូសៀវភៅ',
+    bookcaseError: 'សូមជ្រើសរើសទូសៀវភៅត្រឹមត្រូវ។',
+    bookcaseHelper: 'ជ្រើសរើសទូសៀវភៅសម្រាប់សៀវភៅក្រដាស។',
+    shelf: 'ធ្នើរ',
+    shelfPlaceholder: 'ជ្រើសរើសធ្នើរ',
+    shelfError: 'សូមជ្រើសរើសធ្នើរត្រឹមត្រូវ។',
+    shelfHelper: 'ជ្រើសរើសធ្នើរសម្រាប់សៀវភៅក្រដាស។',
+    files: 'ឯកសារ',
+    cover: 'គម្រប (ណែនាំជាទម្រង់បញ្ឈរ)',
+    coverPlaceholder: 'បញ្ចូលរូបភាពគម្រប',
+    coverError: 'សូមបញ្ចូលរូបភាពគម្របត្រឹមត្រូវ (JPEG/PNG, អតិបរមា ២MB)។',
+    coverHelper: 'ស្រេចចិត្ត៖ JPEG ឬ PNG, អតិបរមា ២MB។',
+    pdfFile: 'ឯកសារ PDF (អតិបរមា ១០MB)',
+    pdfFilePlaceholder: 'បញ្ចូលឯកសារ PDF',
+    pdfFileError: 'សូមបញ្ចូលឯកសារ PDF ត្រឹមត្រូវ (អតិបរមា ១០MB)។',
+    pdfFileHelper: 'តម្រូវ៖ PDF, អតិបរមា ១០MB។',
+    browse: 'រកមើល',
+    remove: 'លុប',
+    preview: 'មើលជាមុន',
+    createButton: 'បង្កើតសៀវភៅ',
+    creating: 'កំពុងបង្កើត...',
+    cancel: 'បោះបង់ រួចត្រឡប់ទៅកាន់បញ្ជីសៀវភៅ',
+    coverPreview: 'មើលគម្របជាមុន',
+    pdfPreview: 'មើល PDF ជាមុន',
+    noCoverAvailable: 'គ្មានរូបភាពគម្រប។',
+    noPdfAvailable: 'គ្មានឯកសារ PDF។',
+    saveBook: 'រក្សាទុកសៀវភៅថ្មី',
+    returnToBooks: 'ត្រឡប់ទៅបញ្ជីសៀវភៅ',
+    physical: 'សៀវភៅក្រដាស',
+    ebook: 'សៀវភៅអេឡិចត្រូនិក',
+    audio: 'សៀវភៅសំឡេង',
+    comingSoon: '(នឹងមកដល់ឆាប់ៗនេះ)',
+  },
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -729,7 +731,7 @@ export default function BooksCreate({
   return (
     <ErrorBoundary pageProps={{ lang }}>
       <AppLayout breadcrumbs={[
-          { title: t.createBook, href: route('books.index') },
+          { title: t.go_back, href: route('books.index') },
           { title: t.createBook, href: '' }
       ]}>
         <Head title={isEbook ? t.createEBook : t.createPhysicalBook} />
@@ -775,16 +777,16 @@ export default function BooksCreate({
                   }}
               >
                   {/*language switcher to continue later*/}
-                  {/*<SelectTrigger>*/}
-                  {/*    <SelectValue placeholder={t.languagePlaceholder} />*/}
-                  {/*</SelectTrigger>*/}
-                  {/*<SelectContent>*/}
-                  {/*    <SelectItem value="en">{t.language === 'ភាសា' ? 'អង់គ្លេស' : 'English'}</SelectItem>*/}
-                  {/*    <SelectItem value="kh">{t.language === 'ភាសា' ? 'ខ្មែរ' : 'Khmer'}</SelectItem>*/}
-                  {/*</SelectContent>*/}
+                  <SelectTrigger>
+                      <SelectValue placeholder={t.languagePlaceholder} />
+                  </SelectTrigger>
+                  <SelectContent>
+                      <SelectItem value="en">{t.language === 'ភាសា' ? 'អង់គ្លេស' : 'English'}</SelectItem>
+                      <SelectItem value="kh">{t.language === 'ភាសា' ? 'ខ្មែរ' : 'Khmer'}</SelectItem>
+                  </SelectContent>
               </Select>
 
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-6" encType="multipart/form-data">
+            <form onSubmit={handleSubmit} className="mt-2 grid grid-cols-1 lg:grid-cols-2 gap-6" encType="multipart/form-data">
               <input type="hidden" name="type" value={type} />
 
               {/* Tabs for Physical/Ebook */}
@@ -815,7 +817,7 @@ export default function BooksCreate({
 
               {/* Basic Information */}
               <div className="col-span-full">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{t.basicInformation}</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-0">{t.basicInformation}</h2>
               </div>
               <div className="space-y-4">
                 <div>
@@ -1222,7 +1224,7 @@ export default function BooksCreate({
 
               {/* Classification */}
               <div className="col-span-full">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{t.classification}</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-0">{t.classification}</h2>
               </div>
               <div className="space-y-4">
                 <div>
@@ -1397,7 +1399,7 @@ export default function BooksCreate({
               {!isEbook && (
                 <>
                   <div className="col-span-full">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{t.location}</h2>
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-0">{t.location}</h2>
                   </div>
                   <div className="space-y-4">
                     <div>
@@ -1490,7 +1492,7 @@ export default function BooksCreate({
 
               {/* Files */}
               <div className="col-span-full">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{t.files}</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-0">{t.files}</h2>
               </div>
               <div className="space-y-4">
                 <FileField
