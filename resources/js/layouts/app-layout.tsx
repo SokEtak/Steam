@@ -19,11 +19,7 @@ interface SharedData {
 }
 
 export default function AppLayout({ children, breadcrumbs = [] }: AppLayoutProps) {
-    const { auth } = usePage<SharedData>().props;
-
-    // Determine if sidebar should be shown
-    const showSidebar = auth.user?.role_id !== 1;
-
+// Determine if sidebar should be shown
     return (
         <AppSidebarLayout breadcrumbs={breadcrumbs}>
             {children}
@@ -31,18 +27,3 @@ export default function AppLayout({ children, breadcrumbs = [] }: AppLayoutProps
     );
 }
 
-//old
-// import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
-// import { type BreadcrumbItem } from '@/types';
-// import { type ReactNode } from 'react';
-//
-// interface AppLayoutProps {
-//     children: ReactNode;
-//     breadcrumbs?: BreadcrumbItem[];
-// }
-//
-// export default ({ children, breadcrumbs, ...props }: AppLayoutProps) => (
-//     <AppLayoutTemplate breadcrumbs={breadcrumbs} {...props}>
-//         {children}
-//     </AppLayoutTemplate>
-// );

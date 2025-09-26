@@ -1,14 +1,31 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Head, Link, usePage } from "@inertiajs/react";
 import AppLayout from "@/layouts/app-layout";
-import { type BreadcrumbItem } from "@/types";
 import { NavUser } from "@/components/nav-user";
+import { Button } from "@/components/ui/button";
+import {
+    ChevronLeft,
+    ChevronRight,
+    BookOpen,
+    Download,
+    Info,
+    Maximize,
+    Minimize,
+    CheckCircle,
+    XCircle,
+    Search,
+    Menu,
+    ArrowDownUp,
+    LogIn,
+    Eye
+} from 'lucide-react';
 
+// --- Interface Definitions ---
 interface Book {
     language: any;
     code: any;
@@ -25,6 +42,14 @@ interface Book {
     flip_link?: string | null;
     is_available: boolean;
     downloadable: number;
+    view?: number; // Used for "Most Viewed" sort
+    posted_by_user_id?: number;
+    poster_profile_url?: string;
+    published_at?: string;
+    created_at?: string;
+
+    // NEW: Include user relation to get the name
+    user?: { id: number; name: string } | null;
 
     // Relations
     category?: { id: number; name: string };
@@ -44,10 +69,33 @@ interface AuthUser {
 interface PageProps {
     flash: { message?: string };
     books: Book[];
-    auth: { user: AuthUser };
-    scope?: 'local' | 'global'; // Only used for physical books
+    auth: { user: AuthUser | null };
+    scope?: 'local' | 'global';
     bookType?: 'ebook' | 'physical';
 }
+// -----------------------------
+
+// --- Utilities ---
+const ITEMS_PER_PAGE = 20;
+
+const getMockAvatar = (userId: number | undefined) => {
+    if (!userId) return "/images/placeholder-avatar.png";
+    return `https://api.dicebear.com/7.x/initials/svg?seed=${userId}&chars=2&size=32&backgroundColor=4f46e5,06b6d4&scale=90`;
+};
+
+// Utility to format date
+const formatDate = (dateString: string | undefined): string => {
+    if (!dateString) return 'Unknown';
+    try {
+        return new Date(dateString).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+        });
+    } catch {
+        return 'Invalid Date';
+    }
+};
 
 export default function Index() {
     const { books, flash, auth, scope, bookType = 'physical' } = usePage<PageProps>().props;
@@ -62,8 +110,11 @@ export default function Index() {
     const [filterLanguage, setFilterLanguage] = useState("All");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+    const [isFullScreen, setIsFullScreen] = useState(false);
+    const [sortBy, setSortBy] = useState("Newest"); // Options: Newest, Title A-Z, Most Viewed
+    const [currentPage, setCurrentPage] = useState(1);
 
-    // Collect unique filter options
+    // --- Memoized Filter Data ---
     const categories = useMemo(() => Array.from(new Set(books.map((b) => b.category?.name).filter(Boolean))), [books]);
     const subcategories = useMemo(() => Array.from(new Set(books.map((b) => b.subcategory?.name).filter(Boolean))), [books]);
     const bookcases = useMemo(() => Array.from(new Set(books.map((b) => b.bookcase?.code).filter(Boolean))), [books]);
@@ -73,14 +124,14 @@ export default function Index() {
     const campuses = useMemo(() => Array.from(new Set(books.map((b) => b.campus?.name).filter(Boolean))), [books]);
     const languages = useMemo(() => Array.from(new Set(books.map((b) => b.language).filter(Boolean))), [books]);
 
-    // Filtered books logic
-    const filteredBooks = useMemo(() => {
-        return books.filter((book) => {
+    // Filtered and Sorted books logic
+    const allFilteredBooks = useMemo(() => {
+        let filtered = books.filter((book) => {
             if (book.type !== bookType) return false;
-
             const matchesSearch =
                 book.title.toLowerCase().includes(search.toLowerCase()) ||
-                book.author.toLowerCase().includes(search.toLowerCase());
+                book.author.toLowerCase().includes(search.toLowerCase()) ||
+                String(book.isbn)?.toLowerCase().includes(search.toLowerCase());
 
             const matchesCategory = filterCategory === "All" || book.category?.name === filterCategory;
             const matchesSubCategory = filterSubCategory === "All" || book.subcategory?.name === filterSubCategory;
@@ -92,291 +143,398 @@ export default function Index() {
             const matchesLanguage = filterLanguage === "All" || book.language === filterLanguage;
 
             return (
-                matchesSearch &&
-                matchesCategory &&
-                matchesSubCategory &&
-                matchesBookcase &&
-                matchesShelf &&
-                matchesGrade &&
-                matchesSubject &&
-                matchesCampus &&
-                matchesLanguage
+                matchesSearch && matchesCategory && matchesSubCategory && matchesBookcase &&
+                matchesShelf && matchesGrade && matchesSubject && matchesCampus && matchesLanguage
             );
         });
-    }, [books, search, filterCategory, filterSubCategory, filterBookcase, filterShelf, filterGrade, filterSubject, filterCampus, filterLanguage, bookType, scope]);
 
-    // Sound effect setup
-    const hoverSoundRef = useRef<HTMLAudioElement | null>(null);
+        // Sorting Logic
+        return filtered.sort((a, b) => {
+            if (sortBy === "Newest") {
+                const dateA = a.created_at || a.published_at;
+                const dateB = b.created_at || b.published_at;
+                if (dateA && dateB) {
+                    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                }
+                return 0;
+            } else if (sortBy === "Title A-Z") {
+                return a.title.localeCompare(b.title);
+            } else if (sortBy === "Most Viewed") {
+                const viewA = a.view ?? 0;
+                const viewB = b.view ?? 0;
+                return viewB - viewA; // Descending order
+            }
+            return 0;
+        });
+
+    }, [books, search, filterCategory, filterSubCategory, filterBookcase, filterShelf, filterGrade, filterSubject, filterCampus, filterLanguage, bookType, scope, sortBy]);
+
+    // Pagination Logic
+    const totalPages = Math.ceil(allFilteredBooks.length / ITEMS_PER_PAGE);
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const paginatedBooks = allFilteredBooks.slice(startIndex, endIndex);
+
+    // Reset page on filter/sort change
     useEffect(() => {
-        hoverSoundRef.current = new Audio("/sounds/hover.mp3");
-    }, []);
+        setCurrentPage(1);
+    }, [search, filterCategory, filterSubCategory, filterBookcase, filterShelf, filterGrade, filterSubject, filterCampus, filterLanguage, sortBy]);
 
-    const playHoverSound = () => {
-        if (hoverSoundRef.current) {
-            hoverSoundRef.current.currentTime = 0;
-            hoverSoundRef.current.play().catch(() => {});
-        }
+    // Pagination handlers
+    const goToPreviousPage = () => {
+        setCurrentPage((prev) => Math.max(prev - 1, 1));
     };
 
-    // Dynamic breadcrumbs based on bookType
-    const breadcrumbs: BreadcrumbItem[] = [
-        { title: bookType === 'ebook' ? "eBooks Library" : "Books Library", href: bookType === 'ebook' ? "/e-library" : `/${scope || 'global'}/books` },
-    ];
+    const goToNextPage = () => {
+        setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+    };
+
+
+    // --- Effects and Handlers ---
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (isModalOpen) {
+                if (e.key === "Escape") { setIsModalOpen(false); }
+                else if (e.key === "f" || e.key === "F") { setIsFullScreen(!isFullScreen); }
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [isModalOpen, isFullScreen]);
+
+    // Define the primary accent color
+    const accentColor = 'cyan';
+    const isAuthenticated = auth.user !== null;
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs} user={auth.user}>
+        <AppLayout user={auth.user}>
             <Head title={bookType === 'ebook' ? "eBooks Library" : "Books Library"} />
 
-            {/* Main content container with fixed size across all URLs */}
-            <div className="py-4 space-y-8 bg-background transition-colors duration-300 w-full md:pl-40 md:pr-40 lg:pl-70 max-w-8xl mx-auto">
-                {/* Top Bar (now uses padding to prevent content from touching edges) */}
-                <div className="flex items-center justify-between mb-6 px-4 md:px-12">
-                    <Link href="/" className="flex items-center space-x-2">
-                        <img src="/images/DIS(no back).png" alt="Logo" className="h-12 w-12 object-contain" />
-                    </Link>
-
-                    <div className="origin-right">
-                        <NavUser user={auth.user} />
+            {/* Main content container */}
+            <div className="py-4 space-y-12 bg-white dark:bg-gray-950 transition-colors duration-300 w-full lg:pl-4 lg:pr-4 xl:pl-8 xl:pr-8 max-w-full mx-auto min-h-screen text-gray-900 dark:text-gray-100">
+                {/* Top Bar (Search in middle) */}
+                <header className="flex items-center justify-between px-6 md:px-16 lg:px-24 border-b border-gray-100 dark:border-gray-800 pb-4">
+                    <div className="flex items-center space-x-6 w-1/3 min-w-max">
+                        <Link href="/" className="flex items-center space-x-3">
+                            <img
+                                src="/images/DIS(no back).png"
+                                alt="Logo"
+                                className="h-14 w-14 object-contain filter drop-shadow-lg dark:invert"
+                            />
+                        </Link>
                     </div>
-                </div>
+
+                    {/* Center: Search Bar (Primary focus) - Uses flex-grow for space and mx-auto for internal centering */}
+                    <div className="relative flex-grow mx-4 max-w-xl hidden sm:block">
+                        <div className="relative w-full">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+                            <Input
+                                placeholder="Search by Title, Author, or ISBN"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className={`w-full bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500 rounded-full shadow-inner pl-10 h-11
+                            dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:placeholder-gray-500
+                            focus:ring-2 focus:ring-${accentColor}-500 focus:border-${accentColor}-500 transition-all pr-3`}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Right: User Widget - Explicitly set to w-1/3 and justify-end */}
+                    <div className="origin-right w-1/8 flex justify-end">
+                        {isAuthenticated ? (
+                            <NavUser user={auth.user!} />
+                        ) : (
+                            <Link href="/login">
+                                <Button
+                                    variant="outline"
+                                    className={`bg-transparent border-${accentColor}-500 text-${accentColor}-600 dark:border-${accentColor}-400 dark:text-${accentColor}-400
+                                hover:bg-${accentColor}-50 dark:hover:bg-${accentColor}-900/50 transition-colors shadow-sm`}
+                                >
+                                    <LogIn className="w-5 h-5 mr-2" />
+                                    Log In
+                                </Button>
+                            </Link>
+                        )}
+                    </div>
+                </header>
 
                 {/* Flash message */}
                 {flash.message && (
-                    <div className="p-4 bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100 rounded-md shadow mx-4 md:px-12">
+                    <div className="p-4 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-lg shadow-lg mx-6 md:px-16 lg:px-24">
                         {flash.message}
                     </div>
                 )}
 
-                {/* Main Content Header */}
-                <div className="space-y-2 px-4 md:px-12">
-                    <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-                        {bookType === 'ebook' ? "eBooks Library" : "Books Library"}
-                    </h1>
-                    <p className="text-muted-foreground">
-                        Browse and filter the school's collection of {bookType === 'ebook' ? "eBooks" : "physical books"}.
-                    </p>
-                    <hr className="my-6 border-t border-border" />
-                </div>
+                {/* Main Content Header & Second Content (e.g., Stats/Links) */}
+                <div className="space-y-4 px-6 md:px-16 lg:px-24">
+                    {/* Filters, Mobile Search, and Book Count (Consolidated) */}
+                    <div className="flex flex-wrap items-center gap-x-6 gap-y-4 max-w-8xl mx-auto">
+                        {/* Mobile Search Bar */}
+                        <div className="relative flex-grow min-w-full sm:hidden">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+                            <Input
+                                placeholder="Search by Title, Author, or ISBN"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className={`w-full bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500 rounded-full shadow-inner pl-10 h-11
+                        dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:placeholder-gray-500
+                        focus:ring-2 focus:ring-${accentColor}-500 focus:border-${accentColor}-500 transition-all pr-3`}
+                            />
+                        </div>
 
-                {/* Filters */}
-                <div className="flex flex-wrap items-center gap-4 px-4 md:px-12 max-w-7xl mx-auto">
-                    <Input
-                        placeholder="Search any keyword"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="flex-grow sm:w-40 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition"
-                    />
-
-                    {/* Category */}
-                    <Select value={filterCategory} onValueChange={setFilterCategory}>
-                        <SelectTrigger className="w-full sm:w-40">
-                            <SelectValue placeholder="Category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="All">All Categories</SelectItem>
-                            {categories.map((cat) => (
-                                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-
-                    {/* SubCategory */}
-                    <Select value={filterSubCategory} onValueChange={setFilterSubCategory}>
-                        <SelectTrigger className="w-full sm:w-40">
-                            <SelectValue placeholder="Sub-Category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="All">All SubCategories</SelectItem>
-                            {subcategories.map((sub) => (
-                                <SelectItem key={sub} value={sub}>{sub}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-
-                    {/* Bookcase (physical books only) */}
-                    {bookType === 'physical' && (
-                        <Select value={filterBookcase} onValueChange={setFilterBookcase}>
-                            <SelectTrigger className="w-full sm:w-40">
-                                <SelectValue placeholder="Bookcase" />
+                        {/* Filter components */}
+                        {[
+                            { label: "Category", value: filterCategory, onChange: setFilterCategory, options: categories },
+                            { label: "Sub-Category", value: filterSubCategory, onChange: setFilterSubCategory, options: subcategories },
+                            { label: "Language", value: filterLanguage, onChange: setFilterLanguage, options: languages, display: (lang: string) => lang === 'en' ? 'English' : lang === 'kh' ? 'Khmer' : lang },
+                            { label: "Grade", value: filterGrade, onChange: setFilterGrade, options: grades },
+                            { label: "Subject", value: filterSubject, onChange: setFilterSubject, options: subjects },
+                            ...(bookType === 'physical' ? [
+                                { label: "Bookcase", value: filterBookcase, onChange: setFilterBookcase, options: bookcases },
+                                { label: "Shelf", value: filterShelf, onChange: setFilterShelf, options: shelves },
+                            ] : []),
+                            ...(bookType === 'physical' && scope !== 'local' ? [
+                                { label: "Campus", value: filterCampus, onChange: setFilterCampus, options: campuses },
+                            ] : []),
+                                            ].map(({ label, value, onChange, options, display }) => (
+                                                <Select key={label} value={value} onValueChange={onChange}>
+                                                    <SelectTrigger className={`w-full sm:w-40 bg-white border border-gray-300 text-gray-900 hover:border-gray-400
+                                    dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:border-gray-600
+                                    focus:ring-${accentColor}-500 transition`}>
+                                    <SelectValue placeholder={label} />
+                                </SelectTrigger>
+                                <SelectContent className="bg-white border-gray-200 text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                    <SelectItem value="All" className="hover:bg-gray-100 dark:hover:bg-gray-700">All {label}s</SelectItem>
+                                    {options.map((opt) => (
+                                        <SelectItem key={opt} value={opt} className="hover:bg-gray-100 dark:hover:bg-gray-700">{display ? display(opt) : opt}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        ))}
+                        {/* Sort Dropdown */}
+                        <Select value={sortBy} onValueChange={setSortBy}>
+                            <SelectTrigger className={`w-full sm:w-40 bg-white border border-gray-300 text-gray-900 hover:border-gray-400
+                                                dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:border-gray-600
+                                                  focus:ring-${accentColor}-500 transition font-semibold`}
+                            >
+                                <ArrowDownUp className="h-4 w-4 mr-2 text-gray-500 dark:text-gray-400" />
+                                <SelectValue placeholder="Sort By" />
                             </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="All">All Bookcases</SelectItem>
-                                {bookcases.map((bc) => (
-                                    <SelectItem key={bc} value={bc}>{bc}</SelectItem>
-                                ))}
+                            <SelectContent className="bg-white border-gray-200 text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                <SelectItem value="Newest" className="hover:bg-gray-100 dark:hover:bg-gray-700">Newest</SelectItem>
+                                <SelectItem value="Title A-Z" className="hover:bg-gray-100 dark:hover:bg-gray-700">Title (A-Z)</SelectItem>
+                                <SelectItem value="Most Viewed" className="hover:bg-gray-100 dark:hover:bg-gray-700">Most Viewed</SelectItem>
                             </SelectContent>
                         </Select>
-                    )}
-
-                    {/* Shelf (physical books only) */}
-                    {bookType === 'physical' && (
-                        <Select value={filterShelf} onValueChange={setFilterShelf}>
-                            <SelectTrigger className="w-full sm:w-40">
-                                <SelectValue placeholder="Shelf" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="All">All Shelves</SelectItem>
-                                {shelves.map((sh) => (
-                                    <SelectItem key={sh} value={sh}>{sh}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    )}
-
-                    {/* Language */}
-                    <Select value={filterLanguage} onValueChange={setFilterLanguage}>
-                        <SelectTrigger className="w-full sm:w-40">
-                            <SelectValue placeholder="Language" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="All">All Languages</SelectItem>
-                            {languages.map((lang) => (
-                                <SelectItem key={lang} value={lang}>
-                                    {lang === 'en' ? 'English' : lang === 'kh' ? 'Khmer' : lang}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-
-                    {/* Grade */}
-                    <Select value={filterGrade} onValueChange={setFilterGrade}>
-                        <SelectTrigger className="w-full sm:w-40">
-                            <SelectValue placeholder="Grade" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="All">All Grades</SelectItem>
-                            {grades.map((g) => (
-                                <SelectItem key={g} value={g}>{g}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-
-                    {/* Subject */}
-                    <Select value={filterSubject} onValueChange={setFilterSubject}>
-                        <SelectTrigger className="w-full sm:w-40">
-                            <SelectValue placeholder="Subject" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="All">All Subjects</SelectItem>
-                            {subjects.map((s) => (
-                                <SelectItem key={s} value={s}>{s}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-
-                    {/* Campus (physical books only, hidden for 'local' scope) */}
-                    {bookType === 'physical' && scope !== 'local' && (
-                        <Select value={filterCampus} onValueChange={setFilterCampus}>
-                            <SelectTrigger className="w-full sm:w-40">
-                                <SelectValue placeholder="Campus" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="All">All Campuses</SelectItem>
-                                {campuses.map((c) => (
-                                    <SelectItem key={c} value={c}>{c}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    )}
+                    </div>
                 </div>
 
                 {/* Book Grid */}
                 <TooltipProvider>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6 px-4 md:px-12 max-w-7xl mx-auto">
-                        {filteredBooks.length > 0 ? (
-                            filteredBooks.map((book) => (
-                                <Tooltip key={book.id}>
-                                    <TooltipTrigger
-                                        onMouseEnter={playHoverSound}
-                                        onClick={() => { setIsModalOpen(true); setSelectedBook(book); }}
-                                        className="flex flex-col items-center space-y-2 cursor-pointer transition-transform duration-200 hover:scale-105"
-                                    >
-                                        {/* Book Cover */}
-                                        <div className="relative w-full pb-[150%]">
-                                            <img
-                                                src={book.cover || "/images/placeholder-book.png"}
-                                                alt={book.title}
-                                                className="absolute inset-0 w-full h-full object-cover rounded-md shadow-lg"
-                                            />
-                                        </div>
-                                    </TooltipTrigger>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 2xl:grid-cols-8 gap-6 md:gap-8 px-6 md:px-16 lg:px-24">
+                        {paginatedBooks.length > 0 ? (
+                            paginatedBooks.map((book) => {
 
-                                    {/* Extended Tooltip Content */}
-                                    <TooltipContent side="right" className="max-w-xs p-4 space-y-2 rounded-lg shadow-xl">
-                                        <h3 className="text-lg font-semibold">{book.title}</h3>
-                                        <p className="text-sm"><span className="font-medium">Author:</span> {book.author}</p>
-                                        {bookType === 'physical' && (
-                                            <p className={`text-sm font-medium ${book.is_available ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
-                                                {book.is_available ? "Available" : "Unavailable"}
-                                            </p>
-                                        )}
-                                        <div className="text-xs text-muted-foreground border-t pt-2 mt-2 space-y-1">
-                                            {book.category?.name && <p><span className="font-medium">Category:</span> {book.category.name}</p>}
-                                            {book.subcategory?.name && <p><span className="font-medium">Sub-Category:</span> {book.subcategory.name}</p>}
-                                            {bookType === 'physical' && book.bookcase?.code && <p><span className="font-medium">Bookcase:</span> {book.bookcase.code}</p>}
-                                            {bookType === 'physical' && book.shelf?.code && <p><span className="font-medium">Shelf:</span> {book.shelf.code}</p>}
-                                            {book.grade?.name && <p><span className="font-medium">Grade:</span> {book.grade.name}</p>}
-                                            {book.subject?.name && <p><span className="font-medium">Subject:</span> {book.subject.name}</p>}
-                                            {bookType === 'physical' && book.campus?.name && scope !== 'local' && (
-                                                <p><span className="font-medium">Campus:</span> {book.campus.name}</p>
-                                            )}
-                                            {book.language && (
-                                                <p><span className="font-medium">Language:</span> {book.language === 'en' ? 'English' : book.language === 'kh' ? 'Khmer' : book.language}</p>
-                                            )}
-                                            {book.publisher && <p><span className="font-medium">Publisher:</span> {book.publisher}</p>}
-                                            {book.isbn && <p><span className="font-medium">ISBN:</span> {book.isbn}</p>}
-                                            {book.code && <p><span className="font-medium">Code:</span> {book.code}</p>}
-                                            {book.page_count && <p><span className="font-medium">Pages:</span> {book.page_count}</p>}
-                                            {bookType === 'ebook' && <p><span className="font-medium">Downloadable:</span> {book.downloadable ? 'Yes' : 'No'}</p>}
-                                            {book.description && <p className="mt-2">{book.description}</p>}
-                                        </div>
-                                        {bookType === 'ebook' && (
-                                            <div className="flex flex-col items-start gap-2 pt-2 border-t mt-2">
-                                                {book.flip_link && (
-                                                    <a
-                                                        href={book.flip_link}
-                                                        target="_blank"
-                                                        className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline transition-colors"
-                                                    >
-                                                        Open Flipbook
-                                                    </a>
+                                // Determine contributor info
+                                const contributorId = book.posted_by_user_id || book.user?.id;
+                                const contributorName = book.user?.name || (contributorId ? `User #${contributorId}` : 'Unknown');
+
+                                return (
+                                    <Tooltip key={book.id}>
+                                        <TooltipTrigger
+                                            className={`group flex flex-col items-start space-y-3 cursor-pointer p-3 rounded-xl bg-white border border-gray-200 shadow-lg
+                                            dark:bg-gray-800 dark:border-gray-700 dark:shadow-2xl dark:shadow-gray-900/50
+                                            transition-all duration-300 transform relative overflow-hidden
+                                            hover:scale-[1.05] hover:shadow-2xl hover:border-${accentColor}-500 focus:outline-none focus:ring-2 focus:ring-${accentColor}-500 w-full`}
+                                        >
+                                            {/* Book Cover Container (Adjusted ratio to be significantly wider: pb-[170%] to pb-[160%]) */}
+                                            <div className="relative w-full pb-[160%]">
+                                                <img
+                                                    src={book.cover || "/images/placeholder-book.png"}
+                                                    alt={book.title}
+                                                    className="absolute inset-0 w-full h-full object-cover rounded-lg shadow-xl transition-transform duration-300 group-hover:scale-105"
+                                                />
+                                            </div>
+
+                                             {/*Book Title/Author (Footer)*/}
+                                            <div className="w-full mt-2 space-y-1">
+                                                <h3 className="text-base font-bold truncate text-gray-900 dark:text-gray-50">{book.title}</h3>
+                                                <p className="text-sm text-gray-500 dark:text-gray-400 truncate font-light">{book.author}</p>
+                                            </div>
+
+                                            {/* Contributor */}
+                                            <div className="flex items-center space-x-2 pt-1 border-t border-gray-100 dark:border-gray-700 w-full">
+                                                <img
+                                                    src={getMockAvatar(contributorId)}
+                                                    alt="Contributor Avatar"
+                                                    className="w-6 h-6 rounded-full object-cover border border-gray-300 dark:border-gray-600"
+                                                />
+                                                <span className="text-xs text-gray-400 dark:text-gray-500 truncate font-medium">
+                                                {contributorName}
+                                            </span>
+                                            </div>
+                                        </TooltipTrigger>
+
+                                        {/*hover card*/}
+                                        <TooltipContent
+                                            side="right"
+                                            className={`max-w-2xl p-5 rounded-xl shadow-2xl border-l-4 border-gray-200 bg-white text-gray-900
+                                            dark:border-gray-700 dark:bg-gray-800 dark:text-white z-50
+                                            ${book.type === 'ebook'
+                                                ? `border-${accentColor}-500`
+                                                : 'border-amber-500'
+                                            }`}
+                                        >
+                                            <div className="space-y-4">
+                                                {/* Book Title (Increased text size) */}
+                                                <h3 className="text-2xl font-extrabold text-gray-900 dark:text-white">{book.title}</h3>
+                                                <p className="text-base text-gray-600 dark:text-gray-300"><span className="font-semibold">Author:</span> {book.author}</p>
+
+                                                {/* Dynamic Status/Views (Book Status Restored) */}
+                                                {book.type === 'physical' ? (
+                                                    <div className={`flex items-center text-base font-semibold ${book.is_available ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                                        {book.is_available ? <CheckCircle className="w-5 h-5 mr-1 text-green-500" /> : <XCircle className="w-5 h-5 mr-1 text-red-500" />}
+                                                        Status:{book.is_available ? 'Available' : 'Unavailable'}
+                                                    </div>
+                                                ) : (
+                                                    book.view !== undefined && (
+                                                        <p className="text-base text-gray-700 dark:text-gray-300 flex items-center">
+                                                            <Eye className="w-5 h-5 mr-2 text-blue-500 dark:text-blue-400" />
+                                                            {book.view?.toLocaleString()}
+                                                        </p>
+                                                    )
                                                 )}
-                                                {book.pdf_url && book.downloadable === 1 && (
-                                                    <a
-                                                        href={book.pdf_url}
-                                                        target="_blank"
-                                                        className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline transition-colors"
-                                                    >
-                                                        Download as PDF
-                                                    </a>
+
+                                                {/* Detailed Info Section (Increased text size) */}
+                                                <div className="text-sm text-gray-500 dark:text-gray-400 space-y-1.5 pt-3 border-t border-gray-200 dark:border-gray-600">
+                                                    {book.publisher && <p><span className="font-medium text-gray-700 dark:text-gray-300">Publisher:</span> {book.publisher}</p>}
+                                                    {book.isbn && <p className="break-words"><span className="font-medium text-gray-700 dark:text-gray-300">ISBN:</span> {book.isbn}</p>}
+                                                    {book.page_count && <p><span className="font-medium text-gray-700 dark:text-gray-300">Pages:</span> {book.page_count}</p>}
+                                                    {book.category?.name && <p><span className="font-medium text-gray-700 dark:text-gray-300">Category:</span> {book.category.name}</p>}
+                                                    {book.language && <p><span className="font-medium text-gray-700 dark:text-gray-300">Language:</span> {book.language === 'en' ? 'English' : book.language === 'kh' ? 'Khmer' : book.language}</p>}
+                                                    {book.bookcase?.code && <p><span className="font-medium text-gray-700 dark:text-gray-300">Location:</span> {book.bookcase.code} / {book.shelf?.code}</p>}
+                                                    {book.published_at && <p><span className="font-medium text-gray-700 dark:text-gray-300">Published Date:</span> {formatDate(book.published_at)}</p>}
+                                                </div>
+
+                                                {/* Ebook Actions */}
+                                                {book.type === 'ebook' && (
+                                                    <div className="flex flex-col items-start w-full space-y-2 pt-3 border-t border-gray-200 dark:border-gray-600">
+                                                        {book.flip_link && (
+                                                            <button
+                                                                onClick={() => {
+                                                                    setIsModalOpen(true);
+                                                                    setSelectedBook(book);
+                                                                }}
+                                                                role={"link"}
+                                                                // Added 'group' class to the button to allow styling the child icon on hover
+                                                                className={`group text-sm flex items-center font-semibold transition-all text-gray-700 dark:text-gray-300 p-2 rounded-md w-full justify-start
+                                                                        hover:bg-green-50 dark:hover:bg-green-700 hover:text-green-600 dark:hover:text-green-400`}
+                                                            >
+                                                                {/* Updated BookOpen icon to use 'group-hover' to inherit or change color */}
+                                                                <BookOpen className={`w-5 h-5 mr-3 text-green-500 dark:text-green-400 group-hover:text-green-600 dark:group-hover:text-green-400`} />
+                                                                Launch Reader
+                                                            </button>
+                                                        )}
+                                                        {book.pdf_url && book.downloadable === 1 && (
+                                                            <a
+                                                                href={book.pdf_url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                // Added 'group' class to the link
+                                                                className={`group text-sm flex items-center font-semibold transition-all text-gray-700 dark:text-gray-300 p-2 rounded-md w-full justify-start
+                                                                          hover:bg-blue-50 dark:hover:bg-blue-700 hover:text-blue-600 dark:hover:text-blue-400`}
+                                                            >
+                                                                {/* Updated Download icon to use 'group-hover' to inherit or change color */}
+                                                                <Download className="w-5 h-5 mr-3 text-blue-500 dark:text-blue-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
+                                                                Download PDF
+                                                            </a>
+                                                        )}
+                                                        <Link
+                                                            href={`/books/${book.id}/show`}
+                                                            // KEY CHANGE 1: Added 'group' class
+                                                            className={`group text-sm flex items-center font-semibold transition-all text-gray-700 dark:text-gray-300 p-2 rounded-md w-full justify-start
+                                                                      hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-${accentColor}-600 dark:hover:text-${accentColor}-400`}
+                                                        >
+                                                            {/* KEY CHANGE 2: Added group-hover utility to change icon color */}
+                                                            <Info className={`w-5 h-5 mr-3 text-gray-500 dark:text-gray-400 group-hover:text-${accentColor}-600 dark:group-hover:text-${accentColor}-400`} />
+                                                            View Details
+                                                        </Link>
+                                                    </div>
                                                 )}
                                             </div>
-                                        )}
-                                    </TooltipContent>
-                                </Tooltip>
-                            ))
+                                        </TooltipContent>
+                                    </Tooltip>
+                                )})
                         ) : (
-                            <p className="text-center text-gray-500 dark:text-gray-400 col-span-full py-12">
-                                No {bookType === 'ebook' ? 'eBooks' : 'books'} found. Please adjust your filters.
-                            </p>
+                        <p className="text-center text-gray-500 dark:text-gray-400 col-span-full py-20 text-xl font-light">
+                            No {bookType === 'ebook' ? 'digital editions' : 'physical assets'} found. Try broadening your criteria.
+                        </p>
                         )}
                     </div>
                 </TooltipProvider>
 
-                {/* Modal for Book Display */}
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                    <div className="flex justify-center items-center space-x-4 pt-8 pb-4">
+                        <Button
+                            onClick={goToPreviousPage}
+                            disabled={currentPage === 1}
+                            variant="outline"
+                            className={`flex items-center text-${accentColor}-600 dark:text-${accentColor}-400 disabled:opacity-50`}
+                        >
+                            <ChevronLeft className="w-5 h-5 mr-1" />
+                            Previous
+                        </Button>
+                        <span className="text-md font-semibold text-gray-700 dark:text-gray-300">
+                            Page {currentPage} of {totalPages}
+                        </span>
+                        <Button
+                            onClick={goToNextPage}
+                            disabled={currentPage === totalPages}
+                            variant="outline"
+                            className={`flex items-center text-${accentColor}-600 dark:text-${accentColor}-400 disabled:opacity-50`}
+                        >
+                            Next
+                            <ChevronRight className="w-5 h-5 ml-1" />
+                        </Button>
+                    </div>
+                )}
+
+
+                {/* Modal for Book Display (Reader/Viewer) */}
                 {isModalOpen && selectedBook && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-5xl h-[90vh] flex flex-col">
-                            <div className="flex justify-end">
-                                <button
-                                    onClick={() => setIsModalOpen(false)}
-                                    className="text-red-500 hover:text-red-700 text-2xl font-bold"
-                                >
-                                    &times;
-                                </button>
+                    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[100]">
+                        <div className={`bg-white dark:bg-gray-900 rounded-lg shadow-2xl flex flex-col transition-all duration-300 ${isFullScreen ? 'w-full h-full max-w-none max-h-none' : 'w-11/12 max-w-7xl h-[95vh]'}`}>
+
+                            {/* Modal Header */}
+                            <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
+                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{selectedBook.title}</h2>
+                                <div className="flex space-x-4 items-center">
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <button
+                                                onClick={() => setIsFullScreen(!isFullScreen)}
+                                                className={`text-${accentColor}-600 dark:text-${accentColor}-400 hover:text-${accentColor}-800 dark:hover:text-${accentColor}-300 transition-colors p-1 rounded-md`}
+                                            >
+                                                {isFullScreen ? <Minimize className="h-7 w-7" /> : <Maximize className="h-7 w-7" />}
+                                            </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="bottom" className="bg-gray-700 text-white">
+                                            {isFullScreen ? 'Exit Full Screen (Esc or F)' : 'Go Full Screen (F)'}
+                                        </TooltipContent>
+                                    </Tooltip>
+
+                                    <button
+                                        onClick={() => setIsModalOpen(false)}
+                                        className="text-gray-400 hover:text-red-600 transition-colors text-4xl leading-none font-light p-1 rounded-md"
+                                    >
+                                        &times;
+                                    </button>
+                                </div>
                             </div>
-                            <h2 className="text-xl font-bold mb-4">{selectedBook.title}</h2>
-                            <div className="flex-1 overflow-auto">
+
+                            {/* Iframe Content Area */}
+                            <div className="flex-1 overflow-hidden p-0 bg-gray-100 dark:bg-gray-900">
                                 <iframe
                                     src={selectedBook.flip_link || selectedBook.pdf_url || ""}
                                     title={selectedBook.title}
