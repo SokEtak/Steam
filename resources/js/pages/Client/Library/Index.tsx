@@ -49,7 +49,7 @@ interface Book {
     created_at?: string;
 
     // Relations
-    user?: { id: number; name: string ; isVerified:boolean} | null;
+    user?: { id: number; name: string ; isVerified:boolean; avatar:string} | null;
     category?: { id: number; name: string };
     subcategory?: { id: number; name: string } | null;
     bookcase?: { id: number; code: string } | null;
@@ -62,7 +62,6 @@ interface Book {
 interface AuthUser {
     name: string;
     email: string;
-    avatar: string;
 }
 
 interface PageProps {
@@ -75,12 +74,7 @@ interface PageProps {
 // -----------------------------
 
 // --- Utilities ---
-const ITEMS_PER_PAGE = 20;
-
-const getMockAvatar = (userId: number | undefined) => {
-    if (!userId) return "/images/placeholder-avatar.png";
-    return `https://api.dicebear.com/7.x/initials/svg?seed=${userId}&chars=2&size=32&backgroundColor=4f46e5,06b6d4&scale=90`;
-};
+const ITEMS_PER_PAGE = 16;
 
 // Utility to format date
 const formatDate = (dateString: string | undefined): string => {
@@ -211,29 +205,29 @@ export default function Index() {
 
             {/* Main content container */}
             <div className="py-4 space-y-12 bg-white dark:bg-gray-950 transition-colors duration-300 w-full lg:pl-4 lg:pr-4 xl:pl-8 xl:pr-8 max-w-full mx-auto min-h-screen text-gray-900 dark:text-gray-100">
-                {/* Top Bar (Search in middle) */}
+                {/* Top Bar */}
                 <header className="flex items-center justify-between px-6 md:px-16 lg:px-24 border-b border-gray-100 dark:border-gray-800 pb-4">
                     <div className="flex items-center space-x-6 w-1/3 min-w-max">
                         <Link href="/" className="flex items-center space-x-3">
                             <img
                                 src="/images/DIS(no back).png"
                                 alt="Logo"
-                                className="h-14 w-14 object-contain filter drop-shadow-lg dark:invert"
+                                className="h-14 w-14 object-contain filter drop-shadow-lg"
                             />
                         </Link>
                     </div>
 
                     {/* Center: Search Bar (Primary focus) - Uses flex-grow for space and mx-auto for internal centering */}
-                    <div className="relative flex-grow mx-4 max-w-xl hidden sm:block">
+                    <div className="relative w-full right-50 max-w-sm hidden sm:block">
                         <div className="relative w-full">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                             <Input
-                                placeholder="Search by Title, Author, or ISBN"
+                                placeholder="Search"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 className={`w-full bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500 rounded-full shadow-inner pl-10 h-11
-                            dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:placeholder-gray-500
-                            focus:ring-2 focus:ring-${accentColor}-500 focus:border-${accentColor}-500 transition-all pr-3`}
+                                          dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:placeholder-gray-500
+                                            focus:ring-2 focus:ring-${accentColor}-500 focus:border-${accentColor}-500 transition-all pr-3`}
                             />
                         </div>
                     </div>
@@ -266,13 +260,13 @@ export default function Index() {
                 )}
 
                 {/* Main Content Header & Second Content (e.g., Stats/Links) */}
-                <div className="flex flex-wrap items-center gap-x-6 gap-y-4 max-w-8xl mx-auto justify-center px-4">
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-4 max-w-8xl mx-auto justify-center px-2">
 
                     {/* Mobile Search Bar - This is already rounded-full */}
                     <div className="relative w-full sm:hidden">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                         <Input
-                            placeholder="Search by Title, Author, or ISBN"
+                            placeholder="Search"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className={`w-full bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500 rounded-full shadow-inner pl-10 h-11
@@ -330,7 +324,7 @@ export default function Index() {
 
                 {/* Book Grid */}
                 <TooltipProvider>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 2xl:grid-cols-8 gap-6 md:gap-8 px-6 md:px-16 lg:px-24">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 2xl:grid-cols-8 gap-6 md:gap-6 px-6 md:px-16 lg:px-24">
                         {paginatedBooks.length > 0 ? (
                             paginatedBooks.map((book) => {
 
@@ -350,7 +344,7 @@ export default function Index() {
                                             hover:scale-[1.05] hover:shadow-2xl hover:border-${accentColor}-500 focus:outline-none focus:ring-2 focus:ring-${accentColor}-500 w-full`}
                                         >
                                             {/* Book Cover Container (Adjusted ratio to be significantly wider: pb-[170%] to pb-[160%]) */}
-                                            <div className="relative w-full pb-[160%]">
+                                            <div className="relative w-full pb-[155%]">
                                                 <img
                                                     src={book.cover || "/images/placeholder-book.png"}
                                                     alt={book.title}
@@ -359,22 +353,21 @@ export default function Index() {
                                             </div>
 
                                              {/*Book Title/Author (Footer)*/}
-                                            <div className="w-full mt-2 space-y-1">
+                                            <div className="w-full mt-0 space-y-1">
                                                 <h3 className="text-base font-bold truncate text-gray-900 dark:text-gray-50">{book.title}</h3>
                                                 <p className="text-sm text-gray-500 dark:text-gray-400 truncate font-light">{book.author}</p>
                                             </div>
 
                                             {/* Contributor */}
-                                            <div className="flex items-center space-x-2 pt-1 border-t border-gray-100 dark:border-gray-700 w-full">
+                                            <div className="flex items-center justify-center space-x-2 pt-1 border-t border-gray-100 dark:border-gray-700 w-full">
                                                 <img
-                                                    src={getMockAvatar(contributorId)}
+                                                    src={book.user?.avatar}
                                                     alt="Contributor Avatar"
                                                     className="w-6 h-6 rounded-full object-cover border border-gray-300 dark:border-gray-600 flex-shrink-0"
                                                 />
 
                                                 {/* Applied flex items-center for vertical alignment */}
                                                 <span className="text-xs text-gray-400 dark:text-gray-500 truncate font-medium flex items-center min-w-0">
-                                                    {/* Contributor Name - uses flex-grow and min-w-0 to allow text truncation */}
                                                     <span className="truncate flex-grow">
                                                         {contributorName}
                                                     </span>
