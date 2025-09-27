@@ -11,7 +11,7 @@ class Book extends Model
 
     // Include relationships in queries by default
     protected $with = [
-        'user:id,name',
+        'user:id,name,isVerified',
         'category:id,name',
         'subcategory:id,name',
         'shelf:id,code',

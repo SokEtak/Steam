@@ -57,6 +57,7 @@ Route::get('/local/library', function () {
 Route::get('/e-library', function () {
     try {
         $books = Book::globalEbooks()->get();
+//        dd($books->toArray());
         return Inertia::render('Client/Library/Index', [
             'books' => $books,
             'bookType' => 'ebook',

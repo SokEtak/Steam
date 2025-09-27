@@ -22,7 +22,7 @@ import {
     Menu,
     ArrowDownUp,
     LogIn,
-    Eye
+    Eye, BadgeCheck
 } from 'lucide-react';
 
 // --- Interface Definitions ---
@@ -48,10 +48,8 @@ interface Book {
     published_at?: string;
     created_at?: string;
 
-    // NEW: Include user relation to get the name
-    user?: { id: number; name: string } | null;
-
     // Relations
+    user?: { id: number; name: string ; isVerified:boolean} | null;
     category?: { id: number; name: string };
     subcategory?: { id: number; name: string } | null;
     bookcase?: { id: number; code: string } | null;
@@ -64,6 +62,7 @@ interface Book {
 interface AuthUser {
     name: string;
     email: string;
+    avatar: string;
 }
 
 interface PageProps {
@@ -244,14 +243,15 @@ export default function Index() {
                         {isAuthenticated ? (
                             <NavUser user={auth.user!} />
                         ) : (
-                            <Link href="/login">
+                            <Link href={route("login")}>
                                 <Button
                                     variant="outline"
+                                    // KEY CHANGE: Added rounded-full class to the Button
                                     className={`bg-transparent border-${accentColor}-500 text-${accentColor}-600 dark:border-${accentColor}-400 dark:text-${accentColor}-400
-                                hover:bg-${accentColor}-50 dark:hover:bg-${accentColor}-900/50 transition-colors shadow-sm`}
+                                hover:bg-${accentColor}-50 dark:hover:bg-${accentColor}-900/50 transition-colors shadow-sm rounded-full`}
                                 >
                                     <LogIn className="w-5 h-5 mr-2" />
-                                    Log In
+                                    Sign In Your Account
                                 </Button>
                             </Link>
                         )}
@@ -266,67 +266,66 @@ export default function Index() {
                 )}
 
                 {/* Main Content Header & Second Content (e.g., Stats/Links) */}
-                <div className="space-y-4 px-6 md:px-16 lg:px-24">
-                    {/* Filters, Mobile Search, and Book Count (Consolidated) */}
-                    <div className="flex flex-wrap items-center gap-x-6 gap-y-4 max-w-8xl mx-auto">
-                        {/* Mobile Search Bar */}
-                        <div className="relative flex-grow min-w-full sm:hidden">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
-                            <Input
-                                placeholder="Search by Title, Author, or ISBN"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                className={`w-full bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500 rounded-full shadow-inner pl-10 h-11
-                        dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:placeholder-gray-500
-                        focus:ring-2 focus:ring-${accentColor}-500 focus:border-${accentColor}-500 transition-all pr-3`}
-                            />
-                        </div>
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-4 max-w-8xl mx-auto justify-center px-4">
 
-                        {/* Filter components */}
-                        {[
-                            { label: "Category", value: filterCategory, onChange: setFilterCategory, options: categories },
-                            { label: "Sub-Category", value: filterSubCategory, onChange: setFilterSubCategory, options: subcategories },
-                            { label: "Language", value: filterLanguage, onChange: setFilterLanguage, options: languages, display: (lang: string) => lang === 'en' ? 'English' : lang === 'kh' ? 'Khmer' : lang },
-                            { label: "Grade", value: filterGrade, onChange: setFilterGrade, options: grades },
-                            { label: "Subject", value: filterSubject, onChange: setFilterSubject, options: subjects },
-                            ...(bookType === 'physical' ? [
-                                { label: "Bookcase", value: filterBookcase, onChange: setFilterBookcase, options: bookcases },
-                                { label: "Shelf", value: filterShelf, onChange: setFilterShelf, options: shelves },
-                            ] : []),
-                            ...(bookType === 'physical' && scope !== 'local' ? [
-                                { label: "Campus", value: filterCampus, onChange: setFilterCampus, options: campuses },
-                            ] : []),
-                                            ].map(({ label, value, onChange, options, display }) => (
-                                                <Select key={label} value={value} onValueChange={onChange}>
-                                                    <SelectTrigger className={`w-full sm:w-40 bg-white border border-gray-300 text-gray-900 hover:border-gray-400
-                                    dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:border-gray-600
-                                    focus:ring-${accentColor}-500 transition`}>
-                                    <SelectValue placeholder={label} />
-                                </SelectTrigger>
-                                <SelectContent className="bg-white border-gray-200 text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                                    <SelectItem value="All" className="hover:bg-gray-100 dark:hover:bg-gray-700">All {label}s</SelectItem>
-                                    {options.map((opt) => (
-                                        <SelectItem key={opt} value={opt} className="hover:bg-gray-100 dark:hover:bg-gray-700">{display ? display(opt) : opt}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        ))}
-                        {/* Sort Dropdown */}
-                        <Select value={sortBy} onValueChange={setSortBy}>
+                    {/* Mobile Search Bar - This is already rounded-full */}
+                    <div className="relative w-full sm:hidden">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+                        <Input
+                            placeholder="Search by Title, Author, or ISBN"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className={`w-full bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500 rounded-full shadow-inner pl-10 h-11
+                                    dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:placeholder-gray-500
+                                      focus:ring-2 focus:ring-${accentColor}-500 focus:border-${accentColor}-500 transition-all pr-3`}
+                        />
+                    </div>
+
+                    {/* Sort Dropdown */}
+                    <Select value={sortBy} onValueChange={setSortBy}>
+                        <SelectTrigger className={`w-full sm:w-40 bg-white border border-gray-300 text-gray-900 hover:border-gray-400
+                            dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:border-gray-600
+                            focus:ring-${accentColor}-500 transition font-semibold rounded-full`}
+                        >
+                            <ArrowDownUp className="h-4 w-4 mr-2 text-gray-500 dark:text-gray-400" />
+                            <SelectValue placeholder="Sort By" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border-gray-200 text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                            <SelectItem value="Newest" className="hover:bg-gray-100 dark:hover:bg-gray-700">Newest</SelectItem>
+                            <SelectItem value="Title A-Z" className="hover:bg-gray-100 dark:hover:bg-gray-700">Title (A-Z)</SelectItem>
+                            <SelectItem value="Most Viewed" className="hover:bg-gray-100 dark:hover:bg-gray-700">Most Viewed</SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    {/* Filter components */}
+                    {[
+                        { label: "Category", value: filterCategory, onChange: setFilterCategory, options: categories },
+                        { label: "Sub-Category", value: filterSubCategory, onChange: setFilterSubCategory, options: subcategories },
+                        { label: "Language", value: filterLanguage, onChange: setFilterLanguage, options: languages, display: (lang: string) => lang === 'en' ? 'English' : lang === 'kh' ? 'Khmer' : lang },
+                        { label: "Grade", value: filterGrade, onChange: setFilterGrade, options: grades },
+                        { label: "Subject", value: filterSubject, onChange: setFilterSubject, options: subjects },
+                        ...(bookType === 'physical' ? [
+                            { label: "Bookcase", value: filterBookcase, onChange: setFilterBookcase, options: bookcases },
+                            { label: "Shelf", value: filterShelf, onChange: setFilterShelf, options: shelves },
+                        ] : []),
+                        ...(bookType === 'physical' && scope !== 'local' ? [
+                            { label: "Campus", value: filterCampus, onChange: setFilterCampus, options: campuses },
+                        ] : []),
+                    ].map(({ label, value, onChange, options, display }) => (
+                        <Select key={label} value={value} onValueChange={onChange}>
                             <SelectTrigger className={`w-full sm:w-40 bg-white border border-gray-300 text-gray-900 hover:border-gray-400
-                                                dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:border-gray-600
-                                                  focus:ring-${accentColor}-500 transition font-semibold`}
-                            >
-                                <ArrowDownUp className="h-4 w-4 mr-2 text-gray-500 dark:text-gray-400" />
-                                <SelectValue placeholder="Sort By" />
+            dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:border-gray-600
+            focus:ring-${accentColor}-500 transition rounded-full`}> {/* <-- Changed to rounded-full */}
+                                <SelectValue placeholder={label} />
                             </SelectTrigger>
                             <SelectContent className="bg-white border-gray-200 text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                                <SelectItem value="Newest" className="hover:bg-gray-100 dark:hover:bg-gray-700">Newest</SelectItem>
-                                <SelectItem value="Title A-Z" className="hover:bg-gray-100 dark:hover:bg-gray-700">Title (A-Z)</SelectItem>
-                                <SelectItem value="Most Viewed" className="hover:bg-gray-100 dark:hover:bg-gray-700">Most Viewed</SelectItem>
+                                <SelectItem value="All" className="hover:bg-gray-100 dark:hover:bg-gray-700">All {label}s</SelectItem>
+                                {options.map((opt) => (
+                                    <SelectItem key={opt} value={opt} className="hover:bg-gray-100 dark:hover:bg-gray-700">{display ? display(opt) : opt}</SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
-                    </div>
+                    ))}
                 </div>
 
                 {/* Book Grid */}
@@ -338,6 +337,9 @@ export default function Index() {
                                 // Determine contributor info
                                 const contributorId = book.posted_by_user_id || book.user?.id;
                                 const contributorName = book.user?.name || (contributorId ? `User #${contributorId}` : 'Unknown');
+                                // Checks if the field is present AND truthy (i.e., 1, "1", or true)
+                                const isContributorVerified = !!book.user?.isVerified;
+
 
                                 return (
                                     <Tooltip key={book.id}>
@@ -367,11 +369,29 @@ export default function Index() {
                                                 <img
                                                     src={getMockAvatar(contributorId)}
                                                     alt="Contributor Avatar"
-                                                    className="w-6 h-6 rounded-full object-cover border border-gray-300 dark:border-gray-600"
+                                                    className="w-6 h-6 rounded-full object-cover border border-gray-300 dark:border-gray-600 flex-shrink-0"
                                                 />
-                                                <span className="text-xs text-gray-400 dark:text-gray-500 truncate font-medium">
-                                                {contributorName}
-                                            </span>
+
+                                                {/* Applied flex items-center for vertical alignment */}
+                                                <span className="text-xs text-gray-400 dark:text-gray-500 truncate font-medium flex items-center min-w-0">
+                                                    {/* Contributor Name - uses flex-grow and min-w-0 to allow text truncation */}
+                                                    <span className="truncate flex-grow">
+                                                        {contributorName}
+                                                    </span>
+
+                                                    {/* Verification Icon Logic - uses flex-shrink-0 to maintain size */}
+                                                    {isContributorVerified && (
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                {/* Checkmark icon for verified users */}
+                                                                <BadgeCheck className="w-4 h-4 ml-1 text-blue-500 dark:text-blue-400 fill-white dark:fill-gray-900 flex-shrink-0" />
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>
+                                                                Verified Contributor
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    )}
+                                                </span>
                                             </div>
                                         </TooltipTrigger>
 
