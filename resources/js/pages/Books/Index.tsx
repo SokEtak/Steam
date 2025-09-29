@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import AppLayout from '@/layouts/app-layout';
@@ -101,6 +100,7 @@ interface SubcategoryOption {
 
 interface PageProps {
     flash: {
+        error: unknown;
         message?: string;
     };
     books: Book[];
@@ -118,6 +118,7 @@ interface PageProps {
 }
 
 interface Book {
+    user: any;
     id: number;
     title: string;
     description: string;
@@ -177,17 +178,17 @@ interface Book {
 const getColumns = (
     setBookToDelete: React.Dispatch<React.SetStateAction<Book | null>>,
     processing: boolean,
-    isSuperLibrarian: boolean,
-    availableCategories: CategoryOption[],
-    availableSubcategories: SubcategoryOption[],
-    availableSubjects: SubjectOption[],
-    availableBookcases: BookcaseOption[],
-    availableShelves: ShelfOption[],
-    availableGrades: GradeOption[],
+    isSuperLibrarian: unknown,
+    availableCategories: unknown,
+    availableSubcategories: unknown,
+    availableSubjects: unknown,
+    availableBookcases: unknown,
+    availableShelves: unknown,
+    availableGrades: unknown,
     availableYears: string[],
-    availableUsers: string[],
-    availableCampuses: CampusOption[],
-    setRowModal: React.Dispatch<React.SetStateAction<Book | null>>,
+    availableUsers: unknown,
+    availableCampuses: string[],
+    setRowModal: React.Dispatch<React.SetStateAction<Book | null>>
 ): ColumnDef<Book>[] => {
     const getArrowColor = (sorted: string | false) => {
         if (sorted === 'asc') return 'text-blue-500';
@@ -1335,7 +1336,7 @@ function BookIndex() {
         onPaginationChange: setPagination,
         onGlobalFilterChange: setGlobalFilter,
         globalFilterFn: (row, columnId, filterValue) => {
-            //specify which column sortable
+            //specify sortable column
             const search = String(filterValue).toLowerCase();
             const title = String(row.original.title).toLowerCase();
             const code = String(row.original.code).toLowerCase();
@@ -1422,81 +1423,56 @@ function BookIndex() {
                     </Alert>
                 )}
 
-                <div className="flex flex-wrap items-center justify-between gap-2 py-4">
-                    <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-4 py-4">
+                    {/* Left: Search Input */}
+                    <div className="flex items-center">
                         <Input
                             placeholder="Search"
                             value={globalFilter ?? ''}
                             onChange={(event) => setGlobalFilter(event.target.value)}
-                            className="sm:max-w-4xl max-w-2xl  flex-grow sm:flex-grow-0"
+                            className="sm:max-w-4xl max-w-2xl flex-grow sm:flex-grow-0"
                             disabled={isTableLoading || processing}
                         />
                     </div>
 
-                    <div className="ml-auto flex flex-wrap items-center gap-2">
-                        {/*add a button*/}
+                    {/* Center: Add Button and Column Visibility Dropdown */}
+                    <div className="flex items-center justify-center gap-2">
+                        {/* Add Button */}
                         <TooltipProvider>
                             <Tooltip>
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            {/*hide button*/}
-                                            {!isSuperLibrarian&&
-                                                <Link href={route('books.create')} className="flex items-center gap-2">
-                                                    <Button
-                                                        className="h-8 cursor-pointer rounded-lg border-blue-300 bg-blue-400 text-black hover:bg-blue-600 dark:border-blue-500 dark:bg-gray-800 dark:text-blue-200 dark:hover:bg-blue-700"
-                                                        size="sm"
-                                                        disabled={isTableLoading || processing}
-                                                    >
-                                                        <Plus className="h-4 w-4 " />
-                                                    </Button>
-                                                </Link>
-                                            }
-                                        </TooltipTrigger>
-                                        <TooltipContent className="rounded-xl bg-gradient-to-br from-blue-900 to-blue-600 text-white">
-                                            <p>Add a new book</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
+                                <TooltipTrigger asChild>
+                                    {!isSuperLibrarian && (
+                                        <Link href={route('books.create')} className="flex items-center gap-2">
+                                            <Button
+                                                className="h-8 cursor-pointer rounded-lg border-blue-300 bg-blue-400 text-black hover:bg-blue-600 dark:border-blue-500 dark:bg-gray-800 dark:text-blue-200 dark:hover:bg-blue-700"
+                                                size="sm"
+                                                disabled={isTableLoading || processing}
+                                            >
+                                                <Plus className="h-4 w-4" />
+                                            </Button>
+                                        </Link>
+                                    )}
+                                </TooltipTrigger>
                                 <TooltipContent className="rounded-xl bg-gradient-to-br from-blue-900 to-blue-600 text-white">
                                     <p>Add a new book</p>
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
-                        {/*column visibility customization */}
+
+                        {/* Column Visibility Dropdown */}
                         <DropdownMenu>
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <div>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button
-                                                        variant="outline"
-                                                        className="h-8 rounded-lg border-blue-200 bg-white text-sm text-blue-600 hover:bg-blue-50 dark:border-blue-600 dark:bg-gray-700 dark:text-blue-300 dark:hover:bg-blue-800"
-                                                        disabled={isTableLoading || processing}
-                                                    >
-                                                        <Columns2 className="h-4 w-4" /> Customize Columns <ChevronDown className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    {table
-                                                        .getAllColumns()
-                                                        .filter((column) => column.getCanHide())
-                                                        .map((column) => (
-                                                            <DropdownMenuCheckboxItem
-                                                                key={column.id}
-                                                                className="text-sm capitalize"
-                                                                checked={column.getIsVisible()}
-                                                                onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                                                                disabled={isTableLoading || processing}
-                                                            >
-                                                                {column.id.replace(/_/g, ' ')}
-                                                            </DropdownMenuCheckboxItem>
-                                                        ))}
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </div>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                className="h-8 rounded-lg border-blue-200 bg-white text-sm text-blue-600 hover:bg-blue-50 dark:border-blue-600 dark:bg-gray-700 dark:text-blue-300 dark:hover:bg-blue-800"
+                                                disabled={isTableLoading || processing}
+                                            >
+                                                <Columns2 className="h-4 w-4" /> Customize Columns <ChevronDown className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
                                     </TooltipTrigger>
                                     <TooltipContent className="rounded-xl bg-gradient-to-br from-blue-900 to-blue-600 text-white">
                                         Click to Show or Hide Specific Columns
@@ -1510,7 +1486,7 @@ function BookIndex() {
                                     .map((column) => (
                                         <DropdownMenuCheckboxItem
                                             key={column.id}
-                                            className="capitalize"
+                                            className="text-sm capitalize"
                                             checked={column.getIsVisible()}
                                             onCheckedChange={(value) => column.toggleVisibility(!!value)}
                                             disabled={isTableLoading || processing}
@@ -1520,16 +1496,13 @@ function BookIndex() {
                                     ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
+                    </div>
 
-                        <div className="flex items-center gap-2">
-                            {isTableLoading ? (
-                                <Skeleton className="h-4 w-32" />
-                            ) : (
-                                <span className="text-sm font-medium">
-                                    {`${table.getFilteredRowModel().rows.length} filtered out of ${books.length} books`}
-                                </span>
-                            )}
-                        </div>
+                    {/* Right: Filtered Books Count */}
+                    <div className="flex items-center sm:justify-center">
+                        <span className="text-sm font-medium">
+                            {`${table.getFilteredRowModel().rows.length} filtered out of ${books.length} books`}
+                        </span>
                     </div>
                 </div>
 
@@ -1546,19 +1519,6 @@ function BookIndex() {
                                 </TableRow>
                             ))}
                         </TableHeader>
-                        {isTableLoading ? (
-                            <TableBody>
-                                {Array.from({ length: table.getState().pagination.pageSize }).map((_, index) => (
-                                    <TableRow key={index}>
-                                        {columns.map((_, colIndex) => (
-                                            <TableCell key={colIndex}>
-                                                <Skeleton className="h-4 w-full" />
-                                            </TableCell>
-                                        ))}
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        ) : (
                             <TableBody>
                                 {table.getRowModel().rows?.length ? (
                                     table.getRowModel().rows.map((row) => (
@@ -1579,226 +1539,21 @@ function BookIndex() {
                                                         ))}
                                                     </TableRow>
                                                 </TooltipTrigger>
+
+                                                {/*hover card*/}
                                                 <TooltipContent
                                                     side="left"
-                                                    className="max-w-md rounded-xl bg-gradient-to-br from-blue-900 to-blue-600 p-4 text-white shadow-xl dark:from-gray-800 dark:to-gray-600"
+                                                    className="max-w-md border-none"
                                                 >
-                                                    <div className="space-y-2">
-                                                        <p>
-                                                            <strong className="text-blue-200">Title:</strong> {row.original.title}
-                                                        </p>
-                                                        <p>
-                                                            <strong className="text-blue-200">Author:</strong> {row.original.author}
-                                                        </p>
-                                                        <p>
-                                                            <strong className="text-blue-200">Description:</strong>{' '}
-                                                            {row.original.description?.slice(0, 60) || 'No description'}
-                                                        </p>
-                                                        <p>
-                                                            <strong className="text-blue-200">Publisher:</strong> {row.original.publisher || 'N/A'}
-                                                        </p>
-                                                        <p>
-                                                            <strong className="text-blue-200">Language:</strong>{' '}
-                                                            {row.original.language === 'en'
-                                                                ? 'English'
-                                                                : row.original.language === 'kh'
-                                                                  ? 'Khmer'
-                                                                  : 'N/A'}
-                                                        </p>
-                                                        <p>
-                                                            <strong className="text-blue-200">Page Count:</strong> {row.original.page_count || 'N/A'}
-                                                        </p>
-                                                        <p>
-                                                            <strong className="text-blue-200">Published At:</strong>{' '}
-                                                            {row.original.published_at
-                                                                ? new Date(row.original.published_at).toLocaleDateString('en-US')
-                                                                : 'N/A'}
-                                                        </p>
-                                                        <p>
-                                                            <strong className="text-blue-200">ISBN:</strong> {row.original.isbn || 'N/A'}
-                                                        </p>
-                                                        <p>
-                                                            <strong className="text-blue-200">Code:</strong> {row.original.code || 'N/A'}
-                                                        </p>
-                                                        <p>
-                                                            <strong className="text-blue-200">Type:</strong> {row.original.type || 'N/A'}
-                                                        </p>
-                                                        <p>
-                                                            <strong className="text-blue-200">Availability:</strong>{' '}
-                                                            {row.original.is_available ? 'Available' : 'Not Available'}
-                                                        </p>
-                                                        <p>
-                                                            <strong className="text-blue-200">Downloadable:</strong>{' '}
-                                                            {row.original.downloadable ? 'Yes' : 'No'}
-                                                        </p>
-                                                        <p>
-                                                            <strong className="text-blue-200">Views:</strong> {row.original.view || 0}
-                                                        </p>
-                                                        <p>
-                                                            <strong className="text-blue-200">Category:</strong>{' '}
-                                                            {row.original.category ? (
-                                                                <Link
-                                                                    href={route('categories.show', row.original.category.id)}
-                                                                    className="text-blue-300 underline hover:text-blue-100"
-                                                                >
-                                                                    {row.original.category.name}
-                                                                </Link>
-                                                            ) : (
-                                                                'N/A'
-                                                            )}
-                                                        </p>
-                                                        <p>
-                                                            <strong className="text-blue-200">Bookcase:</strong>{' '}
-                                                            {row.original.bookcase ? (
-                                                                <Link
-                                                                    href={route('bookcases.show', row.original.bookcase.id)}
-                                                                    className="text-blue-300 underline hover:text-blue-100"
-                                                                >
-                                                                    {row.original.bookcase.code}
-                                                                </Link>
-                                                            ) : (
-                                                                'N/A'
-                                                            )}
-                                                        </p>
-                                                        <p>
-                                                            <strong className="text-blue-200">Subcategory:</strong>{' '}
-                                                            {row.original.subcategory ? (
-                                                                <Link
-                                                                    href={route('subcategories.show', row.original.subcategory.id)}
-                                                                    className="text-blue-300 underline hover:text-blue-100"
-                                                                >
-                                                                    {row.original.subcategory.name}
-                                                                </Link>
-                                                            ) : (
-                                                                'N/A'
-                                                            )}
-                                                        </p>
-                                                        <p>
-                                                            <strong className="text-blue-200">Subject:</strong> {row.original.subject?.name || 'N/A'}
-                                                        </p>
-                                                        <p>
-                                                            <strong className="text-blue-200">Bookcase:</strong>{' '}
-                                                            {row.original.bookcase ? (
-                                                                <Link
-                                                                    href={route('bookcases.show', row.original.bookcase.id)}
-                                                                    className="text-blue-300 underline hover:text-blue-100"
-                                                                >
-                                                                    {row.original.bookcase.code}
-                                                                </Link>
-                                                            ) : (
-                                                                'N/A'
-                                                            )}
-                                                        </p>
-                                                        <p>
-                                                            <strong className="text-blue-200">Shelf:</strong>{' '}
-                                                            {row.original.shelf ? (
-                                                                <Link
-                                                                    href={route('shelves.show', row.original.shelf.id)}
-                                                                    className="text-blue-300 underline hover:text-blue-100"
-                                                                >
-                                                                    {row.original.shelf.code}
-                                                                </Link>
-                                                            ) : (
-                                                                'N/A'
-                                                            )}
-                                                        </p>
-
-                                                        {isSuperLibrarian && <>
-                                                            <p>
-                                                                <strong className="text-blue-200">Posted By:</strong>{' '}
-                                                                {row.original.user? (
-                                                                    <Link
-                                                                        href={""}
-                                                                        className="text-blue-300 underline hover:text-blue-100"
-                                                                    >
-                                                                        {row.original.user.name}
-                                                                    </Link>
-                                                                ) : (
-                                                                    'N/A'
-                                                                )}
-                                                            </p>
-
-                                                            <p>
-                                                                <strong className="text-blue-200">Campus:</strong> {row.original.campus?.name || 'N/A'}
-                                                            </p>
-                                                        </>
-                                                        }
-
-                                                        <p>
-                                                            <strong className="text-blue-200">PDF URL:</strong>{' '}
-                                                            {row.original.pdf_url ? (
-                                                                <a
-                                                                    // href={`/storage/${row.original.pdf_url}`}
-                                                                    href={row.original.pdf_url}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="text-sm text-blue-300 underline hover:text-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
-                                                                    onClick={(e) => e.stopPropagation()}
-                                                                >
-                                                                    Preview PDF
-                                                                </a>
-                                                            ) : (
-                                                                <span className="text-gray-500">N/A</span>
-                                                            )}
-                                                        </p>
-                                                        <p>
-                                                            <strong className="text-blue-200">Grade:</strong> {row.original.grade?.name || 'N/A'}
-                                                        </p>
-                                                        {row.original.flip_link && (
-                                                            <p>
-                                                                <strong className="text-blue-200">Flip Link:</strong>{' '}
-                                                                <a
-                                                                    href={row.original.flip_link}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="underline"
-                                                                >
-                                                                    View Flip
-                                                                </a>
-                                                            </p>
-                                                        )}
-                                                        <p>
-                                                            <strong className="text-blue-200">Created At:</strong>{' '}
-                                                            {row.original.created_at
-                                                                ? new Date(row.original.created_at).toLocaleDateString('en-US', {
-                                                                      year: 'numeric',
-                                                                      month: 'long',
-                                                                      day: 'numeric',
-                                                                      hour: 'numeric',
-                                                                      minute: 'numeric',
-                                                                      second: 'numeric',
-                                                                      hour12: false,
-                                                                  })
-                                                                : 'N/A'}
-                                                        </p>
-                                                        <p>
-                                                            <strong className="text-blue-200">Updated At:</strong>{' '}
-                                                            {row.original.updated_at
-                                                                ? new Date(row.original.updated_at).toLocaleDateString('en-US', {
-                                                                      year: 'numeric',
-                                                                      month: 'long',
-                                                                      day: 'numeric',
-                                                                      hour: 'numeric',
-                                                                      minute: 'numeric',
-                                                                      second: 'numeric',
-                                                                      hour12: false,
-                                                                  })
-                                                                : 'N/A'}
-                                                        </p>
-                                                        <p>
-                                                            <strong className="text-blue-200">Cover:</strong>{' '}
-                                                            {row.original.cover ? (
-                                                                <img
-                                                                    // src={'/storage/' + row.original.cover}
-                                                                    src={row.original.cover}
-                                                                    alt="Book cover"
-                                                                    className="h-36 w-26 rounded border border-blue-300 object-cover shadow"
-                                                                />
-                                                            ) : (
-                                                                'N/A'
-                                                            )}
-                                                        </p>
-                                                    </div>
+                                                    {row.original.cover ? (
+                                                        <img
+                                                            src={row.original.cover}
+                                                            alt="Book cover"
+                                                            className="h-66 w-40    "
+                                                        />
+                                                    ) : (
+                                                        <span className="text-white dark:text-black">N/A</span>
+                                                    )}
                                                 </TooltipContent>
                                             </Tooltip>
                                         </TooltipProvider>
@@ -1811,13 +1566,23 @@ function BookIndex() {
                                     </TableRow>
                                 )}
                             </TableBody>
-                        )}
                     </Table>
 
                     {/* Big Modal on Row Click */}
+                    {/* Big Modal on Row Click */}
                     {rowModal && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto">
-                            <div className="pointer-events-auto h-auto w-full max-w-[95vw] sm:max-w-lg md:max-w-xl lg:max-w-2xl rounded-2xl border border-blue-300 bg-white p-3 sm:p-4 md:p-6 shadow-2xl dark:border-blue-500 dark:bg-gray-800 overflow-y-auto max-h-[100vh]">
+                        <div
+                            className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto  bg-opacity-50"
+                            onClick={(e) => {
+                                if (e.target === e.currentTarget) {
+                                    setRowModal(null);
+                                }
+                            }}
+                        >
+                            <div
+                                className="pointer-events-auto h-auto w-full max-w-[95vw] sm:max-w-lg md:max-w-xl lg:max-w-2xl rounded-2xl border border-blue-300 bg-white p-3 sm:p-4 md:p-6 shadow-2xl dark:border-blue-500 dark:bg-gray-800 overflow-y-auto max-h-[100vh]"
+                                onClick={(e) => e.stopPropagation()} // Prevent clicks inside the modal from bubbling up
+                            >
                                 <div className="mb-4 flex items-center justify-between">
                                     <h2 className="flex items-center gap-2 text-2xl font-bold text-blue-700 dark:text-blue-200">{rowModal.title}</h2>
                                     <Button
@@ -1926,7 +1691,6 @@ function BookIndex() {
                                             <strong className="text-blue-600 dark:text-blue-300">PDF URL:</strong>{' '}
                                             {rowModal.pdf_url ? (
                                                 <a
-                                                    // href={`/storage/${rowModal.pdf_url}`}
                                                     href={rowModal.pdf_url}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
@@ -1956,7 +1720,6 @@ function BookIndex() {
                                             <strong className="text-blue-600 dark:text-blue-300">Cover:</strong>{' '}
                                             {rowModal.cover ? (
                                                 <img
-                                                    // src={`/storage/${rowModal.cover}`}
                                                     src={rowModal.cover}
                                                     alt="Book cover"
                                                     className="h-full w-60 rounded border border-blue-300 object-cover shadow"
@@ -1991,12 +1754,11 @@ function BookIndex() {
                                         <p>
                                             <strong className="text-blue-600 dark:text-blue-300">Views:</strong> {rowModal.view || 0}
                                         </p>
-
-                                        {isSuperLibrarian &&
+                                        {isSuperLibrarian && (
                                             <>
                                                 <p>
                                                     <strong className="text-blue-600 dark:text-blue-300">Posted By:</strong>{' '}
-                                                    {rowModal.user? (
+                                                    {rowModal.user ? (
                                                         <Link
                                                             href={""}
                                                             className="text-blue-500 underline hover:text-blue-700 dark:text-blue-200 dark:hover:text-blue-100"
@@ -2007,41 +1769,37 @@ function BookIndex() {
                                                         'N/A'
                                                     )}
                                                 </p>
-
-                                                    <p>
-                                                        <strong className="text-blue-600 dark:text-blue-300">Campus:</strong> {rowModal.campus?.name || 'N/A'}
-                                                    </p>
+                                                <p>
+                                                    <strong className="text-blue-600 dark:text-blue-300">Campus:</strong> {rowModal.campus?.name || 'N/A'}
+                                                </p>
                                             </>
-                                        }
-
-
-
+                                        )}
                                         <p>
                                             <strong className="text-blue-600 dark:text-blue-300">Created At:</strong>{' '}
                                             {rowModal.created_at
                                                 ? new Date(rowModal.created_at).toLocaleDateString('en-US', {
-                                                      year: 'numeric',
-                                                      month: 'long',
-                                                      day: 'numeric',
-                                                      hour: 'numeric',
-                                                      minute: 'numeric',
-                                                      second: 'numeric',
-                                                      hour12: false,
-                                                  })
+                                                    year: 'numeric',
+                                                    month: 'long',
+                                                    day: 'numeric',
+                                                    hour: 'numeric',
+                                                    minute: 'numeric',
+                                                    second: 'numeric',
+                                                    hour12: false,
+                                                })
                                                 : 'N/A'}
                                         </p>
                                         <p>
                                             <strong className="text-blue-600 dark:text-blue-300">Updated At:</strong>{' '}
                                             {rowModal.updated_at
                                                 ? new Date(rowModal.updated_at).toLocaleDateString('en-US', {
-                                                      year: 'numeric',
-                                                      month: 'long',
-                                                      day: 'numeric',
-                                                      hour: 'numeric',
-                                                      minute: 'numeric',
-                                                      second: 'numeric',
-                                                      hour12: false,
-                                                  })
+                                                    year: 'numeric',
+                                                    month: 'long',
+                                                    day: 'numeric',
+                                                    hour: 'numeric',
+                                                    minute: 'numeric',
+                                                    second: 'numeric',
+                                                    hour12: false,
+                                                })
                                                 : 'N/A'}
                                         </p>
                                     </div>
@@ -2056,19 +1814,8 @@ function BookIndex() {
                                             <EyeIcon className="h-4 w-4" /> View
                                         </Button>
                                     </Link>
-
                                     {!isSuperLibrarian && (
                                         <>
-                                            {/*<Link href={route('books.edit', rowModal.id)}>*/}
-                                            {/*    <Button*/}
-                                            {/*        variant="outline"*/}
-                                            {/*        size="sm"*/}
-                                            {/*        className="flex h-8 cursor-pointer items-center gap-1 rounded-lg border-blue-300 bg-white text-blue-700 hover:bg-blue-100 dark:border-blue-500 dark:bg-gray-800 dark:text-blue-200 dark:hover:bg-blue-700"*/}
-                                            {/*    >*/}
-                                            {/*        <PencilIcon className="h-4 w-4" /> Edit*/}
-                                            {/*    </Button>*/}
-                                            {/*</Link>*/}
-
                                             <Button
                                                 variant="outline"
                                                 size="sm"
@@ -2082,7 +1829,6 @@ function BookIndex() {
                                             </Button>
                                         </>
                                     )}
-
                                 </div>
                             </div>
                         </div>
@@ -2162,11 +1908,7 @@ function BookIndex() {
                             </TooltipProvider>
                         </div>
                         <div className="text-sm text-gray-800 dark:text-gray-100">
-                            {isTableLoading ? (
-                                <Skeleton className="h-4 w-24" />
-                            ) : (
-                                `Page ${table.getState().pagination.pageIndex + 1} of ${table.getPageCount()}`
-                            )}
+                                Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
                         </div>
                     </div>
                 </div>

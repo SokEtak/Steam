@@ -2,11 +2,11 @@ import { type SharedData } from '@/types'
 import { Head, Link, usePage } from '@inertiajs/react'
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuLink, NavigationMenuTrigger, NavigationMenuContent } from "@/components/ui/navigation-menu"
 import { BookOpenIcon, BarChart3Icon, LayoutDashboardIcon, BookTextIcon, MenuIcon, XIcon, UserIcon } from 'lucide-react';
-import { useState, useEffect } from "react" // <-- Added useEffect
+import { useState, useEffect } from "react"
 
 // Define the props interface, including 'auth' again
 type WelcomeProps = SharedData & {
-    auth: { user: { name: string; role?: number; role_id?: number } | null }; // Auth is back
+    auth: { user: { name: string; role?: number; role_id?: number } | null };
     bookCount: number;
     ebookCount: number;
     userCount: number;
@@ -14,7 +14,6 @@ type WelcomeProps = SharedData & {
     canRegister?: boolean;
 };
 
-// --- NEW CountingStat Component ---
 interface CountingStatProps {
     endValue: number;
     duration: number; // Duration in milliseconds
@@ -46,6 +45,71 @@ const CountingStat: React.FC<CountingStatProps> = ({ endValue, duration }) => {
     return <>{count.toLocaleString()}</>;
 };
 // --- END CountingStat Component ---
+
+
+// ====================================================================
+// NavUser COMPONENT (Defined here for single-file demonstration)
+// ====================================================================
+
+// 1. Define Props Interface for NavUser
+interface NavUserProps {
+    auth: WelcomeProps['auth'];
+    canRegister?: boolean;
+    isRegularUser: boolean;
+    isStaffOrAdmin: boolean;
+}
+
+// 2. NavUser Component Implementation
+const NavUser: React.FC<NavUserProps> = ({ auth, canRegister, isRegularUser, isStaffOrAdmin }) => {
+    return (
+        // 3. User Status/Auth Buttons (Right Column) - Extracted from Welcome.tsx
+        <div className="flex gap-3 ml-auto">
+            {/* BROWSE BOOKS (PROMINENT LINK FOR REGULAR USERS) */}
+            {auth.user && isRegularUser && (
+                <Link href={route('library-type-dashboard')}
+                      className="flex items-center gap-1 text-sm font-medium rounded-full bg-green-500 text-white px-4 py-2 hover:bg-green-600 transition duration-150 shadow-md"
+                >
+                    <BookOpenIcon size={16} /> Browse Books
+                </Link>
+            )}
+
+            {/* Dashboard */}
+            {auth.user && isStaffOrAdmin && (
+                <Link
+                    href={route('dashboard')}
+                    className="flex items-center gap-1 rounded-full bg-blue-600 px-4 py-2 text-sm text-white font-medium shadow-md hover:bg-blue-700 dark:hover:bg-blue-500 transition duration-150"
+                >
+                    <LayoutDashboardIcon size={16} /> Dashboard
+                </Link>
+            )}
+
+            {/* Login/Logout Button */}
+            {auth.user ? (
+                <Link href={route('logout')} method="post" as="button"
+                      className="px-4 py-2 text-sm font-medium rounded-full bg-red-600 text-white shadow-md hover:bg-red-700 transition duration-150"
+                >
+                    Logout
+                </Link>
+            ) : (
+                <Link href={route('login')}
+                      className="px-4 py-2 text-sm font-medium rounded-full bg-blue-600 text-white shadow-md hover:bg-blue-700 transition duration-150"
+                >
+                    Login
+                </Link>
+            )}
+
+            {/* Sign Up Button (Only for Guests) */}
+            {!auth.user && canRegister && (
+                <Link href={route('register')} className="px-4 py-2 text-sm font-medium rounded-full bg-blue-600 text-white hover:bg-blue-700 dark:hover:bg-blue-500 transition duration-150 shadow-md">
+                    Sign Up
+                </Link>
+            )}
+        </div>
+    );
+}
+// ====================================================================
+// END NavUser COMPONENT
+// ====================================================================
 
 
 export default function Welcome() {
@@ -94,7 +158,6 @@ export default function Welcome() {
                         </Link>
 
                         {/* 2. Desktop Navigation & Auth Buttons container */}
-                        {/* 2. Desktop Navigation & Auth Buttons container */}
                         <div className="hidden sm:flex items-center w-full justify-end">
 
                             {/* Navigation Menu (Centered Column) - Absolute positioning is kept for centering, but it only contains core nav links now */}
@@ -122,49 +185,13 @@ export default function Welcome() {
                                 </NavigationMenuList>
                             </NavigationMenu>
 
-                            {/* 3. User Status/Auth Buttons (Right Column) */}
-                            <div className="flex gap-3 ml-auto">
-                                {/* BROWSE BOOKS (PROMINENT LINK FOR REGULAR USERS - NOW HERE) */}
-                                {auth.user && isRegularUser && (
-                                    <Link href={route('library-type-dashboard')}
-                                          className="flex items-center gap-1 text-sm font-medium rounded-full bg-green-500 text-white px-4 py-2 hover:bg-green-600 transition duration-150 shadow-md"
-                                    >
-                                        <BookOpenIcon size={16} /> Browse Books
-                                    </Link>
-                                )}
-
-                                {/* Dashboard */}
-                                {auth.user && isStaffOrAdmin && (
-                                    <Link
-                                        href={route('dashboard')}
-                                        className="flex items-center gap-1 rounded-full bg-blue-600 px-4 py-2 text-sm text-white font-medium shadow-md hover:bg-blue-700 dark:hover:bg-blue-500 transition duration-150"
-                                    >
-                                        <LayoutDashboardIcon size={16} /> Dashboard
-                                    </Link>
-                                )}
-
-                                {/* Login/Logout Button */}
-                                {auth.user ? (
-                                    <Link href={route('logout')} method="post" as="button"
-                                          className="px-4 py-2 text-sm font-medium rounded-full bg-red-600 text-white shadow-md hover:bg-red-700 transition duration-150"
-                                    >
-                                        Logout
-                                    </Link>
-                                ) : (
-                                    <Link href={route('login')}
-                                          className="px-4 py-2 text-sm font-medium rounded-full bg-blue-600 text-white shadow-md hover:bg-blue-700 transition duration-150"
-                                    >
-                                        Login
-                                    </Link>
-                                )}
-
-                                {/* Sign Up Button (Only for Guests) */}
-                                {!auth.user && canRegister && (
-                                    <Link href={route('register')} className="px-4 py-2 text-sm font-medium rounded-full bg-blue-600 text-white hover:bg-blue-700 dark:hover:bg-blue-500 transition duration-150 shadow-md">
-                                        Sign Up
-                                    </Link>
-                                )}
-                            </div>
+                            {/* 3. User Status/Auth Buttons (Right Column) - REPLACED WITH NAVUSER */}
+                            <NavUser
+                                auth={auth}
+                                canRegister={canRegister}
+                                isRegularUser={isRegularUser}
+                                isStaffOrAdmin={isStaffOrAdmin}
+                            />
                         </div>
 
                         {/* Hamburger Icon */}
@@ -203,7 +230,7 @@ export default function Welcome() {
                                 </Link>
                             )}
 
-                            {/* Auth Section */}
+                            {/* Auth Section - KEPT ORIGINAL VERTICAL LINKS FOR MOBILE UX */}
                             <div className="mt-6 pt-4 border-t dark:border-gray-800 flex flex-col gap-3">
                                 {/* Dashboard */}
                                 {auth.user && isStaffOrAdmin && (
