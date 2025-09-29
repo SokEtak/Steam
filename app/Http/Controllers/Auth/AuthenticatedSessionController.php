@@ -33,7 +33,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        //need to fix
         if (Auth::check() && Auth::user()->role_id===1){
             return redirect()->intended(route('home', absolute: false));
         }
