@@ -10,12 +10,37 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Http\Request;
 use App\Models\Book;
+use App\Models\User;
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+Route::get( '/',function(){
+    $bookCount = Book::where([
+        'is_deleted'=>'0',
+        'type'=>'physical'
+    ])->count();
+    $ebookCount = Book::where([
+        'is_deleted'=>'0',
+        'type'=>'ebook  '
+    ])->count();
 
-Route::get('/', fn() => Inertia::render('welcome'))->name('home');
+    $userCount = User::where([
+        'isActive'=>'1',
+    ])->count();
+
+    return Inertia::render('welcome',[
+        'bookCount'=>$bookCount,
+        'ebookCount'=>$ebookCount,
+        'userCount'=>$userCount,
+    ]);
+})->name('home');
+
+//render category of library type(physical:local-global,digital)
+Route::get('/library-type-dashboard', function () {
+    dd('library-type-dashboard');
+})->name('library-type-dashboard');
+
 
 Route::get('admin/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('auth');
 
