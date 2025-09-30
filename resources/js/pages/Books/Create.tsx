@@ -2,7 +2,7 @@
 
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, useForm, Link, router, usePage } from '@inertiajs/react';
+import { Head, useForm, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,10 +16,6 @@ import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
 
 interface Category {
   id: number;
@@ -65,10 +61,10 @@ interface BooksCreateProps {
   type: 'physical' | 'ebook';
 }
 
-// Translation object for English and Khmer
+// Translation object for English only
 const translations = {
   en: {
-      go_back: 'Book List',
+    go_back: 'Book List',
     createBook: 'Create New Book',
     createEBook: 'Create E-Book',
     createPhysicalBook: 'Create Physical Book',
@@ -99,8 +95,8 @@ const translations = {
     languageHelper: 'Primary language of the book.',
     publishedAt: 'Published Date',
     publishedAtPlaceholder: 'Select date',
-    publishedAtError: 'Please select a valid publication date.',
-    publishedAtHelper: 'Optional publication date.',
+    publishedAtError: 'Please select a valid publication year.',
+    publishedAtHelper: 'Optional publication year.',
     author: 'Author',
     authorPlaceholder: 'Enter the author name',
     authorError: 'Please provide a valid author name (max 255 characters).',
@@ -155,16 +151,16 @@ const translations = {
     coverPlaceholder: 'Upload a cover image',
     coverError: 'Please upload a valid cover image (JPEG/PNG, max 2MB).',
     coverHelper: 'Optional: JPEG or PNG, max 2MB.',
-    pdfFile: 'PDF File (200MB max)',
-    pdfFilePlaceholder: 'Upload a PDF file',
+    pdfFile: 'PDF File (200MB max, optional for e-books)',
+    pdfFilePlaceholder: 'Upload a PDF file (optional)',
     pdfFileError: 'Please upload a valid PDF file (max 200MB).',
-    pdfFileHelper: 'Required: PDF, max 200MB.',
+    pdfFileHelper: 'Optional: PDF, max 200MB.',
     browse: 'Browse',
     remove: 'Remove',
     preview: 'Preview',
     createButton: 'Create Book',
     creating: 'Creating...',
-    cancel: 'Cancel,Go Back to Books List',
+    cancel: 'Cancel, Go Back to Books List',
     coverPreview: 'Cover Preview',
     pdfPreview: 'PDF Preview',
     noCoverAvailable: 'No cover image available.',
@@ -175,115 +171,6 @@ const translations = {
     ebook: 'E-Book',
     audio: 'Audio',
     comingSoon: '(Coming Soon)',
-  },
-  kh: {
-      go_back: "បញ្ជីសៀវភៅ",
-    createBook: 'បង្កើតសៀវភៅថ្មី',
-    createEBook: 'បង្កើតសៀវភៅអេឡិចត្រូនិក',
-    createPhysicalBook: 'បង្កើតសៀវភៅក្រដាស',
-    error: 'កំហុស',
-    tryAgain: 'សាកល្បងម្តងទៀត',
-    somethingWentWrong: 'មានកំហុសកើតឡើង',
-    errorDescription: 'មានកំហុសកើតឡើងនៅពេលបង្កើតសៀវភៅ។ សូមសាកល្បងម្តងទៀត ឬទាក់ទងផ្នែកជំនួយ។',
-    basicInformation: 'ព័ត៌មានមូលដ្ឋាន',
-    title: 'ចំណងជើង',
-    titlePlaceholder: 'បញ្ចូលចំណងជើងសៀវភៅ',
-    titleError: 'សូមបញ្ចូលចំណងជើងត្រឹមត្រូវ (អតិបរមា ២៥៥ តួអក្សរ)។',
-    titleHelper: 'អតិបរមា ២៥៥ តួអក្សរ។',
-    description: 'ការពិពណ៌នា',
-    descriptionPlaceholder: 'បញ្ចូលការពិពណ៌នាសៀវភៅ',
-    descriptionError: 'សូមបញ្ចូលការពិពណ៌នាត្រឹមត្រូវ។',
-    descriptionHelper: 'ការពិពណ៌នាសង្ខេបនៃសៀវភៅ។',
-    pageCount: 'ចំនួនទំព័រ',
-    pageCountPlaceholder: 'បញ្ចូលចំនួនទំព័រ',
-    pageCountError: 'សូមបញ្ចូលចំនួនទំព័រត្រឹមត្រូវ (អប្បបរមា ១)។',
-    pageCountHelper: 'ចំនួនទំព័រសរុប។',
-    publisher: 'អ្នកបោះពុម្ព',
-    publisherPlaceholder: 'បញ្ចូលឈ្មោះអ្នកបោះពុម្ព',
-    publisherError: 'សូមបញ្ចូលឈ្មោះអ្នកបោះពុម្ពត្រឹមត្រូវ (អតិបរមា ២៥៥ តួអក្សរ)។',
-    publisherHelper: 'អតិបរមា ២៥៥ តួអក្សរ។',
-    language: 'ភាសា',
-    languagePlaceholder: 'ជ្រើសរើសភាសា',
-    languageError: 'សូមជ្រើសរើសភាសាត្រឹមត្រូវ។',
-    languageHelper: 'ភាសាចម្បងនៃសៀវភៅ។',
-    publishedAt: 'កាលបរិច្ឆេទបោះពុម្ព',
-    publishedAtPlaceholder: 'ជ្រើសរើសកាលបរិច្ឆេទ',
-    publishedAtError: 'សូមជ្រើសរើសកាលបរិច្ឆេទបោះពុម្ពត្រឹមត្រូវ។',
-    publishedAtHelper: 'កាលបរិច្ឆេទបោះពុម្ព (ស្រេចចិត្ត)។',
-    author: 'អ្នកនិពន្ធ',
-    authorPlaceholder: 'បញ្ចូលឈ្មោះអ្នកនិពន្ធ',
-    authorError: 'សូមបញ្ចូលឈ្មោះអ្នកនិពន្ធត្រឹមត្រូវ (អតិបរមា ២៥៥ តួអក្សរ)។',
-    authorHelper: 'ស្រេចចិត្ត អតិបរមា ២៥៥ តួអក្សរ។',
-    flipLink: 'តំណភ្ជាប់ឌីជីថល',
-    flipLinkPlaceholder: 'បញ្ចូល URL នៃការមើលជាមុនឌីជីថល',
-    flipLinkError: 'សូមបញ្ចូល URL ត្រឹមត្រូវសម្រាប់ការមើលជាមុនឌីជីថល។',
-    flipLinkHelper: 'តំណភ្ជាប់ឌីជីថលសម្រាប់មើលជាមុន (ស្រេចចិត្ត)។',
-    code: 'កូដ',
-    codePlaceholder: 'បង្កើតដោយស្វ័យប្រវត្តិបន្ទាប់ពីជ្រើសរើសប្រភេទ',
-    codeError: 'សូមបញ្ចូលកូដសៀវភៅត្រឹមត្រូវ (អតិបរមា ១០ តួអក្សរ)។',
-    codeHelper: 'អតិបរមា ១០ តួអក្សរ បង្កើតដោយស្វ័យប្រវត្តិ។',
-    isbn: 'ISBN',
-    isbnPlaceholder: 'បញ្ចូល ISBN',
-    isbnError: 'សូមបញ្ចូល ISBN ត្រឹមត្រូវ (អតិបរមា ១៣ តួអក្សរ)។',
-    isbnHelper: 'ស្រេចចិត្ត ១៣ តួអក្សរ។',
-    availability: 'ភាពអាចរកបាន',
-    downloadable: 'អាចទាញយកបាន',
-    availabilityError: 'សូមជ្រើសរើសជម្រើសភាពអាចរកបាន។',
-    availabilityHelper: 'បញ្ជាក់ថាតើសៀវភៅនេះអាចរកបានឬអត់។',
-    downloadableHelper: 'អនុញ្ញាតឱ្យអ្នកប្រើទាញយកសៀវភៅអេឡិចត្រូនិក។',
-    yes: 'បាទ/ចាស',
-    no: 'ទេ',
-    classification: 'ការចាត់ថ្នាក់',
-    category: 'ប្រភេទ',
-    categoryPlaceholder: 'ជ្រើសរើសប្រភេទ',
-    categoryError: 'សូមជ្រើសរើសប្រភេទត្រឹមត្រូវ។',
-    categoryHelper: 'ជ្រើសរើសប្រភេទសម្រាប់សៀវភៅ។',
-    subcategory: 'ប្រភេទរង',
-    subcategoryPlaceholder: 'ជ្រើសរើសប្រភេទរង',
-    subcategoryError: 'សូមជ្រើសរើសប្រភេទរងត្រឹមត្រូវ។',
-    subcategoryHelper: 'ប្រភេទរងសម្រាប់សៀវភៅ (ស្រេចចិត្ត)។',
-    grade: 'កម្រិត',
-    gradePlaceholder: 'ជ្រើសរើសកម្រិត',
-    gradeError: 'សូមជ្រើសរើសកម្រិតត្រឹមត្រូវ។',
-    gradeHelper: 'កម្រិតសម្រាប់សៀវភៅ (ស្រេចចិត្ត)។',
-    subject: 'មុខវិជ្ជា',
-    subjectPlaceholder: 'ជ្រើសរើសមុខវិជ្ជា',
-    subjectError: 'សូមជ្រើសរើសមុខវិជ្ជាត្រឹមត្រូវ។',
-    subjectHelper: 'មុខវិជ្ជាសម្រាប់សៀវភៅ (ស្រេចចិត្ត)។',
-    location: 'ទីតាំង',
-    bookcase: 'ទូសៀវភៅ',
-    bookcasePlaceholder: 'ជ្រើសរើសទូសៀវភៅ',
-    bookcaseError: 'សូមជ្រើសរើសទូសៀវភៅត្រឹមត្រូវ។',
-    bookcaseHelper: 'ជ្រើសរើសទូសៀវភៅសម្រាប់សៀវភៅក្រដាស។',
-    shelf: 'ធ្នើរ',
-    shelfPlaceholder: 'ជ្រើសរើសធ្នើរ',
-    shelfError: 'សូមជ្រើសរើសធ្នើរត្រឹមត្រូវ។',
-    shelfHelper: 'ជ្រើសរើសធ្នើរសម្រាប់សៀវភៅក្រដាស។',
-    files: 'ឯកសារ',
-    cover: 'គម្រប (ណែនាំជាទម្រង់បញ្ឈរ)',
-    coverPlaceholder: 'បញ្ចូលរូបភាពគម្រប',
-    coverError: 'សូមបញ្ចូលរូបភាពគម្របត្រឹមត្រូវ (JPEG/PNG, អតិបរមា ២MB)។',
-    coverHelper: 'ស្រេចចិត្ត៖ JPEG ឬ PNG, អតិបរមា ២MB។',
-    pdfFile: 'ឯកសារ PDF (អតិបរមា ១០MB)',
-    pdfFilePlaceholder: 'បញ្ចូលឯកសារ PDF',
-    pdfFileError: 'សូមបញ្ចូលឯកសារ PDF ត្រឹមត្រូវ (អតិបរមា ១០MB)។',
-    pdfFileHelper: 'តម្រូវ៖ PDF, អតិបរមា ១០MB។',
-    browse: 'រកមើល',
-    remove: 'លុប',
-    preview: 'មើលជាមុន',
-    createButton: 'បង្កើតសៀវភៅ',
-    creating: 'កំពុងបង្កើត...',
-    cancel: 'បោះបង់ រួចត្រឡប់ទៅកាន់បញ្ជីសៀវភៅ',
-    coverPreview: 'មើលគម្របជាមុន',
-    pdfPreview: 'មើល PDF ជាមុន',
-    noCoverAvailable: 'គ្មានរូបភាពគម្រប។',
-    noPdfAvailable: 'គ្មានឯកសារ PDF។',
-    saveBook: 'រក្សាទុកសៀវភៅថ្មី',
-    returnToBooks: 'ត្រឡប់ទៅបញ្ជីសៀវភៅ',
-    physical: 'សៀវភៅក្រដាស',
-    ebook: 'សៀវភៅអេឡិចត្រូនិក',
-    audio: 'សៀវភៅសំឡេង',
-    comingSoon: '(នឹងមកដល់ឆាប់ៗនេះ)',
   },
 };
 
@@ -322,8 +209,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
   render() {
     if (this.state.hasError) {
-      const { lang } = (this.props as any).pageProps || { lang: 'en' }; // Access lang from page props
-      const t = translations[lang === 'kh' ? 'kh' : 'en'];
+      const t = translations.en;
       return (
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-red-200 dark:border-red-700 p-6">
@@ -359,7 +245,7 @@ interface FileFieldProps {
   selectedFileName?: string;
   onRemove?: () => void;
   fileError?: string;
-  lang: 'en' | 'kh';
+  required?: boolean; // Added required prop
 }
 
 const FileField: React.FC<FileFieldProps> = ({
@@ -378,9 +264,9 @@ const FileField: React.FC<FileFieldProps> = ({
   selectedFileName,
   onRemove,
   fileError,
-  lang,
+  required = false, // Default to false
 }) => {
-  const t = translations[lang];
+  const t = translations.en;
   return (
     <div className="space-y-2">
       <Label htmlFor={id} className="text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -409,7 +295,7 @@ const FileField: React.FC<FileFieldProps> = ({
                   accept={accept}
                   onChange={onChange}
                   className="hidden"
-                  required={isDragDrop}
+                  required={required}
                   aria-describedby={error || fileError ? `${id}-error` : undefined}
                 />
                 <div className="space-y-3">
@@ -476,6 +362,7 @@ const FileField: React.FC<FileFieldProps> = ({
                     type="file"
                     accept={accept}
                     onChange={onChange}
+ས
                     className="hidden"
                     aria-describedby={error || fileError ? `${id}-error` : undefined}
                   />
@@ -537,9 +424,7 @@ export default function BooksCreate({
   flash,
   type: initialType,
 }: BooksCreateProps) {
-  const { props } = usePage<{ lang?: string }>();
-  const lang = props.lang === 'kh' ? 'kh' : 'en';
-  const t = translations[lang];
+  const t = translations.en;
 
   const [type, setType] = useState<'physical' | 'ebook'>(initialType);
   const isEbook = type === 'ebook';
@@ -551,14 +436,13 @@ export default function BooksCreate({
   const [subjects, setSubjects] = useState(initialSubjects);
   const [pdfFileError, setPdfFileError] = useState<string | null>(null);
   const [showErrorAlert, setShowErrorAlert] = useState(!!flash?.error);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
-  const { data, setData, post, processing, errors, reset } = useForm({
+  const { data, setData, post, processing, errors, reset, setErrors } = useForm({
     title: '',
     description: '',
     page_count: '',
     publisher: '',
-    language: 'kh',
+    language: 'en',
     published_at: '',
     author: '',
     flip_link: '',
@@ -645,7 +529,7 @@ export default function BooksCreate({
         setPdfFileError(t.pdfFileError);
         return;
       }
-        if (file.size > 200 * 1024 * 1024) { // Changed to 200 MB
+      if (file.size > 200 * 1024 * 1024) {
         setData(field, null);
         e.target.value = '';
         setPdfFileError('PDF file exceeds 200MB limit. Please upload a smaller file.');
@@ -688,7 +572,7 @@ export default function BooksCreate({
       setPdfFileError(t.pdfFileError);
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
+    if (file.size > 200 * 1024 * 1024) {
       setPdfFileError('PDF file exceeds 200MB limit. Please drop a smaller file.');
       return;
     }
@@ -698,28 +582,37 @@ export default function BooksCreate({
     setPdfPreviewUrl(URL.createObjectURL(file));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    post(route('books.store'), {
-      forceFormData: true,
-      onSuccess: () => {
-        setShowErrorAlert(false);
-        reset();
-        setCoverPreviewUrl(null);
-        setPdfPreviewUrl(null);
-        setPdfFileError(null);
-        setSelectedDate(undefined);
-      },
-      onError: () => setShowErrorAlert(true),
-    });
-  };
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (isEbook && !data.pdf_url) {
+            setErrors((prev) => ({ ...prev, pdf_url: undefined }));
+            setPdfFileError(null);
+        }
+        post(route('books.store'), {
+            forceFormData: true,
+            onSuccess: () => {
+                setShowErrorAlert(false);
+                reset();
+                setCoverPreviewUrl(null);
+                setPdfPreviewUrl(null);
+                setPdfFileError(null);
+            },
+            onError: (errors) => {
+                setShowErrorAlert(true);
+                if (errors.code?.includes('unique')) {
+                    setData('code', generateCode()); // Regenerate code
+                    alert(t.codeError);
+                }
+            },
+        });
+    };
 
   const handleTypeChange = (newType: 'physical' | 'ebook') => {
     setType(newType);
     setData('type', newType);
     router.get(
       route('books.create'),
-      { type: newType, lang }, // Include lang in navigation
+      { type: newType },
       {
         preserveState: true,
         preserveScroll: true,
@@ -729,11 +622,8 @@ export default function BooksCreate({
   };
 
   return (
-    <ErrorBoundary pageProps={{ lang }}>
-      <AppLayout breadcrumbs={[
-          { title: t.go_back, href: route('books.index') },
-          { title: t.createBook, href: '' }
-      ]}>
+    <ErrorBoundary>
+      <AppLayout breadcrumbs={breadcrumbs}>
         <Head title={isEbook ? t.createEBook : t.createPhysicalBook} />
         <div className="p-2 sm:p-6 lg:p-8 max-w-auto">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
@@ -766,25 +656,6 @@ export default function BooksCreate({
                 </div>
               </Alert>
             )}
-              <Select
-                  value={lang}
-                  onValueChange={(value) => {
-                      router.get(
-                          route('books.create'),
-                          { lang: value, type },
-                          { preserveState: true, preserveScroll: true, replace: true }
-                      );
-                  }}
-              >
-                  {/*language switcher to continue later*/}
-                  <SelectTrigger>
-                      <SelectValue placeholder={t.languagePlaceholder} />
-                  </SelectTrigger>
-                  <SelectContent>
-                      <SelectItem value="en">{t.language === 'ភាសា' ? 'អង់គ្លេស' : 'English'}</SelectItem>
-                      <SelectItem value="kh">{t.language === 'ភាសា' ? 'ខ្មែរ' : 'Khmer'}</SelectItem>
-                  </SelectContent>
-              </Select>
 
             <form onSubmit={handleSubmit} className="mt-2 grid grid-cols-1 lg:grid-cols-2 gap-6" encType="multipart/form-data">
               <input type="hidden" name="type" value={type} />
@@ -806,9 +677,7 @@ export default function BooksCreate({
 }`}
                         disabled={tab === 'audio'}
                       >
-                        {/*  without (coming soon)*/}
-                        {t[tab as keyof typeof t]} {tab === 'audio'}
-                        {/*{t[tab as keyof typeof t]} {tab === 'audio' && t.comingSoon}*/}
+                        {t[tab as keyof typeof t]} {tab === 'audio' && t.comingSoon}
                       </button>
                     ))}
                   </nav>
@@ -897,7 +766,8 @@ export default function BooksCreate({
                           min="1"
                           className={`w-full mt-1 rounded-lg border ${
     errors.page_count ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+} focus:ring-2 focus:ring-indigo-500 dark:focusმო�
+                          focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-y`}
                           required
                           aria-describedby={errors.page_count ? 'page_count-error' : undefined}
                         />
@@ -967,8 +837,7 @@ export default function BooksCreate({
                             <SelectValue placeholder={t.languagePlaceholder} />
                           </SelectTrigger>
                           <SelectContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
-                            <SelectItem value="kh">{t.language === 'ភាសា' ? 'ខ្មែរ' : 'Khmer'}</SelectItem>
-                            <SelectItem value="en">{t.language === 'ភាសា' ? 'អង់គ្លេស' : 'English'}</SelectItem>
+                            <SelectItem value="en">English</SelectItem>
                           </SelectContent>
                         </Select>
                       </TooltipTrigger>
@@ -984,59 +853,55 @@ export default function BooksCreate({
                   )}
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t.languageHelper}</p>
                 </div>
-                  <div>
-                      <Label htmlFor="published_at" className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                          {t.publishedAt}
-                      </Label>
-                      <TooltipProvider>
-                          <Tooltip>
-                              <TooltipTrigger asChild>
-                                  <Input
-                                      id="published_at"
-                                      type="number"
-                                      value={data.published_at ?? ''} // Ensure empty string for undefined/null
-                                      onChange={(e) => {
-                                          const value = e.target.value;
-                                          // Allow empty input or up to 4 digits for partial typing
-                                          if (value === '' || (/^\d{1,4}$/.test(value))) {
-                                              setData('published_at', value);
-                                          }
-                                      }}
-                                      onBlur={(e) => {
-                                          const value = e.target.value;
-                                          // Validate on blur to ensure final value is between 1000 and 2025
-                                          if (value !== '' && (parseInt(value) < 1000 || parseInt(value) > 2025)) {
-                                              setErrors((prev) => ({
-                                                  ...prev,
-                                                  published_at: t.publishedAtError || 'Year must be between 1000 and 2025',
-                                              }));
-                                          } else {
-                                              setErrors((prev) => ({ ...prev, published_at: undefined }));
-                                          }
-                                      }}
-                                      min="1000"
-                                      max="2025"
-                                      placeholder={t.publishedAtPlaceholder || 'Enter year (1000–2025)'}
-                                      className={`w-full mt-1 rounded-lg border ${
-                                          errors.published_at ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-                                      } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
-                                      aria-describedby={errors.published_at ? 'published_at-error' : undefined}
-                                  />
-                              </TooltipTrigger>
-                              <TooltipContent className="bg-indigo-600 text-white rounded-lg">
-                                  {t.publishedAtPlaceholder || 'Enter the publication year (1000–2025)'}
-                              </TooltipContent>
-                          </Tooltip>
-                      </TooltipProvider>
-                      {errors.published_at && (
-                          <p id="published_at-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
-                              {errors.published_at}
-                          </p>
-                      )}
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          {t.publishedAtHelper || 'Enter the year the book was published (optional, 1000–2025).'}
-                      </p>
-                  </div>
+                <div>
+                  <Label htmlFor="published_at" className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    {t.publishedAt}
+                  </Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Input
+                          id="published_at"
+                          type="number"
+                          value={data.published_at ?? ''}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value === '' || (/^\d{1,4}$/.test(value))) {
+                              setData('published_at', value);
+                            }
+                          }}
+                          onBlur={(e) => {
+                            const value = e.target.value;
+                            if (value !== '' && (parseInt(value) < 1000 || parseInt(value) > 2025)) {
+                              setErrors((prev) => ({
+                                ...prev,
+                                published_at: t.publishedAtError || 'Year must be between 1000 and 2025',
+                              }));
+                            } else {
+                              setErrors((prev) => ({ ...prev, published_at: undefined }));
+                            }
+                          }}
+                          min="1901"
+                          max="2025"
+                          placeholder={t.publishedAtPlaceholder}
+                          className={`w-full mt-1 rounded-lg border ${
+                                        errors.published_at ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+                                    } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+                          aria-describedby={errors.published_at ? 'published_at-error' : undefined}
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-indigo-600 text-white rounded-lg">
+                        {t.publishedAtPlaceholder}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  {errors.published_at && (
+                    <p id="published_at-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
+                      {errors.published_at}
+                    </p>
+                  )}
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t.publishedAtHelper}</p>
+                </div>
               </div>
               <div className="space-y-4">
                 <div>
@@ -1147,8 +1012,8 @@ export default function BooksCreate({
                           onChange={(e) => setData('isbn', e.target.value)}
                           maxLength={13}
                           className={`w-full mt-1 rounded-lg border ${
-    errors.isbn ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+                                        errors.isbn ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+                                    } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                           aria-describedby={errors.isbn ? 'isbn-error' : undefined}
                         />
                       </TooltipTrigger>
@@ -1246,8 +1111,8 @@ export default function BooksCreate({
                         >
                           <SelectTrigger
                             className={`w-full mt-1 rounded-lg border ${
-    errors.category_id ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+                                            errors.category_id ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+                                       } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                             aria-describedby={errors.category_id ? 'category-error' : undefined}
                           >
                             <SelectValue placeholder={t.categoryPlaceholder} />
@@ -1514,7 +1379,6 @@ export default function BooksCreate({
                     setCoverPreviewUrl(null);
                     setPdfFileError(null);
                   }}
-                  lang={lang}
                 />
               </div>
               {isEbook && (
@@ -1539,7 +1403,7 @@ export default function BooksCreate({
                       setPdfFileError(null);
                     }}
                     onPreviewClick={() => setIsPdfModalOpen(true)}
-                    lang={lang}
+                    required={false} // PDF is not required for e-books
                   />
                 </div>
               )}

@@ -22,6 +22,7 @@ class StoreBookRequest extends FormRequest
                 'campus_id' => 'User must have a valid campus ID for physical books.',
             ]);
         }
+
         $this->merge([
             'campus_id' => $this->input('campus_id', $campusId),
             'user_id' => $this->input('user_id', Auth::id()),
@@ -41,11 +42,11 @@ class StoreBookRequest extends FormRequest
         return [
             'type' => ['required', 'in:physical,ebook'],
             'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable ', 'string'],
+            'description' => ['nullable', 'string'],
             'page_count' => ['required', 'integer', 'min:1'],
             'publisher' => ['required', 'string', 'max:255'],
-            'language' => ['required', 'in:kh,en'],
-            'published_at' => 'nullable|integer|digits:4|min:1000|max:2025',
+            'language' => ['required', 'in:en,kh'],
+            'published_at' => ['nullable', 'integer', 'digits:4', 'min:1000', 'max:2025'],
             'author' => ['nullable', 'string', 'max:255'],
             'flip_link' => ['nullable', 'url', 'max:255'],
             'code' => [
@@ -64,7 +65,7 @@ class StoreBookRequest extends FormRequest
             'is_available' => [$isEbook ? 'nullable' : 'required', 'boolean'],
             'downloadable' => [$isEbook ? 'required' : 'nullable', 'boolean'],
             'cover' => ['nullable', 'image', 'mimes:jpeg,png', 'max:2048'],
-            'pdf_url' => ['nullable', 'mimes:pdf', 'max:204800'],//200mb
+            'pdf_url' => ['nullable', 'mimes:pdf', 'max:10240'],
             'category_id' => ['required', 'exists:categories,id'],
             'subcategory_id' => ['nullable', 'exists:sub_categories,id'],
             'shelf_id' => [$isEbook ? 'nullable' : 'required_if:type,physical', 'exists:shelves,id'],
@@ -81,11 +82,11 @@ class StoreBookRequest extends FormRequest
             'type.required' => 'Book type is required.',
             'type.in' => 'Book type must be physical or ebook.',
             'title.required' => 'Book title is required.',
-            'description.required' => 'Book description is required.',
             'page_count.required' => 'Page count is required.',
             'page_count.min' => 'Page count must be at least 1.',
             'publisher.required' => 'Publisher name is required.',
             'language.required' => 'Language is required.',
+            'language.in' => 'Language must be English.',
             'code.required' => 'Book code is required.',
             'code.unique' => 'This book code is already in use.',
             'isbn.size' => 'ISBN must be exactly 13 characters.',

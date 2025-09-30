@@ -26,7 +26,7 @@ return new class extends Migration
             $table->boolean('is_available')->default(false);
             $table->string('author')->nullable();
             $table->string('code', 10)->unique();
-            $table->string('isbn', 13)->unique();
+            $table->string('isbn', 13)->unique()->nullable();
             $table->enum('type', ['physical', 'ebook'])->default('physical');
             $table->tinyInteger('downloadable')->default(0);
             $table->foreignId('user_id')->constrained('users');
