@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('books', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->string('description');
+            $table->string('description')->nullable();
             $table->integer('page_count');
             $table->string('publisher');
             $table->enum('language', ['kh', 'en'])->default('kh');

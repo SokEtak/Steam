@@ -852,7 +852,7 @@ export default function BooksCreate({
                 </div>
                 <div>
                   <Label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    {t.description} <span className="text-red-500">*</span>
+                    {t.description}
                   </Label>
                   <TooltipProvider>
                     <Tooltip>
@@ -865,7 +865,6 @@ export default function BooksCreate({
     errors.description ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
 } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-y`}
                           rows={4}
-                          required
                           aria-describedby={errors.description ? 'description-error' : undefined}
                         />
                       </TooltipTrigger>
