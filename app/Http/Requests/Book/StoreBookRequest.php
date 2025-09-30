@@ -64,7 +64,7 @@ class StoreBookRequest extends FormRequest
             'is_available' => [$isEbook ? 'nullable' : 'required', 'boolean'],
             'downloadable' => [$isEbook ? 'required' : 'nullable', 'boolean'],
             'cover' => ['nullable', 'image', 'mimes:jpeg,png', 'max:2048'],
-            'pdf_url' => [$isEbook ? 'required' : 'nullable', 'mimes:pdf', 'max:204800'],//200mb
+            'pdf_url' => ['nullable', 'mimes:pdf', 'max:204800'],//200mb
             'category_id' => ['required', 'exists:categories,id'],
             'subcategory_id' => ['nullable', 'exists:sub_categories,id'],
             'shelf_id' => [$isEbook ? 'nullable' : 'required_if:type,physical', 'exists:shelves,id'],
@@ -93,8 +93,7 @@ class StoreBookRequest extends FormRequest
             'cover.image' => 'Cover must be a valid JPEG or PNG image.',
             'cover.max' => 'Cover image must not exceed 2MB.',
             'pdf_url.mimes' => 'File must be a valid PDF.',
-            'pdf_url.max' => 'PDF file must not exceed 10MB.',
-            'pdf_url.required' => 'PDF file is required for e-books.',
+            'pdf_url.max' => 'PDF file must not exceed 200MB.',
             'category_id.required' => 'Category is required.',
             'shelf_id.required_if' => 'Shelf is required for physical books.',
             'bookcase_id.required_if' => 'Bookcase is required for physical books.',

@@ -384,7 +384,7 @@ const FileField: React.FC<FileFieldProps> = ({
   return (
     <div className="space-y-2">
       <Label htmlFor={id} className="text-sm font-medium text-gray-700 dark:text-gray-200">
-        {label} {isDragDrop && <span className="text-red-500">*</span>}
+        {label}
       </Label>
       {isDragDrop ? (
         <TooltipProvider>
