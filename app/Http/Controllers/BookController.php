@@ -58,8 +58,6 @@ class BookController extends Controller
 
     public function store(StoreBookRequest $request)
     {
-//        dd($request->published_at);
-//        dd($request->toArray());
         $validated = $request->validated();
         $book = new Book(array_merge($validated, ['user_id' => Auth::id()]));
 
