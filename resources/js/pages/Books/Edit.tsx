@@ -16,10 +16,11 @@ import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format, parse } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
+
+interface Campus {
+    id: number;
+    name: string;
+}
 
 interface Category {
     id: number;
@@ -58,8 +59,8 @@ interface Book {
     description: string;
     page_count: number;
     publisher: string;
-    language: 'kh' | 'en';
-    published_at?: string;
+    language: 'en';
+    published_at?: number | null;
     author?: string;
     flip_link?: string;
     code: string;
@@ -86,15 +87,20 @@ interface BooksEditProps {
     bookcases: Bookcase[];
     grades: Grade[];
     subjects: Subject[];
+    campuses: Campus[]; // Added campuses prop
     flash?: {
         message: string | null;
         error: string | null;
     };
 }
 
+// Translation object for English only
 const translations = {
     en: {
-        editBook: 'Edit Book',
+        go_back: 'Book List',
+        createBook: 'Create New Book',
+        createEBook: 'Create E-Book',
+        createPhysicalBook: 'Create Physical Book',
         editEBook: 'Edit E-Book',
         editPhysicalBook: 'Edit Physical Book',
         error: 'Error',
@@ -124,8 +130,8 @@ const translations = {
         languageHelper: 'Primary language of the book.',
         publishedAt: 'Published Date',
         publishedAtPlaceholder: 'Select date',
-        publishedAtError: 'Please select a valid publication date.',
-        publishedAtHelper: 'Optional publication date.',
+        publishedAtError: 'Please select a valid publication year.',
+        publishedAtHelper: 'Optional publication year.',
         author: 'Author',
         authorPlaceholder: 'Enter the author name',
         authorError: 'Please provide a valid author name (max 255 characters).',
@@ -175,34 +181,40 @@ const translations = {
         shelfPlaceholder: 'Select shelf',
         shelfError: 'Please select a valid shelf.',
         shelfHelper: 'Select a shelf for the physical book.',
+        campusPlaceholder: 'Select a campus',
+        campusError: 'Campus is required for physical books.',
+        campusHelper: 'Select the campus where the book is located.',
         files: 'Files',
         cover: 'Cover (portrait recommended)',
         coverPlaceholder: 'Upload a cover image',
         coverError: 'Please upload a valid cover image (JPEG/PNG, max 2MB).',
         coverHelper: 'Optional: JPEG or PNG, max 2MB.',
-        pdfFile: 'PDF File (10MB max)',
-        pdfFilePlaceholder: 'Upload a PDF file',
-        pdfFileError: 'Please upload a valid PDF file (max 10MB).',
-        pdfFileHelper: 'Optional: PDF, max 10MB.',
+        pdfFile: 'PDF File (200MB max, optional for e-books)',
+        pdfFilePlaceholder: 'Upload a PDF file (optional)',
+        pdfFileError: 'Please upload a valid PDF file (max 200MB).',
+        pdfFileHelper: 'Optional: PDF, max 200MB.',
         browse: 'Browse',
         remove: 'Remove',
         preview: 'Preview',
-        updateButton: 'Update Book',
-        updating: 'Updating...',
-        cancel: 'Cancel',
+        createButton: 'Create Book',
+        creating: 'Creating...',
+        cancel: 'Cancel, Go Back to Books List',
         coverPreview: 'Cover Preview',
         pdfPreview: 'PDF Preview',
         noCoverAvailable: 'No cover image available.',
         noPdfAvailable: 'No PDF file available.',
-        saveBook: 'Save the updated book',
+        saveBook: 'Save the new book',
         returnToBooks: 'Return to the books list',
         physical: 'Physical',
         ebook: 'E-Book',
         audio: 'Audio',
         comingSoon: '(Coming Soon)',
-        validationError: 'Please fill in all required fields before submitting.',
+        reset: 'Reset',
+        save: 'Save',
+        close: 'Close',
+        dragDrop: 'Drag and drop a PDF file or click to select',
+        previewPDF: 'Preview PDF',
     },
-    // kh: { ... } (Khmer translations omitted for brevity)
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -212,6 +224,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface ErrorBoundaryProps {
     children: ReactNode;
+    pageProps: { lang?: string };
 }
 
 interface ErrorBoundaryState {
@@ -224,215 +237,26 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
         this.state = { hasError: false };
     }
 
-    static getDerivedStateFromError(_: Error): ErrorBoundaryState {
+    static getDerivedStateFromError() {
         return { hasError: true };
     }
 
     render() {
         if (this.state.hasError) {
-            const { lang } = (this.props as any).pageProps || { lang: 'en' };
-            const t = translations[lang === 'kh' ? 'kh' : 'en'];
             return (
-                <div className="p-4 sm:p-6 lg:p-8">
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-red-200 dark:border-red-700 p-6">
-                        <h2 className="text-xl font-semibold text-red-600 dark:text-red-400">{t.somethingWentWrong}</h2>
-                        <p className="text-gray-600 dark:text-gray-300 mt-2">{t.errorDescription}</p>
-                        <Button
-                            onClick={() => window.location.reload()}
-                            className="mt-4 bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 px-4 py-2 rounded-lg"
-                        >
-                            {t.tryAgain}
-                        </Button>
-                    </div>
+                <div className="p-6">
+                    <Alert className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg">
+                        <AlertTitle className="text-red-600 dark:text-red-400">Error</AlertTitle>
+                        <AlertDescription className="text-gray-600 dark:text-gray-300">
+                            Something went wrong. Please try again or contact support.
+                        </AlertDescription>
+                    </Alert>
                 </div>
             );
         }
         return this.props.children;
     }
 }
-
-interface FileFieldProps {
-    label: string;
-    id: string;
-    accept: string;
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    previewUrl?: string | null;
-    onPreviewClick?: () => void;
-    error?: string;
-    helperText?: string;
-    isDragDrop?: boolean;
-    dragActive?: boolean;
-    onDrag?: (e: React.DragEvent<HTMLDivElement>) => void;
-    onDrop?: (e: React.DragEvent<HTMLDivElement>) => void;
-    selectedFileName?: string;
-    onRemove?: () => void;
-    fileError?: string;
-    lang: 'en' | 'kh';
-}
-
-const FileField: React.FC<FileFieldProps> = ({
-                                                 label,
-                                                 id,
-                                                 accept,
-                                                 onChange,
-                                                 previewUrl,
-                                                 onPreviewClick,
-                                                 error,
-                                                 helperText,
-                                                 isDragDrop = false,
-                                                 dragActive = false,
-                                                 onDrag,
-                                                 onDrop,
-                                                 selectedFileName,
-                                                 onRemove,
-                                                 fileError,
-                                                 lang,
-                                             }) => {
-    const t = translations[lang];
-    return (
-        <div className="space-y-2">
-            <Label htmlFor={id} className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                {label} {isDragDrop && <span className="text-red-500">*</span>}
-            </Label>
-            {isDragDrop ? (
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <div
-                                className={`border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 w-full max-w-md h-64 mx-auto flex flex-col justify-center items-center ${
-                                    dragActive
-                                        ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
-                                        : 'border-gray-300 dark:border-gray-600'
-                                } ${error || fileError ? 'border-red-500 dark:border-red-400' : ''}`}
-                                onDragEnter={onDrag}
-                                onDragLeave={onDrag}
-                                onDragOver={onDrag}
-                                onDrop={onDrop}
-                                role="region"
-                                aria-label={`Drag and drop ${label.toLowerCase()} file`}
-                            >
-                                <Input
-                                    id={id}
-                                    type="file"
-                                    accept={accept}
-                                    onChange={onChange}
-                                    className="hidden"
-                                    aria-describedby={error || fileError ? `${id}-error` : undefined}
-                                />
-                                <div className="space-y-3">
-                                    {selectedFileName ? (
-                                        <p className="text-sm text-gray-600 dark:text-gray-300">
-                                            Selected: {selectedFileName}{' '}
-                                            {onRemove && (
-                                                <Button
-                                                    variant="link"
-                                                    onClick={onRemove}
-                                                    className="text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300"
-                                                    aria-label={`${t.remove} ${selectedFileName}`}
-                                                >
-                                                    {t.remove}
-                                                </Button>
-                                            )}
-                                            {onPreviewClick && (
-                                                <Button
-                                                    variant="link"
-                                                    onClick={onPreviewClick}
-                                                    className="text-indigo-500 dark:text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300"
-                                                    aria-label={`${t.preview} ${selectedFileName}`}
-                                                >
-                                                    {t.preview}
-                                                </Button>
-                                            )}
-                                        </p>
-                                    ) : (
-                                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                                            {t.pdfFilePlaceholder}
-                                        </p>
-                                    )}
-                                    <Button
-                                        type="button"
-                                        onClick={() => document.getElementById(id)?.click()}
-                                        className="bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 px-4 py-2 rounded-lg"
-                                        aria-label={t.browse}
-                                    >
-                                        {t.browse}
-                                    </Button>
-                                </div>
-                            </div>
-                        </TooltipTrigger>
-                        <TooltipContent className="bg-indigo-600 text-white rounded-lg">
-                            {t.pdfFilePlaceholder}
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-            ) : (
-                <div className="space-y-2">
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <div
-                                    className={`relative w-full max-w-md h-64 mx-auto bg-gray-100 dark:bg-gray-700 border rounded-lg overflow-hidden flex items-center justify-center cursor-pointer transition-all duration-200 ${
-                                        error || fileError ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-                                    } hover:border-indigo-500 dark:hover:border-indigo-400`}
-                                    onClick={() => document.getElementById(id)?.click()}
-                                    role="button"
-                                    tabIndex={0}
-                                >
-                                    <Input
-                                        id={id}
-                                        type="file"
-                                        accept={accept}
-                                        onChange={onChange}
-                                        className="hidden"
-                                        aria-describedby={error || fileError ? `${id}-error` : undefined}
-                                    />
-                                    {previewUrl ? (
-                                        <div className="relative w-full h-full">
-                                            <img
-                                                src={previewUrl}
-                                                alt={`${t.cover} Preview`}
-                                                className="w-full h-full object-contain"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    onPreviewClick?.();
-                                                }}
-                                            />
-                                            {onRemove && (
-                                                <Button
-                                                    variant="destructive"
-                                                    size="sm"
-                                                    className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        onRemove();
-                                                    }}
-                                                    aria-label={t.remove}
-                                                >
-                                                    <X className="w-4 h-4" />
-                                                </Button>
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <span className="text-gray-500 dark:text-gray-400">{t.coverPlaceholder}</span>
-                                    )}
-                                </div>
-                            </TooltipTrigger>
-                            <TooltipContent className="bg-indigo-600 text-white rounded-lg">
-                                {t.coverPlaceholder}
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                    {(error || fileError) && (
-                        <p id={`${id}-error`} className="text-red-500 dark:text-red-400 text-sm text-center">
-                            {error || fileError || t.coverError}
-                        </p>
-                    )}
-                    {helperText && <p className="text-xs text-gray-500 dark:text-gray-400 text-center">{t.coverHelper}</p>}
-                </div>
-            )}
-        </div>
-    );
-};
 
 export default function BooksEdit({
                                       book,
@@ -442,6 +266,7 @@ export default function BooksEdit({
                                       bookcases,
                                       grades,
                                       subjects,
+                                      campuses,
                                       flash,
                                   }: BooksEditProps) {
     const { props } = usePage<{ lang?: string }>();
@@ -453,9 +278,6 @@ export default function BooksEdit({
     const [pdfFileError, setPdfFileError] = useState<string | null>(null);
     const [showErrorAlert, setShowErrorAlert] = useState(!!flash?.error);
     const [clientErrors, setClientErrors] = useState<string[]>([]);
-    const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-        book.published_at ? parse(book.published_at, 'yyyy-MM-dd', new Date()) : undefined
-    );
 
     const { data, setData, put, processing, errors, reset } = useForm({
         title: book.title || '',
@@ -463,7 +285,7 @@ export default function BooksEdit({
         page_count: book.page_count?.toString() || '1',
         publisher: book.publisher || '',
         language: book.language || 'en',
-        published_at: book.published_at || '',
+        published_at: book.published_at?.toString() || '',
         author: book.author || '',
         flip_link: book.flip_link || '',
         cover: null as File | null,
@@ -542,13 +364,13 @@ export default function BooksEdit({
             if (!file.type.match('image/(jpeg|png)')) {
                 setData(field, null);
                 e.target.value = '';
-                setPdfFileError(t.coverError);
+                setClientErrors((prev) => [...prev, t.coverError]);
                 return;
             }
             if (file.size > 2 * 1024 * 1024) {
                 setData(field, null);
                 e.target.value = '';
-                setPdfFileError('Cover image exceeds 2MB limit. Please upload a smaller file.');
+                setClientErrors((prev) => [...prev, 'Cover image exceeds 2MB limit. Please upload a smaller file.']);
                 return;
             }
         }
@@ -559,10 +381,10 @@ export default function BooksEdit({
                 setPdfFileError(t.pdfFileError);
                 return;
             }
-            if (file.size > 10 * 1024 * 1024) {
+            if (file.size > 200 * 1024 * 1024) {
                 setData(field, null);
                 e.target.value = '';
-                setPdfFileError('PDF file exceeds 10MB limit. Please upload a smaller file.');
+                setPdfFileError('PDF file exceeds 200MB limit. Please upload a smaller file.');
                 return;
             }
             setPdfFileError(null);
@@ -602,8 +424,8 @@ export default function BooksEdit({
             setPdfFileError(t.pdfFileError);
             return;
         }
-        if (file.size > 10 * 1024 * 1024) {
-            setPdfFileError('PDF file exceeds 10MB limit. Please drop a smaller file.');
+        if (file.size > 200 * 1024 * 1024) {
+            setPdfFileError('PDF file exceeds 200MB limit. Please drop a smaller file.');
             return;
         }
         setPdfFileError(null);
@@ -616,7 +438,6 @@ export default function BooksEdit({
         const errors: string[] = [];
         if (!data.type) errors.push(t.typeError || 'Book type is required.');
         if (!data.title) errors.push(t.titleError);
-        if (!data.description) errors.push(t.descriptionError);
         if (!data.page_count || parseInt(data.page_count) < 1) errors.push(t.pageCountError);
         if (!data.publisher) errors.push(t.publisherError);
         if (!data.language) errors.push(t.languageError);
@@ -624,10 +445,10 @@ export default function BooksEdit({
         if (!data.view || isNaN(parseInt(data.view))) errors.push('The view field is required.');
         if (!data.category_id) errors.push(t.categoryError);
         if (!isEbook && data.is_available === null) errors.push(t.availabilityError);
-        if (isEbook && data.downloadable === null) errors.push(t.availabilityError);
+        if (isEbook && data.downloadable === null) errors.push(t.downloadableError || 'Downloadable status is required.');
         if (!isEbook && !data.bookcase_id) errors.push(t.bookcaseError);
         if (!isEbook && !data.shelf_id) errors.push(t.shelfError);
-        if (!isEbook && !data.campus_id) errors.push('Campus is required for physical books.');
+        if (!isEbook && !data.campus_id) errors.push(t.campusError);
         setClientErrors(errors);
         return errors.length === 0;
     };
@@ -638,9 +459,6 @@ export default function BooksEdit({
             setShowErrorAlert(true);
             return;
         }
-
-        // Log form data for debugging
-        console.log('Form Data:', data);
 
         put(route('books.update', book.id), {
             forceFormData: true,
@@ -667,20 +485,11 @@ export default function BooksEdit({
             campus_id: newType === 'physical' ? prev.campus_id : null,
             code: prev.code || generateCode(),
         }));
-        router.get(
-            route('books.edit', book.id),
-            { type: newType, lang },
-            {
-                preserveState: true,
-                preserveScroll: true,
-                replace: true,
-            }
-        );
     };
 
     return (
         <ErrorBoundary pageProps={{ lang }}>
-            <AppLayout breadcrumbs={[{ title: t.editBook, href: route('books.index') }, { title: t.editBook, href: '' }]}>
+            <AppLayout breadcrumbs={breadcrumbs}>
                 <Head title={isEbook ? t.editEBook : t.editPhysicalBook} />
                 <div className="p-2 sm:p-6 lg:p-8 max-w-auto">
                     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
@@ -726,20 +535,17 @@ export default function BooksEdit({
                             <div className="col-span-full">
                                 <div className="border-b border-gray-200 dark:border-gray-600">
                                     <nav className="flex space-x-4">
-                                        {['physical', 'ebook', 'audio'].map((tab) => (
+                                        {['physical', 'ebook'].map((tab) => (
                                             <button
                                                 key={tab}
-                                                onClick={() => (tab === 'physical' || tab === 'ebook') && handleTypeChange(tab as 'physical' | 'ebook')}
+                                                onClick={() => handleTypeChange(tab as 'physical' | 'ebook')}
                                                 className={`py-2 px-4 text-sm font-medium rounded-t-lg transition-colors duration-200 ${
                                                     type === tab
                                                         ? 'bg-indigo-600 text-white dark:bg-indigo-500'
-                                                        : tab === 'audio'
-                                                            ? 'text-gray-400 dark:text-gray-500 cursor-not-allowed'
-                                                            : 'text-gray-600 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700'
+                                                        : 'text-gray-600 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700'
                                                 }`}
-                                                disabled={tab === 'audio'}
                                             >
-                                                {t[tab as keyof typeof t]} {tab === 'audio' && t.comingSoon}
+                                                {t[tab as keyof typeof t]}
                                             </button>
                                         ))}
                                     </nav>
@@ -783,7 +589,7 @@ export default function BooksEdit({
                                 </div>
                                 <div>
                                     <Label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                                        {t.description} <span className="text-red-500">*</span>
+                                        {t.description}
                                     </Label>
                                     <TooltipProvider>
                                         <Tooltip>
@@ -796,7 +602,6 @@ export default function BooksEdit({
                                 errors.description ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
                             } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-y`}
                             rows={4}
-                            required
                             aria-describedby={errors.description ? 'description-error' : undefined}
                         />
                                             </TooltipTrigger>
@@ -899,7 +704,6 @@ export default function BooksEdit({
                                                         <SelectValue placeholder={t.languagePlaceholder} />
                                                     </SelectTrigger>
                                                     <SelectContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
-                                                        <SelectItem value="kh">{t.language === 'ភាសា' ? 'ខ្មែរ' : 'Khmer'}</SelectItem>
                                                         <SelectItem value="en">{t.language === 'ភាសា' ? 'អង់គ្លេស' : 'English'}</SelectItem>
                                                     </SelectContent>
                                                 </Select>
@@ -923,40 +727,44 @@ export default function BooksEdit({
                                     <TooltipProvider>
                                         <Tooltip>
                                             <TooltipTrigger asChild>
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <Button
-                                                            variant="outline"
-                                                            className={`w-full mt-1 rounded-lg border ${
-                                                                errors.published_at ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-                                                            } bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 justify-start text-left font-normal ${
-                                                                !selectedDate && 'text-gray-500 dark:text-gray-400'
-                                                            }`}
-                                                            aria-describedby={errors.published_at ? 'published_at-error' : undefined}
-                                                        >
-                                                            <CalendarIcon className="mr-2 h-4 w-4" />
-                                                            {selectedDate ? format(selectedDate, 'PPP') : t.publishedAtPlaceholder}
-                                                        </Button>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
-                                                        <Calendar
-                                                            mode="single"
-                                                            selected={selectedDate}
-                                                            onSelect={(date) => {
-                                                                setSelectedDate(date);
-                                                                setData('published_at', date ? format(date, 'yyyy-MM-dd') : '');
-                                                            }}
-                                                            initialFocus
-                                                        />
-                                                    </PopoverContent>
-                                                </Popover>
+                                                <Input
+                                                    id="published_at"
+                                                    type="number"
+                                                    value={data.published_at}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        if (value === '' || (/^\d{1,4}$/.test(value))) {
+                                                            setData('published_at', value);
+                                                        }
+                                                    }}
+                                                    onBlur={(e) => {
+                                                        const value = e.target.value;
+                                                        if (value !== '' && (parseInt(value) < 1000 || parseInt(value) > 2025)) {
+                                                            setClientErrors((prev) => [
+                                                                ...prev.filter((err) => err !== t.publishedAtError),
+                                                                t.publishedAtError,
+                                                            ]);
+                                                        } else {
+                                                            setClientErrors((prev) => prev.filter((err) => err !== t.publishedAtError));
+                                                        }
+                                                    }}
+                                                    min="1000"
+                                                    max="2025"
+                                                    placeholder={t.publishedAtPlaceholder}
+                                                    className={`w-full mt-1 rounded-lg border ${
+                                                        errors.published_at || clientErrors.includes(t.publishedAtError)
+                                                            ? 'border-red-500 dark:border-red-400'
+                                                            : 'border-gray-300 dark:border-gray-600'
+                                                    } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+                                                    aria-describedby={errors.published_at ? 'published_at-error' : undefined}
+                                                />
                                             </TooltipTrigger>
                                             <TooltipContent className="bg-indigo-600 text-white rounded-lg">
                                                 {t.publishedAtPlaceholder}
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
-                                    {errors.published_at && (
+                                    {(errors.published_at || clientErrors.includes(t.publishedAtError)) && (
                                         <p id="published_at-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
                                             {errors.published_at || t.publishedAtError}
                                         </p>
@@ -1089,38 +897,6 @@ export default function BooksEdit({
                                         </p>
                                     )}
                                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t.isbnHelper}</p>
-                                </div>
-                                <div>
-                                    <Label htmlFor="view" className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                                        View Count <span className="text-red-500">*</span>
-                                    </Label>
-                                    <TooltipProvider>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Input
-                                                    id="view"
-                                                    type="number"
-                                                    value={data.view}
-                                                    onChange={(e) => setData('view', e.target.value)}
-                                                    min="0"
-                                                    className={`w-full mt-1 rounded-lg border ${
-                                                        errors.view ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-                                                    } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
-                                                    required
-                                                    aria-describedby={errors.view ? 'view-error' : undefined}
-                                                />
-                                            </TooltipTrigger>
-                                            <TooltipContent className="bg-indigo-600 text-white rounded-lg">
-                                                Enter the view count
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-                                    {errors.view && (
-                                        <p id="view-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
-                                            {errors.view || 'The view field is required.'}
-                                        </p>
-                                    )}
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Number of views for the book.</p>
                                 </div>
                             </div>
                             <div className="space-y-4 col-span-full">
@@ -1458,108 +1234,155 @@ export default function BooksEdit({
                                 <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{t.files}</h2>
                             </div>
                             <div className="space-y-4">
-                                <FileField
-                                    label={t.cover}
-                                    id="cover"
-                                    accept="image/jpeg,image/png"
-                                    onChange={(e) => handleFileChange(e, 'cover')}
-                                    previewUrl={coverPreviewUrl}
-                                    onPreviewClick={() => setIsCoverModalOpen(true)}
-                                    error={errors.cover}
-                                    helperText={t.coverHelper}
-                                    onRemove={() => {
-                                        setData('cover', null);
-                                        setCoverPreviewUrl(book.cover || null);
-                                        setPdfFileError(null);
-                                    }}
-                                    lang={lang}
-                                />
+                                <div>
+                                    <Label htmlFor="cover" className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                                        {t.cover}
+                                    </Label>
+                                    <div className="mt-1">
+                                        <input
+                                            type="file"
+                                            id="cover"
+                                            onChange={(e) => handleFileChange(e, 'cover')}
+                                            accept="image/jpeg,image/png"
+                                            className={`w-full rounded-lg border ${
+                                                errors.cover || clientErrors.includes(t.coverError)
+                                                    ? 'border-red-500 dark:border-red-400'
+                                                    : 'border-gray-300 dark:border-gray-600'
+                                            } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+                                            aria-describedby={errors.cover ? 'cover-error' : undefined}
+                                        />
+                                    </div>
+                                    {errors.cover && (
+                                        <p id="cover-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
+                                            {errors.cover || t.coverError}
+                                        </p>
+                                    )}
+                                    {coverPreviewUrl && (
+                                        <div className="mt-2">
+                                            <img
+                                                src={coverPreviewUrl}
+                                                alt="Cover preview"
+                                                className="h-32 w-32 object-cover rounded-lg cursor-pointer"
+                                                onClick={() => setIsCoverModalOpen(true)}
+                                            />
+                                        </div>
+                                    )}
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t.coverHelper}</p>
+                                </div>
                             </div>
                             {isEbook && (
                                 <div className="space-y-4">
-                                    <FileField
-                                        label={t.pdfFile}
-                                        id="pdf_url"
-                                        accept="application/pdf"
-                                        onChange={(e) => handleFileChange(e, 'pdf_url')}
-                                        previewUrl={pdfPreviewUrl}
-                                        error={errors.pdf_url}
-                                        fileError={pdfFileError}
-                                        helperText={t.pdfFileHelper}
-                                        isDragDrop
-                                        dragActive={dragActive}
-                                        onDrag={handleDrag}
-                                        onDrop={handleDrop}
-                                        selectedFileName={data.pdf_url?.name || (pdfPreviewUrl ? 'Existing PDF' : undefined)}
-                                        onRemove={() => {
-                                            setData('pdf_url', null);
-                                            setPdfPreviewUrl(book.pdf_url || null);
-                                            setPdfFileError(null);
-                                        }}
-                                        onPreviewClick={() => setIsPdfModalOpen(true)}
-                                        lang={lang}
-                                    />
+                                    <div>
+                                        <Label htmlFor="pdf_url" className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                                            {t.pdfFile}
+                                        </Label>
+                                        <div
+                                            className={`mt-1 rounded-lg border ${
+                                                errors.pdf_url || pdfFileError ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+                                            } ${dragActive ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''} p-4 transition-colors duration-200`}
+                                            onDragEnter={handleDrag}
+                                            onDragLeave={handleDrag}
+                                            onDragOver={handleDrag}
+                                            onDrop={handleDrop}
+                                        >
+                                            <input
+                                                type="file"
+                                                id="pdf_url"
+                                                onChange={(e) => handleFileChange(e, 'pdf_url')}
+                                                accept="application/pdf"
+                                                className="w-full"
+                                                aria-describedby={errors.pdf_url || pdfFileError ? 'pdf_url-error' : undefined}
+                                            />
+                                            <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-2">
+                                                {t.dragDrop}
+                                            </p>
+                                        </div>
+                                        {(errors.pdf_url || pdfFileError) && (
+                                            <p id="pdf_url-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
+                                                {errors.pdf_url || pdfFileError || t.pdfFileError}
+                                            </p>
+                                        )}
+                                        {pdfPreviewUrl && (
+                                            <div className="mt-2">
+                                                <Button
+                                                    onClick={() => setIsPdfModalOpen(true)}
+                                                    className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300"
+                                                    variant="link"
+                                                >
+                                                    {t.pdfPreview}
+                                                </Button>
+                                            </div>
+                                        )}
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t.pdfFileHelper}</p>
+                                    </div>
                                 </div>
                             )}
 
                             {/* Form Actions */}
                             <div className="col-span-full flex justify-end space-x-4 mt-6">
                                 <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => router.get(route('books.index'))}
-                                    className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg px-4 py-2"
+                                    onClick={() => reset()}
+                                    className="bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-500 text-white rounded-lg"
+                                    variant="default"
                                     disabled={processing}
                                 >
-                                    {t.cancel}
+                                    {t.reset}
                                 </Button>
                                 <Button
                                     type="submit"
-                                    className="bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 rounded-lg px-4 py-2"
+                                    className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400 text-white rounded-lg"
                                     disabled={processing}
                                 >
-                                    {processing ? t.updating : t.updateButton}
+                                    {processing ? t.saving : t.save}
                                 </Button>
                             </div>
                         </form>
                     </div>
+                </div>
 
-                    {/* Cover Preview Modal */}
+                {/* Cover Preview Modal */}
+                {isCoverModalOpen && coverPreviewUrl && (
                     <Dialog open={isCoverModalOpen} onOpenChange={setIsCoverModalOpen}>
-                        <DialogContent className="max-w-3xl bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                        <DialogContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
                             <DialogHeader>
                                 <DialogTitle className="text-gray-900 dark:text-gray-100">{t.coverPreview}</DialogTitle>
                             </DialogHeader>
-                            {coverPreviewUrl ? (
-                                <img
-                                    src={coverPreviewUrl}
-                                    alt={t.coverPreview}
-                                    className="w-full h-auto max-h-[70vh] object-contain rounded-lg"
-                                />
-                            ) : (
-                                <p className="text-gray-500 dark:text-gray-400">{t.noCoverAvailable}</p>
-                            )}
+                            <img src={coverPreviewUrl} alt="Cover preview" className="w-full h-auto rounded-lg" />
+                            <div className="mt-4 flex justify-end">
+                                <Button
+                                    onClick={() => setIsCoverModalOpen(false)}
+                                    className="bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-500 text-white rounded-lg"
+                                >
+                                    {t.close}
+                                </Button>
+                            </div>
                         </DialogContent>
                     </Dialog>
+                )}
 
-                    {/* PDF Preview Modal */}
+                {/* PDF Preview Modal */}
+                {isPdfModalOpen && pdfPreviewUrl && (
                     <Dialog open={isPdfModalOpen} onOpenChange={setIsPdfModalOpen}>
-                        <DialogContent className="max-w-4xl bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                        <DialogContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 max-w-4xl">
                             <DialogHeader>
                                 <DialogTitle className="text-gray-900 dark:text-gray-100">{t.pdfPreview}</DialogTitle>
                             </DialogHeader>
-                            {pdfPreviewUrl ? (
-                                <div className="w-full h-[70vh] overflow-auto">
-                                    <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-                                        <Viewer fileUrl={pdfPreviewUrl} plugins={[defaultLayoutPluginInstance]} />
-                                    </Worker>
-                                </div>
-                            ) : (
-                                <p className="text-gray-500 dark:text-gray-400">{t.noPdfAvailable}</p>
-                            )}
+                            <div className="h-[500px] overflow-auto">
+                                <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+                                    <Viewer fileUrl={pdfPreviewUrl} plugins={[defaultLayoutPluginInstance]} />
+                                </Worker>
+                            </div>
+                            <div className="mt-4 flex justify-end">
+                                <Button
+                                    onClick={() => setIsPdfModalOpen(false)}
+                                    className="bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-500 text-white rounded-lg"
+                                >
+                                    {t.close}
+                                </Button>
+                            </div>
                         </DialogContent>
                     </Dialog>
-                </div>
+                )}
             </AppLayout>
         </ErrorBoundary>
     );
