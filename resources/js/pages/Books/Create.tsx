@@ -155,10 +155,10 @@ const translations = {
     coverPlaceholder: 'Upload a cover image',
     coverError: 'Please upload a valid cover image (JPEG/PNG, max 2MB).',
     coverHelper: 'Optional: JPEG or PNG, max 2MB.',
-    pdfFile: 'PDF File (10MB max)',
+    pdfFile: 'PDF File (200MB max)',
     pdfFilePlaceholder: 'Upload a PDF file',
-    pdfFileError: 'Please upload a valid PDF file (max 10MB).',
-    pdfFileHelper: 'Required: PDF, max 10MB.',
+    pdfFileError: 'Please upload a valid PDF file (max 200MB).',
+    pdfFileHelper: 'Required: PDF, max 200MB.',
     browse: 'Browse',
     remove: 'Remove',
     preview: 'Preview',
@@ -648,7 +648,7 @@ export default function BooksCreate({
         if (file.size > 200 * 1024 * 1024) { // Changed to 200 MB
         setData(field, null);
         e.target.value = '';
-        setPdfFileError('PDF file exceeds 10MB limit. Please upload a smaller file.');
+        setPdfFileError('PDF file exceeds 200MB limit. Please upload a smaller file.');
         return;
       }
       setPdfFileError(null);
@@ -689,7 +689,7 @@ export default function BooksCreate({
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
-      setPdfFileError('PDF file exceeds 10MB limit. Please drop a smaller file.');
+      setPdfFileError('PDF file exceeds 200MB limit. Please drop a smaller file.');
       return;
     }
     setPdfFileError(null);
