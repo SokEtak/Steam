@@ -26,6 +26,13 @@ class StoreBookRequest extends FormRequest
             'campus_id' => $this->input('campus_id', $campusId),
             'user_id' => $this->input('user_id', Auth::id()),
         ]);
+
+        // If published_at is provided, ensure it's treated as a year
+        if ($this->has('published_at') && !empty($this->published_at)) {
+            $this->merge([
+                'published_at' => (int) $this->published_at, // Cast to integer
+            ]);
+        }
     }
 
     public function rules()
@@ -38,7 +45,7 @@ class StoreBookRequest extends FormRequest
             'page_count' => ['required', 'integer', 'min:1'],
             'publisher' => ['required', 'string', 'max:255'],
             'language' => ['required', 'in:kh,en'],
-            'published_at' => ['nullable', 'date'],
+            'published_at' => 'nullable|integer|digits:4|min:1000|max:2025',
             'author' => ['nullable', 'string', 'max:255'],
             'flip_link' => ['nullable', 'url', 'max:255'],
             'code' => [
@@ -95,6 +102,10 @@ class StoreBookRequest extends FormRequest
             'subject_id.exists' => 'Selected subject is invalid.',
             'campus_id.required' => 'Campus is required for physical books.',
             'campus_id.exists' => 'Selected campus is invalid.',
+            'published_at.integer' => 'The published year must be a valid number.',
+            'published_at.digits' => 'The published year must be exactly 4 digits.',
+            'published_at.min' => 'The published year must be at least 1000.',
+            'published_at.max' => 'The published year cannot be greater than 2025.',
         ];
     }
 }

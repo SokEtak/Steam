@@ -985,53 +985,59 @@ export default function BooksCreate({
                   )}
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t.languageHelper}</p>
                 </div>
-                <div>
-                  <Label htmlFor="published_at" className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    {t.publishedAt}
-                  </Label>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={`w-full mt-1 rounded-lg border ${
-    errors.published_at ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-} bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 justify-start text-left font-normal ${
-    !selectedDate && 'text-gray-500 dark:text-gray-400'
-}`}
-                              aria-describedby={errors.published_at ? 'published_at-error' : undefined}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {selectedDate ? format(selectedDate, 'PPP') : t.publishedAtPlaceholder}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
-                            <Calendar
-                              mode="single"
-                              selected={selectedDate}
-                              onSelect={(date) => {
-                                setSelectedDate(date);
-                                setData('published_at', date ? format(date, 'yyyy-MM-dd') : '');
-                              }}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-indigo-600 text-white rounded-lg">
-                        {t.publishedAtPlaceholder}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  {errors.published_at && (
-                    <p id="published_at-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
-                      {errors.published_at || t.publishedAtError}
-                    </p>
-                  )}
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t.publishedAtHelper}</p>
-                </div>
+                  <div>
+                      <Label htmlFor="published_at" className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                          {t.publishedAt}
+                      </Label>
+                      <TooltipProvider>
+                          <Tooltip>
+                              <TooltipTrigger asChild>
+                                  <Input
+                                      id="published_at"
+                                      type="number"
+                                      value={data.published_at ?? ''} // Ensure empty string for undefined/null
+                                      onChange={(e) => {
+                                          const value = e.target.value;
+                                          // Allow empty input or up to 4 digits for partial typing
+                                          if (value === '' || (/^\d{1,4}$/.test(value))) {
+                                              setData('published_at', value);
+                                          }
+                                      }}
+                                      onBlur={(e) => {
+                                          const value = e.target.value;
+                                          // Validate on blur to ensure final value is between 1000 and 2025
+                                          if (value !== '' && (parseInt(value) < 1000 || parseInt(value) > 2025)) {
+                                              setErrors((prev) => ({
+                                                  ...prev,
+                                                  published_at: t.publishedAtError || 'Year must be between 1000 and 2025',
+                                              }));
+                                          } else {
+                                              setErrors((prev) => ({ ...prev, published_at: undefined }));
+                                          }
+                                      }}
+                                      min="1000"
+                                      max="2025"
+                                      placeholder={t.publishedAtPlaceholder || 'Enter year (1000–2025)'}
+                                      className={`w-full mt-1 rounded-lg border ${
+                                          errors.published_at ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+                                      } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+                                      aria-describedby={errors.published_at ? 'published_at-error' : undefined}
+                                  />
+                              </TooltipTrigger>
+                              <TooltipContent className="bg-indigo-600 text-white rounded-lg">
+                                  {t.publishedAtPlaceholder || 'Enter the publication year (1000–2025)'}
+                              </TooltipContent>
+                          </Tooltip>
+                      </TooltipProvider>
+                      {errors.published_at && (
+                          <p id="published_at-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
+                              {errors.published_at}
+                          </p>
+                      )}
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          {t.publishedAtHelper || 'Enter the year the book was published (optional, 1000–2025).'}
+                      </p>
+                  </div>
               </div>
               <div className="space-y-4">
                 <div>

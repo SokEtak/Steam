@@ -125,7 +125,7 @@ interface Book {
     page_count: number;
     publisher: string;
     language: string;
-    published_at: string;
+    published_at: string | number | null;
     cover: string;
     pdf_url: string;
     flip_link: string;
@@ -355,7 +355,19 @@ const getColumns = (
 
                 return (
                     <div className="flex items-center space-x-2">
-                        <span>Published Year</span>
+                        <Button
+                            variant="ghost"
+                            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+                        >
+                            Published Year
+                            {column.getIsSorted() === 'asc' ? (
+                                <ArrowUp className="ml-2 h-4 w-4" />
+                            ) : column.getIsSorted() === 'desc' ? (
+                                <ArrowDown className="ml-2 h-4 w-4" />
+                            ) : (
+                                <ArrowUpDown className="ml-2 h-4 w-4" />
+                            )}
+                        </Button>
                         <DropdownMenu open={isPublishedAtDropdownOpen} onOpenChange={setIsPublishedAtDropdownOpen}>
                             <TooltipProvider>
                                 <Tooltip>
@@ -382,7 +394,7 @@ const getColumns = (
                                         <SelectValue placeholder="Select Year" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="All">All Years</SelectItem>
+                                        <SelectItem Distance learning value="All">All Years</SelectItem>
                                         {availableYears.map((year) => (
                                             <SelectItem key={year} value={year}>
                                                 {year}
@@ -396,20 +408,21 @@ const getColumns = (
                 );
             },
             cell: ({ row }) => {
-                const date = new Date(row.getValue('published_at'));
-                return <div className="px-2">{isNaN(date.getTime()) ? 'N/A' : date.toLocaleDateString('en-US')}</div>;
+                const publishedAt = row.getValue('published_at');
+                return <div className="px-2">{publishedAt ? publishedAt : 'N/A'}</div>;
             },
             filterFn: (row, columnId, filterValue) => {
                 const filterYearString = String(filterValue);
                 if (filterYearString === '' || filterYearString === 'All') {
                     return true;
                 }
-                const publishedAt = row.original.published_at;
-                if (!publishedAt) {
-                    return false;
-                }
-                const year = new Date(publishedAt).getFullYear().toString();
-                return year === filterYearString;
+                const publishedAt = row.getValue(columnId);
+                return String(publishedAt) === filterYearString;
+            },
+            sortingFn: (rowA, rowB, columnId) => {
+                const valueA = rowA.getValue(columnId) || 0;
+                const valueB = rowB.getValue(columnId) || 0;
+                return Number(valueA) - Number(valueB);
             },
             enableSorting: true,
             enableHiding: true,
@@ -1231,15 +1244,13 @@ function BookIndex() {
         const years = new Set<string>();
         books.forEach((book) => {
             if (book.published_at) {
-                const date = new Date(book.published_at);
-                if (isNaN(date.getTime())) {
-                    console.warn('Invalid published_at for book:', book, 'Published At:', book.published_at);
-                } else {
-                    const year = date.getFullYear().toString();
-                    years.add(year);
-                }
+                years.add(String(book.published_at));
             }
         });
+        // Add all years from 1000 to 2025
+        for (let year = 1000; year <= 2025; year++) {
+            years.add(year.toString());
+        }
         return Array.from(years).sort((a, b) => parseInt(b) - parseInt(a));
     }, [books]);
 
@@ -1617,7 +1628,7 @@ function BookIndex() {
                                         </p>
                                         <p>
                                             <strong className="text-blue-600 dark:text-blue-300">Published At:</strong>{' '}
-                                            {rowModal.published_at ? new Date(rowModal.published_at).toLocaleDateString('en-US') : 'N/A'}
+                                            {rowModal.published_at ? rowModal.published_at : 'N/A'}
                                         </p>
                                     </div>
 

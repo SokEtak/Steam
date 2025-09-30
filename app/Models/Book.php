@@ -48,7 +48,7 @@ class Book extends Model
         'subject_id',
         'grade_id',
         'campus_id',
-//        'is_deleted',
+        'is_deleted',
         'created_at',
         'updated_at'
     ];
@@ -57,7 +57,7 @@ class Book extends Model
     protected $casts = [
         'is_available' => 'boolean',
         'is_deleted' => 'boolean',
-        'published_at' => 'date',
+        'published_at' => 'integer',
         'downloadable' => 'integer',
     ];
 
@@ -70,20 +70,20 @@ class Book extends Model
             'campus_id' => Auth::user()->campus_id,
         ]);
     }
-    // Scope for active (non-deleted) books which belong to a specific user
+    // Scope for active base on role , campus , book type-used by ebook(global and admin)
     public function scopeActive($query, $book_type, $scope = null)
     {
         $conditions = [];
-        $role_id = Auth::user()->role_id ?? 1;
+        $role_id = Auth::user()->role_id;
 
         $conditions['is_deleted'] = 0;
 
         // For role_id = 1, handle global and local scope
-        if ($role_id == 1 && $scope == 'global') {
-            // No campus_id filter (access all campuses)
-        } elseif ($role_id == 1 && $scope == 'local') {
+        if ($role_id == 1 && $scope == 'local') {
             $conditions['campus_id'] = Auth::user()->campus_id;
         }
+        //global no need to filter
+
         // Apply campus_id filter for role_id = 2
         if ($role_id == 2) {
             $conditions['campus_id'] = Auth::user()->campus_id;
@@ -96,7 +96,6 @@ class Book extends Model
                 $conditions['is_deleted'] = 1; // For deleted books
             } elseif ($book_type === 'miss') {
                 $conditions['is_available'] = 0; // For missing books (not found at bookcase/shelf)
-//                $conditions['is_deleted'] = 0; // Ensure non-deleted
             } else {
                 $conditions['type'] = $book_type; // Filter by type (e.g., 'physical', 'ebook')
                 $conditions['is_available'] = 1;

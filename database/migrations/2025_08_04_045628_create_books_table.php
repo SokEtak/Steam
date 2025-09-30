@@ -16,11 +16,9 @@ return new class extends Migration
             $table->string('title');
             $table->string('description');
             $table->integer('page_count');
-//            //update for to unpublish for later (now do it for temporary)
-//            $table->enum('status', ['published', 'processing' , 'unpublished'])->default('published');
             $table->string('publisher');
             $table->enum('language', ['kh', 'en'])->default('kh');
-            $table->date('published_at')->nullable();//publish date
+            $table->year('published_at')->nullable();//publish year
             $table->string('cover')->nullable();
             $table->string('pdf_url')->nullable();
             $table->string('flip_link')->nullable();
