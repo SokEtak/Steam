@@ -645,7 +645,7 @@ export default function BooksCreate({
         setPdfFileError(t.pdfFileError);
         return;
       }
-      if (file.size > 10 * 1024 * 1024) {
+        if (file.size > 200 * 1024 * 1024) { // Changed to 200 MB
         setData(field, null);
         e.target.value = '';
         setPdfFileError('PDF file exceeds 10MB limit. Please upload a smaller file.');

@@ -41,7 +41,7 @@ class StoreBookRequest extends FormRequest
         return [
             'type' => ['required', 'in:physical,ebook'],
             'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
+            'description' => ['nullable ', 'string'],
             'page_count' => ['required', 'integer', 'min:1'],
             'publisher' => ['required', 'string', 'max:255'],
             'language' => ['required', 'in:kh,en'],

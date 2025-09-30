@@ -27,7 +27,6 @@ return new class extends Migration
             $table->string('author')->nullable();
             $table->string('code', 10)->unique();
             $table->string('isbn', 13)->unique();
-//            $table->json('tags')->nullable();//must cast to array in model class
             $table->enum('type', ['physical', 'ebook'])->default('physical');
             $table->tinyInteger('downloadable')->default(0);
             $table->foreignId('user_id')->constrained('users');
