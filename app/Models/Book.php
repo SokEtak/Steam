@@ -74,9 +74,8 @@ class Book extends Model
     public function scopeActive($query, $book_type, $scope = null)
     {
         $conditions = [];
-        $role_id = Auth::user()->role_id;
-
         $conditions['is_deleted'] = 0;
+        $role_id = Auth::user()->role_id;
 
         // For role_id = 1, handle global and local scope
         if ($role_id == 1 && $scope == 'local') {

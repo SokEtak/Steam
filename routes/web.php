@@ -67,7 +67,7 @@ Route::get('/global/library', function () {
         'books' => $books,
         'scope' => 'global',
     ]);
-})->middleware();
+})->middleware('auth');
 
 //for local library
 Route::get('/local/library', function () {
@@ -76,7 +76,7 @@ Route::get('/local/library', function () {
         'books' => $books,
         'scope' => 'local',
     ]);
-})->middleware();
+})->middleware('auth');
 
 // For global eBook library
 Route::get('/e-library', function () {
@@ -90,7 +90,7 @@ Route::get('/e-library', function () {
     } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
         return Inertia::render('Error', ['status' => 403, 'message' => $e->getMessage()]);
     }
-})->middleware();
+})->middleware('auth');
 
 //old project
 Route::prefix('digital/resource')->group(function () {

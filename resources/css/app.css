@@ -1,6 +1,4 @@
 @import 'tailwindcss';
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Khmer:wght@400;700&display=swap');
-
 @plugin 'tailwindcss-animate';
 
 @source '../views';
@@ -8,9 +6,9 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/*body {*/
-/*    font-family: 'Noto Sans Khmer', sans-serif;*/
-/*}*/
+body {
+    font-family: 'Khmer OS Battambang', sans-serif;
+}
 
 @theme {
     --font-sans:
