@@ -838,6 +838,7 @@ export default function BooksCreate({
                           </SelectTrigger>
                           <SelectContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
                             <SelectItem value="en">English</SelectItem>
+                            <SelectItem value="kh">Khmer</SelectItem>
                           </SelectContent>
                         </Select>
                       </TooltipTrigger>
