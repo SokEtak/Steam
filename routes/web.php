@@ -22,7 +22,7 @@ Route::get( '/',function(){
     ])->count();
     $ebookCount = Book::where([
         'is_deleted'=>'0',
-        'type'=>'ebook  '
+        'type'=>'ebook'
     ])->count();
 
     $userCount = User::where([
@@ -38,7 +38,7 @@ Route::get( '/',function(){
 
 //render category of library type(physical:local-global,digital)
 Route::get('/library-type-dashboard', function () {
-    dd('library-type-dashboard');
+    return Inertia::render('Client/Library/DashboardType');
 })->name('library-type-dashboard');
 
 
@@ -67,7 +67,7 @@ Route::get('/global/library', function () {
         'books' => $books,
         'scope' => 'global',
     ]);
-})->middleware('auth');
+})->middleware('auth')->name('global library');
 
 //for local library
 Route::get('/local/library', function () {
@@ -76,7 +76,7 @@ Route::get('/local/library', function () {
         'books' => $books,
         'scope' => 'local',
     ]);
-})->middleware('auth');
+})->middleware('auth')->name('local library');
 
 // For global eBook library
 Route::get('/e-library', function () {
@@ -90,7 +90,7 @@ Route::get('/e-library', function () {
     } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
         return Inertia::render('Error', ['status' => 403, 'message' => $e->getMessage()]);
     }
-})->middleware('auth');
+})->middleware('auth')->name('global e-library');
 
 //old project
 Route::prefix('digital/resource')->group(function () {

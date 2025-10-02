@@ -146,7 +146,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <a href="#" className="flex items-center gap-3">
+                            <a href="/" className="flex items-center gap-3">
                                 <div className="p-1 flex w-12 h-10 items-center justify-center rounded-lg bg-sidebar-primary transition-transform duration-300 hover:scale-110">
                                     <img
                                         src="/images/DIS(no back).png"

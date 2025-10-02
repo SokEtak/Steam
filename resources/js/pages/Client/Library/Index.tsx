@@ -268,7 +268,7 @@ export default function Index() {
                             target="_blank"
                             rel="noopener noreferrer"
                             className={`group text-sm flex items-center font-semibold transition-all text-gray-700 dark:text-gray-300 p-2 rounded-md w-full justify-start
-hover:bg-blue-50 dark:hover:bg-blue-700 hover:text-blue-600 dark:hover:text-blue-400`}
+                                      hover:bg-blue-50 dark:hover:bg-blue-700 hover:text-blue-600 dark:hover:text-blue-400`}
                         >
                             <Download className="w-5 h-5 mr-3 text-blue-500 dark:text-blue-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
                             ទាញយក
@@ -303,8 +303,8 @@ hover:bg-blue-50 dark:hover:bg-blue-700 hover:text-blue-600 dark:hover:text-blue
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 className={`w-full bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500 rounded-full shadow-inner pl-10 h-11
-dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:placeholder-gray-500
-focus:ring-2 focus:ring-${accentColor}-500 focus:border-${accentColor}-500 transition-all pr-3`}
+                                          dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:placeholder-gray-500
+                                            focus:ring-2 focus:ring-${accentColor}-500 focus:border-${accentColor}-500 transition-all pr-3`}
                             />
                         </div>
                     </div>
@@ -414,9 +414,9 @@ hover:bg-${accentColor}-50 dark:hover:bg-${accentColor}-900/50 transition-colors
                                                 <div
                                                     onClick={() => setOpenBookCard(book.id)}
                                                     className={`group flex flex-col items-start space-y-3 cursor-pointer p-3 rounded-xl bg-white border border-gray-200 shadow-lg
-                dark:bg-gray-800 dark:border-gray-700 dark:shadow-2xl dark:shadow-gray-900/50
-                transition-all duration-300 transform relative overflow-hidden
-                hover:scale-[1.05] hover:shadow-2xl hover:border-${accentColor}-500 focus:outline-none focus:ring-2 focus:ring-${accentColor}-500 w-full`}
+                                                                dark:bg-gray-800 dark:border-gray-700 dark:shadow-2xl dark:shadow-gray-900/50
+                                                                transition-all duration-300 transform relative overflow-hidden
+                                                                hover:scale-[1.05] hover:shadow-2xl hover:border-${accentColor}-500 focus:outline-none focus:ring-2 focus:ring-${accentColor}-500 w-full`}
                                                 >
                                                     <div className="relative w-full pb-[155%]">
                                                         <img
@@ -461,7 +461,6 @@ hover:bg-${accentColor}-50 dark:hover:bg-${accentColor}-900/50 transition-colors
                                                             ${book.type === 'ebook' ? `border-${accentColor}-500` : 'border-amber-500'}`}
                                             >
                                                 <div className="flex justify-between items-center mb-4">
-                                                    <h3 className="text-xl font-extrabold text-gray-900 dark:text-white">{book.title}</h3>
                                                     <button
                                                         onClick={() => setOpenBookCard(null)}
                                                         className="text-gray-400 hover:text-red-600 transition-colors text-2xl leading-none font-light"

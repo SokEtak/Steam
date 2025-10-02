@@ -1276,7 +1276,7 @@ function BookIndex() {
         subject: false,
         bookcase: true,
         shelf: false,
-        grade: false,
+        grade: true,
         published_at: false,
         campus: isSuperLibrarian,
         created_at: false,

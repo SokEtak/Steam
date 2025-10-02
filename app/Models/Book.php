@@ -110,7 +110,7 @@ class Book extends Model
     {
         $conditions = [];
         $conditions['is_deleted'] = 0;
-        $conditions['type'] = 'ebook'; // Restrict to eBooks only
+        $conditions['type'] = 'ebook';
         return $query->where($conditions)->select(self::$selectColumns);
     }
 

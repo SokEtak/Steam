@@ -830,8 +830,8 @@ export default function BooksCreate({
                         >
                           <SelectTrigger
                             className={`w-full mt-1 rounded-lg border ${
-    errors.language ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+                                            errors.language ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+                                       } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                             aria-describedby={errors.language ? 'language-error' : undefined}
                           >
                             <SelectValue placeholder={t.languagePlaceholder} />
