@@ -11,9 +11,49 @@ use App\Http\Controllers\DashboardController;
 use Illuminate\Http\Request;
 use App\Models\Book;
 use App\Models\User;
-
+use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
+use Laravel\Socialite\Facades\Socialite;
+
+//Socialite Practice
+Route::get('/auth/facebook', function () {
+    return Socialite::driver('facebook')
+        ->scopes(['email'])
+        ->redirect();
+});
+
+Route::get('/auth/facebook/callback', function () {
+    // Get user from Facebook
+    $facebookUser = Socialite::driver('facebook')
+        ->stateless()
+        ->setHttpClient(new Client(['verify' => false])) // remove this if you fix SSL certs
+        ->user();
+
+//    dd($facebookUser);
+
+    // Handle missing email
+    $email = $facebookUser->getEmail() ?? $facebookUser->getId().'@facebook.local';
+
+    // Find or create local user
+    $user = User::updateOrCreate(
+        ['facebook_id' => $facebookUser->getId()],
+        [
+            'name' => $facebookUser->getName(),
+            'email' => $email,
+            'avatar' => $facebookUser->getAvatar(),
+            'password' => Hash::make(Str::random(24)), // random hidden password
+        ]
+    );
+
+    // Log the user in (session)
+    Auth::login($user);
+
+    return redirect()->route('home')->with('success', 'Welcome '.$user->name.'!');
+});
 
 Route::get( '/',function(){
     $bookCount = Book::where([
