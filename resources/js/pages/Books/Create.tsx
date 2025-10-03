@@ -160,22 +160,22 @@ const translations = {
     preview: 'Preview',
     createButton: 'Create Book',
     creating: 'Creating...',
-    cancel: 'Cancel, Go Back to Books List',
+    cancel: 'Cancel, Go Back to Book List',
     coverPreview: 'Cover Preview',
     pdfPreview: 'PDF Preview',
     noCoverAvailable: 'No cover image available.',
     noPdfAvailable: 'No PDF file available.',
     saveBook: 'Save the new book',
-    returnToBooks: 'Return to the books list',
+    returnToBooks: 'Return to the book list',
     physical: 'Physical',
     ebook: 'E-Book',
     audio: 'Audio',
-    comingSoon: '(Coming Soon)',
+    comingSoon: '(soon)',
   },
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
-  { title: 'Books', href: route('books.index') },
+  { title: translations.en.go_back, href: route('books.index') },
   { title: 'Create', href: '' },
 ];
 
@@ -431,7 +431,7 @@ const FileField: React.FC<FileFieldProps> = ({
                                             )}
                                         </div>
                                     ) : (
-                                        <span className="text-gray-500 dark:text-gray-400">{t.coverPlaceholder} (or paste image with Ctrl+V)</span>
+                                        <span className="text-gray-500 dark:text-gray-400 sm:text-center" >{t.coverPlaceholder} (or Ctrl+V)</span>
                                     )}
                                 </div>
                             </TooltipTrigger>
