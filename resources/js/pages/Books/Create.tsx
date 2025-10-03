@@ -2,7 +2,7 @@
 
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, useForm, router } from '@inertiajs/react';
+import { Head, useForm, router, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -245,7 +245,7 @@ interface FileFieldProps {
   selectedFileName?: string;
   onRemove?: () => void;
   fileError?: string;
-  required?: boolean; // Added required prop
+  required?: boolean;
 }
 
 const FileField: React.FC<FileFieldProps> = ({
@@ -1167,6 +1167,14 @@ export default function BooksCreate({
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
+                    <Link
+                        href={route('categories.create')}
+                        className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 mt-1 inline-block"
+                        preserveState
+                        preserveScroll
+                    >
+                        {t.category} not exist? Click here
+                    </Link>
                   {errors.category_id && (
                     <p id="category-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
                       {errors.category_id || t.categoryError}
@@ -1187,8 +1195,8 @@ export default function BooksCreate({
                         >
                           <SelectTrigger
                             className={`w-full mt-1 rounded-lg border ${
-    errors.grade_id ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+                                            errors.grade_id ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+                                        } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                             aria-describedby={errors.grade_id ? 'grade-error' : undefined}
                           >
                             <SelectValue placeholder={t.gradePlaceholder} />
@@ -1230,8 +1238,8 @@ export default function BooksCreate({
                         >
                           <SelectTrigger
                             className={`w-full mt-1 rounded-lg border ${
-    errors.subcategory_id ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+                                            errors.subcategory_id ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+                                      } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                             aria-describedby={errors.subcategory_id ? 'subcategory-error' : undefined}
                           >
                             <SelectValue placeholder={t.subcategoryPlaceholder} />
@@ -1251,6 +1259,14 @@ export default function BooksCreate({
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
+                    <Link
+                        href={route('subcategories.create')}
+                        className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 mt-1 inline-block"
+                        preserveState
+                        preserveScroll
+                    >
+                        {t.subcategory} not exist? Click here
+                    </Link>
                   {errors.subcategory_id && (
                     <p id="subcategory-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
                       {errors.subcategory_id || t.subcategoryError}
@@ -1322,8 +1338,8 @@ export default function BooksCreate({
                             >
                               <SelectTrigger
                                 className={`w-full mt-1 rounded-lg border ${
-    errors.bookcase_id ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+                                                errors.bookcase_id ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+                                            } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                                 aria-describedby={errors.bookcase_id ? 'bookcase-error' : undefined}
                               >
                                 <SelectValue placeholder={t.bookcasePlaceholder} />
@@ -1342,6 +1358,14 @@ export default function BooksCreate({
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
+                        <Link
+                            href={route('bookcases.create')}
+                            className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 mt-1 inline-block"
+                            preserveState
+                            preserveScroll
+                        >
+                            {t.bookcase} not exist? Click here
+                        </Link>
                       {errors.bookcase_id && (
                         <p id="bookcase-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
                           {errors.bookcase_id || t.bookcaseError}
@@ -1365,8 +1389,8 @@ export default function BooksCreate({
                             >
                               <SelectTrigger
                                 className={`w-full mt-1 rounded-lg border ${
-    errors.shelf_id ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+                                                errors.shelf_id ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+                                          } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                                 aria-describedby={errors.shelf_id ? 'shelf-error' : undefined}
                               >
                                 <SelectValue placeholder={t.shelfPlaceholder} />
@@ -1385,6 +1409,14 @@ export default function BooksCreate({
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
+                        <Link
+                            href={route('shelves.create')}
+                            className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 mt-1 inline-block"
+                            preserveState
+                            preserveScroll
+                        >
+                            ({t.shelf} not exist? Click here)
+                        </Link>
                       {errors.shelf_id && (
                         <p id="shelf-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
                           {errors.shelf_id || t.shelfError}

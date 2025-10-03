@@ -36,12 +36,12 @@ import {
     ArrowLeft,
     ArrowRight,
     ArrowUp,
-    ArrowUpDown,
+    ArrowUpDown, BookOpen,
     CheckCircle2Icon,
     ChevronDown,
     Columns2, Download,
     EyeIcon, EyeOff,
-    Filter as FilterIcon, ImageOff,
+    Filter as FilterIcon, Globe, ImageOff, Library,
     MoreHorizontal,
     PencilIcon,
     Plus,
@@ -1447,7 +1447,7 @@ function BookIndex() {
                     </div>
 
                     {/* Center: Add Button and Column Visibility Dropdown */}
-                    <div className="flex items-center justify-center gap-2">
+                    <div className="flex items-center justify-center gap-2 flex-wrap">
                         {/* Add Button */}
                         <TooltipProvider>
                             <Tooltip>
@@ -1507,12 +1507,70 @@ function BookIndex() {
                                     ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
+
+                        {/* Library Cards as Buttons */}
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Link href={route('global library')}>
+                                        <Button
+                                            variant="outline"
+                                            className="h-8 rounded-lg border-cyan-200 bg-cyan-100 text-sm text-cyan-600 hover:bg-cyan-200 dark:border-cyan-600 dark:bg-gray-700 dark:text-cyan-300 dark:hover:bg-cyan-800"
+                                            disabled={isTableLoading || processing}
+                                        >
+                                            <Globe className="h-4 w-4 mr-2" /> Global Library
+                                        </Button>
+                                    </Link>
+                                </TooltipTrigger>
+                                <TooltipContent className="rounded-xl bg-gradient-to-br from-cyan-900 to-cyan-600 text-white">
+                                    All Books from overall campuses
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Link href={route('local library')}>
+                                        <Button
+                                            variant="outline"
+                                            className="h-8 rounded-lg border-yellow-200 bg-yellow-100 text-sm text-yellow-600 hover:bg-yellow-200 dark:border-yellow-600 dark:bg-gray-700 dark:text-yellow-300 dark:hover:bg-yellow-800"
+                                            disabled={isTableLoading || processing}
+                                        >
+                                            <Library className="h-4 w-4 mr-2" /> Local Library
+                                        </Button>
+                                    </Link>
+                                </TooltipTrigger>
+                                <TooltipContent className="rounded-xl bg-gradient-to-br from-yellow-900 to-yellow-600 text-white">
+                                    Books from your campus
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Link href={route('global e-library')}>
+                                        <Button
+                                            variant="outline"
+                                            className="h-8 rounded-lg border-rose-200 bg-rose-100 text-sm text-rose-600 hover:bg-rose-200 dark:border-rose-600 dark:bg-gray-700 dark:text-rose-300 dark:hover:bg-rose-800"
+                                            disabled={isTableLoading || processing}
+                                        >
+                                            <BookOpen className="h-4 w-4 mr-2" /> E-Library
+                                        </Button>
+                                    </Link>
+                                </TooltipTrigger>
+                                <TooltipContent className="rounded-xl bg-gradient-to-br from-rose-900 to-rose-600 text-white">
+                                    Digital books available
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                     </div>
 
                     {/* Right: Filtered Books Count */}
                     <div className="flex items-center sm:justify-center">
                         <span className="text-sm font-medium">
-                            {`${table.getFilteredRowModel().rows.length} filtered out of ${books.length} books`}
+                          {`${table.getFilteredRowModel().rows.length} filtered out of ${books.length} books`}
                         </span>
                     </div>
                 </div>
