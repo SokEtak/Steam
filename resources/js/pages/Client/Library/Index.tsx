@@ -4,10 +4,9 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Head, Link, usePage } from "@inertiajs/react";
-import AppLayout from "@/layouts/app-layout";
-import { NavUser } from "@/components/nav-user";
+import { Head, Link, usePage, router } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import {
     ChevronLeft,
     ChevronRight,
@@ -24,6 +23,9 @@ import {
     Eye,
     BadgeCheck,
     X,
+    User,
+    LogOut,
+    UserCircle,
 } from 'lucide-react';
 
 // --- Interface Definitions ---
@@ -61,6 +63,7 @@ interface Book {
 interface AuthUser {
     name: string;
     email: string;
+    avatar?: string;
 }
 
 interface PageProps {
@@ -92,6 +95,7 @@ const formatDate = (dateInput: string | number | undefined): string => {
 
 export default function Index() {
     const { books, flash, auth, scope, bookType = 'physical' } = usePage<PageProps>().props;
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [search, setSearch] = useState("");
     const [filterCategory, setFilterCategory] = useState("All");
     const [filterSubCategory, setFilterSubCategory] = useState("All");
@@ -109,6 +113,20 @@ export default function Index() {
     const [openBookCard, setOpenBookCard] = useState<number | null>(null);
     const cardRef = useRef<HTMLDivElement>(null);
 
+    // Determine current library type for the dropdown
+    const currentLibrary = bookType === 'ebook' ? 'ebook' : scope === 'global' ? 'global' : 'local';
+
+    // Handle library switch
+    const handleLibraryChange = (value: string) => {
+        if (value === 'ebook') {
+            router.get(route('global e-library'));
+        } else if (value === 'local') {
+            router.get(route('local library'));
+        } else if (value === 'global') {
+            router.get(route('global library'));
+        }
+    };
+
     // --- Memoized Filter Data ---
     const categories = useMemo(() => Array.from(new Set(books.map((b) => b.category?.name).filter(Boolean))), [books]);
     const subcategories = useMemo(() => Array.from(new Set(books.map((b) => b.subcategory?.name).filter(Boolean))), [books]);
@@ -124,6 +142,7 @@ export default function Index() {
         let filtered = books.filter((book) => {
             if (book.type !== bookType) return false;
             const matchesSearch =
+                //define which field can be search
                 book.title.toLowerCase().includes(search.toLowerCase()) ||
                 book.author.toLowerCase().includes(search.toLowerCase()) ||
                 String(book.isbn)?.toLowerCase().includes(search.toLowerCase());
@@ -213,31 +232,64 @@ export default function Index() {
     const accentColor = 'cyan';
     const isAuthenticated = auth.user !== null;
 
+    // Updated NavUser with dropdown
+    const NavUser = ({ user }: { user: AuthUser }) => (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button
+                    variant="ghost"
+                    className="flex items-center space-x-3 text-sm sm:text-base px-4 h-10 sm:h-11 rounded-full transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 shadow-sm"
+                >
+                    <img
+                        src={user.avatar || "/images/placeholder-avatar.png"}
+                        alt={user.name}
+                        className="h-8 w-8 rounded-full object-contain border border-gray-300 dark:border-gray-600"
+                    />
+                    <span className="truncate max-w-32 sm:max-w-48 font-medium">{user.name}</span>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-64 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700">
+                <DropdownMenuLabel className="flex flex-col space-y-1 pb-2">
+                    <div className="text-lg font-bold text-gray-900 dark:text-white">{user.name}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className="my-2" />
+                <DropdownMenuItem
+                    onClick={() => router.post(route('logout'))}
+                    className="flex items-center space-x-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors text-red-600 dark:text-red-400"
+                >
+                    <LogOut className="w-5 h-5" />
+                    <span>Logout</span>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+
     // Common card content component to avoid duplication
     const BookCardContent = ({ book }: { book: Book }) => (
         <div className="space-y-4">
-            <h3 className="text-xl font-extrabold text-gray-900 dark:text-white">{book.title}</h3>
-            <p className="text-base text-gray-600 dark:text-gray-300"><span className="font-semibold">អ្នកនិពន្ធ:</span> {book.author}</p>
+            <h3 className="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">{book.title}</h3>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300"><span className="font-semibold">អ្នកនិពន្ធ:</span> {book.author}</p>
             {book.category && (
-                <p className="text-base text-gray-600 dark:text-gray-300"><span className="font-semibold">ប្រភេទ:</span> {book.category.name}</p>
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300"><span className="font-semibold">ប្រភេទ:</span> {book.category.name}</p>
             )}
             {book.subcategory && (
-                <p className="text-base text-gray-600 dark:text-gray-300"><span className="font-semibold">ប្រភេទរង:</span> {book.subcategory.name}</p>
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300"><span className="font-semibold">ប្រភេទរង:</span> {book.subcategory.name}</p>
             )}
             {book.type === 'physical' ? (
-                <div className={`flex items-center text-base font-semibold ${book.is_available ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                    {book.is_available ? <CheckCircle className="w-5 h-5 mr-1 text-green-500" /> : <XCircle className="w-5 h-5 mr-1 text-red-500" />}
+                <div className={`flex items-center text-sm sm:text-base font-semibold ${book.is_available ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    {book.is_available ? <CheckCircle className="w-4 sm:w-5 h-4 sm:h-5 mr-1 text-green-500" /> : <XCircle className="w-4 sm:w-5 h-4 sm:h-5 mr-1 text-red-500" />}
                     ស្ថានភាព: {book.is_available ? 'មិនទាន់ខ្ចី' : 'ត្រូវបានខ្ចី'}
                 </div>
             ) : (
                 book.view !== undefined && (
-                    <p className="text-base text-gray-700 dark:text-gray-300 flex items-center">
-                        <Eye className="w-5 h-5 mr-2 text-blue-500 dark:text-blue-400" />
+                    <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 flex items-center">
+                        <Eye className="w-4 sm:w-5 h-4 sm:h-5 mr-2 text-blue-500 dark:text-blue-400" />
                         {book.view?.toLocaleString()}
                     </p>
                 )
             )}
-            <div className="text-sm text-gray-500 dark:text-gray-400 space-y-1.5 pt-3 border-t border-gray-200 dark:border-gray-600">
+            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 space-y-1.5 pt-3 border-t border-gray-200 dark:border-gray-600">
                 {book.publisher && <p><span className="font-medium text-gray-700 dark:text-gray-300">បោះពុម្ពផ្សាយ:</span> {book.publisher}</p>}
                 {book.isbn && <p className="break-words"><span className="font-medium text-gray-700 dark:text-gray-300">ISBN:</span> {book.isbn}</p>}
                 {book.page_count && <p><span className="font-medium text-gray-700 dark:text-gray-300">ចំនួនទំព័រ:</span> {book.page_count}</p>}
@@ -255,11 +307,11 @@ export default function Index() {
                                 setOpenBookCard(null);
                             }}
                             role="link"
-                            className={`group text-sm flex items-center font-semibold transition-all text-gray-700 dark:text-gray-300 p-2 rounded-md w-full justify-start
+                            className={`group text-xs sm:text-sm flex items-center font-semibold transition-all text-gray-700 dark:text-gray-300 p-2 rounded-md w-full justify-start
                                     hover:bg-green-50 dark:hover:bg-green-700 hover:text-green-600 dark:hover:text-green-400`}
                         >
-                            <BookOpen className={`w-5 h-5 mr-3 text-green-500 dark:text-green-400 group-hover:text-green-600 dark:group-hover:text-green-400`} />
-                            អាន
+                            <BookOpen className={`w-4 sm:w-5 h-4 sm:h-5 mr-3 text-green-500 dark:text-green-400 group-hover:text-green-600 dark:group-hover:text-green-400`} />
+                            ចាប់ផ្តើមអាន
                         </button>
                     )}
                     {book.pdf_url && book.downloadable === 1 && (
@@ -267,10 +319,10 @@ export default function Index() {
                             href={book.pdf_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={`group text-sm flex items-center font-semibold transition-all text-gray-700 dark:text-gray-300 p-2 rounded-md w-full justify-start
+                            className={`group text-xs sm:text-sm flex items-center font-semibold transition-all text-gray-700 dark:text-gray-300 p-2 rounded-md w-full justify-start
                                       hover:bg-blue-50 dark:hover:bg-blue-700 hover:text-blue-600 dark:hover:text-blue-400`}
                         >
-                            <Download className="w-5 h-5 mr-3 text-blue-500 dark:text-blue-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
+                            <Download className="w-4 sm:w-5 h-4 sm:h-5 mr-3 text-blue-500 dark:text-blue-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
                             ទាញយក
                         </a>
                     )}
@@ -280,76 +332,133 @@ export default function Index() {
     );
 
     return (
-        <AppLayout user={auth.user}>
+        <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
             <Head title={bookType === 'ebook' ? "eBooks Library" : "Books Library"} />
 
-            <div className="py-4 space-y-12 bg-white dark:bg-gray-950 transition-colors duration-300 w-full lg:pl-4 lg:pr-4 xl:pl-8 xl:pr-8 max-w-full mx-auto min-h-screen text-gray-900 dark:text-gray-100">
+            <div className="py-4 space-y-12 w-full max-w-full mx-auto px-4 sm:px-6 lg:px-12 xl:px-16 text-gray-900 dark:text-gray-100">
                 {/* Header */}
-                <header className="flex items-center justify-between px-6 md:px-16 lg:px-24 border-b border-gray-100 dark:border-gray-800 pb-4">
-                    <div className="flex items-center space-x-6 w-1/3 min-w-max">
+                <header className="flex flex-col sm:flex-row items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4 gap-4">
+                    <div className="flex items-center space-x-4 sm:space-x-6 w-full sm:w-auto min-w-max">
                         <Link href="/" className="flex items-center space-x-3">
                             <img
                                 src="/images/DIS(no back).png"
                                 alt="Logo"
-                                className="h-14 w-14 object-contain filter drop-shadow-lg"
+                                className="h-12 sm:h-14 w-12 sm:w-14 object-contain filter drop-shadow-lg"
                             />
                         </Link>
+                        <Select value={currentLibrary} onValueChange={handleLibraryChange}>
+                            <SelectTrigger className={`w-[200px] bg-white border border-gray-300 text-gray-900 hover:border-gray-400
+                                      dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:border-gray-600
+                                      focus:ring-${accentColor}-500 transition rounded-full text-sm sm:text-base`}>
+                                <SelectValue placeholder="Select Library" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white border-gray-200 text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                <SelectItem value="global">បណ្ណាល័យសកល</SelectItem>
+                                <SelectItem value="local">បណ្ណាល័យក្នុងសាខា</SelectItem>
+                                <SelectItem value="ebook">បណ្ណាល័យអេឡិចត្រូនិក</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
-                    <div className="relative w-full max-w-sm sm:max-w-md md:max-w-lg hidden sm:block">
-                        <div className="relative w-full">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
-                            <Input
-                                placeholder="ស្វែងរក"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                className={`w-full bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500 rounded-full shadow-inner pl-10 h-11
-                                          dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:placeholder-gray-500
-                                            focus:ring-2 focus:ring-${accentColor}-500 focus:border-${accentColor}-500 transition-all pr-3`}
-                            />
-                        </div>
+                    <div className="relative w-full max-w-md sm:max-w-lg">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 sm:h-5 w-4 sm:w-5 text-gray-400 dark:text-gray-500" />
+                        <Input
+                            placeholder="ស្វែងរក"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className={`w-full bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500 rounded-full shadow-inner pl-10 h-10 sm:h-11
+                      dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:placeholder-gray-500
+                      focus:ring-2 focus:ring-${accentColor}-500 focus:border-${accentColor}-500 transition-all pr-3 text-sm sm:text-base`}
+                        />
                     </div>
-                    <div className="origin-right w-1/8 flex justify-end">
-                        {isAuthenticated ? (
-                            <NavUser user={auth.user!} />
-                        ) : (
-                            <Link href={route("login")}>
-                                <Button
-                                    variant="outline"
-                                    className={`bg-transparent border-${accentColor}-500 text-${accentColor}-600 dark:border-${accentColor}-400 dark:text-${accentColor}-400
-hover:bg-${accentColor}-50 dark:hover:bg-${accentColor}-900/50 transition-colors shadow-sm rounded-full`}
-                                >
-                                    <LogIn className="w-5 h-5 mr-2" />
-                                    Sign In Your Account
-                                </Button>
-                            </Link>
+                    <div className="w-full sm:w-auto flex justify-end items-center">
+                        {/* Hamburger Button for Small Screens */}
+                        <Button
+                            variant="ghost"
+                            className="sm:hidden p-2"
+                            onClick={() => setIsMenuOpen(!isMenuOpen)}
+                        >
+                            <svg
+                                className="w-6 h-6 text-gray-600 dark:text-gray-300"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d={isMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}
+                                />
+                            </svg>
+                        </Button>
+
+                        {/* Mobile Menu */}
+                        {isMenuOpen && (
+                            <div className="sm:hidden absolute top-16 right-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4 w-48 z-50">
+                                {isAuthenticated ? (
+                                    <>
+                                        <div className="flex flex-col space-y-2 mb-4">
+                                            <span className="text-lg font-bold text-gray-900 dark:text-white">{auth.user!.name}</span>
+                                            <span className="text-sm text-gray-500 dark:text-gray-400">{auth.user!.email}</span>
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                router.post(route('logout'), {}, {
+                                                    onSuccess: () => setIsMenuOpen(false),
+                                                });
+                                            }}
+                                            className="flex items-center space-x-2 py-2 text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md w-full text-left"
+                                        >
+                                            <LogOut className="w-5 h-5" />
+                                            <span>Logout</span>
+                                        </button>
+                                    </>
+                                ) : (
+                                    <Link
+                                        href={route("login")}
+                                        className="flex items-center space-x-2 py-2 text-cyan-600 dark:text-cyan-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                                        onClick={() => setIsMenuOpen(false)}
+                                    >
+                                        <LogIn className="w-5 h-5" />
+                                        <span>Sign In</span>
+                                    </Link>
+                                )}
+                            </div>
                         )}
+
+                        {/* User Menu for Larger Screens */}
+                        <div className="hidden sm:flex justify-center sm:justify-end">
+                            {isAuthenticated ? (
+                                <NavUser user={auth.user!} />
+                            ) : (
+                                <Link href={route("login")}>
+                                    <Button
+                                        variant="outline"
+                                        className={`bg-transparent border-${accentColor}-500 text-${accentColor}-600 dark:border-${accentColor}-400 dark:text-${accentColor}-400
+                                   hover:bg-${accentColor}-50 dark:hover:bg-${accentColor}-900/50 transition-colors shadow-sm rounded-full text-sm sm:text-base px-3 sm:px-4 h-10 sm:h-11`}
+                                    >
+                                        <LogIn className="w-4 sm:w-5 h-4 sm:h-5 mr-2" />
+                                        Sign In
+                                    </Button>
+                                </Link>
+                            )}
+                        </div>
                     </div>
                 </header>
 
                 {flash.message && (
-                    <div className="p-4 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-lg shadow-lg mx-6 md:px-16 lg:px-24">
+                    <div className="p-4 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-lg shadow-lg">
                         {flash.message}
                     </div>
                 )}
 
                 {/* Filters */}
-                <div className="flex flex-wrap items-center gap-x-6 gap-y-4 max-w-8xl mx-auto justify-center px-2">
-                    <div className="relative w-full sm:hidden">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
-                        <Input
-                            placeholder="Search"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className={`w-full bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500 rounded-full shadow-inner pl-10 h-11
-                                      dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:placeholder-gray-500
-                                        focus:ring-2 focus:ring-${accentColor}-500 focus:border-${accentColor}-500 transition-all pr-3`}
-                        />
-                    </div>
-
+                <div className="flex flex-col sm:flex-row flex-wrap items-center gap-x-4 sm:gap-x-6 gap-y-4 justify-center">
                     {[
                         { label: "ប្រភេទ", value: filterCategory, onChange: setFilterCategory, options: categories },
                         { label: "ប្រភេទរង", value: filterSubCategory, onChange: setFilterSubCategory, options: subcategories },
-                        { label: "ភាសា", value: filterLanguage, onChange: setFilterLanguage, options: languages, display: (lang: string) => lang === 'en' ? 'English' : lang === 'kh' ? 'Khmer' : lang },
+                        { label: "ភាសា", value: filterLanguage, onChange: setFilterLanguage, options: languages, display: (lang: string) => lang === 'en' ? 'ភាសាអង់គ្លេស' : lang === 'kh' ? 'ភាសាខ្មែរ' : lang },
                         { label: "កម្រិតថ្នាក់", value: filterGrade, onChange: setFilterGrade, options: grades },
                         { label: "មុខវិជ្ជា", value: filterSubject, onChange: setFilterSubject, options: subjects },
                         ...(bookType === 'physical' ? [
@@ -362,9 +471,9 @@ hover:bg-${accentColor}-50 dark:hover:bg-${accentColor}-900/50 transition-colors
                     ].map(({ label, value, onChange, options, display }) => (
                         <Select key={label} value={value} onValueChange={onChange}>
                             <SelectTrigger
-                                className={`w-full sm:w-40 bg-white border border-gray-300 text-gray-900 hover:border-gray-400
+                                className={`w-full sm:w-40 md:w-48 bg-white border border-gray-300 text-gray-900 hover:border-gray-400
                                           dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:border-gray-600
-                                            focus:ring-${accentColor}-500 transition rounded-full  text-center`}
+                                          focus:ring-${accentColor}-500 transition rounded-full text-sm sm:text-base text-center`}
                             >
                                 <SelectValue placeholder={label} />
                             </SelectTrigger>
@@ -379,9 +488,9 @@ hover:bg-${accentColor}-50 dark:hover:bg-${accentColor}-900/50 transition-colors
                         </Select>
                     ))}
                     <Select value={sortBy} onValueChange={setSortBy}>
-                        <SelectTrigger className={`w-full sm:w-40 bg-white border border-gray-300 text-gray-900 hover:border-gray-400
+                        <SelectTrigger className={`w-full sm:w-40 md:w-48 bg-white border border-gray-300 text-gray-900 hover:border-gray-400
                                                  dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:border-gray-600
-                                                   focus:ring-${accentColor}-500 transition font-semibold rounded-full text-center`}
+                                                 focus:ring-${accentColor}-500 transition font-semibold rounded-full text-sm sm:text-base text-center`}
                         >
                             <ArrowDownUp className="h-4 w-4 mr-2 text-gray-500 dark:text-gray-400" />
                             <SelectValue placeholder="Sort By" />
@@ -396,7 +505,7 @@ hover:bg-${accentColor}-50 dark:hover:bg-${accentColor}-900/50 transition-colors
 
                 {/* Book Grid */}
                 <TooltipProvider>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6 md:gap-6 px-6 md:px-16 lg:px-24 relative">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 sm:gap-6 lg:gap-8 relative">
                         {paginatedBooks.length > 0 ? (
                             paginatedBooks.map((book) => {
                                 const contributorId = book.posted_by_user_id || book.user?.id;
@@ -416,25 +525,25 @@ hover:bg-${accentColor}-50 dark:hover:bg-${accentColor}-900/50 transition-colors
                                                     className={`group flex flex-col items-start space-y-3 cursor-pointer p-3 rounded-xl bg-white border border-gray-200 shadow-lg
                                                                 dark:bg-gray-800 dark:border-gray-700 dark:shadow-2xl dark:shadow-gray-900/50
                                                                 transition-all duration-300 transform relative overflow-hidden
-                                                                hover:scale-[1.05] hover:shadow-2xl hover:border-${accentColor}-500 focus:outline-none focus:ring-2 focus:ring-${accentColor}-500 w-full`}
+                                                                hover:scale-[1.03] sm:hover:scale-[1.05] hover:shadow-2xl hover:border-${accentColor}-500 focus:outline-none focus:ring-2 focus:ring-${accentColor}-500 w-full`}
                                                 >
                                                     <div className="relative w-full pb-[155%]">
                                                         <img
                                                             src={book.cover || "/images/placeholder-book.png"}
                                                             alt={book.title}
-                                                            className="absolute inset-0 w-full h-full object-fit rounded-lg shadow-xl transition-transform duration-300 group-hover:scale-105"
+                                                            className="absolute inset-0 w-full h-full object-fill rounded-lg shadow-xl transition-transform duration-300 group-hover:scale-105"
                                                         />
                                                     </div>
                                                     <div className="flex items-center justify-center space-x-2 pt-1 border-t border-gray-100 dark:border-gray-700 w-full">
                                                         <img
                                                             src={"https://fls-9fd96a88-703c-423b-a3c6-5b74b203b091.laravel.cloud/" + book.user?.avatar}
                                                             alt="Contributor Avatar"
-                                                            className="w-6 h-6 rounded-full object-cover border border-gray-300 dark:border-gray-600 flex-shrink-0"
+                                                            className="w-5 sm:w-6 h-5 sm:h-6 rounded-full object-cover border border-gray-300 dark:border-gray-600 flex-shrink-0"
                                                         />
                                                         <span className="text-xs text-gray-400 dark:text-gray-500 truncate font-medium flex items-center min-w-0">
                                                             <span className="truncate flex-grow">{contributorName}</span>
                                                             {isContributorVerified && (
-                                                                <BadgeCheck className="w-4 h-4 ml-1 text-blue-500 dark:text-blue-400 fill-white dark:fill-gray-900 flex-shrink-0" />
+                                                                <BadgeCheck className="w-3 sm:w-4 h-3 sm:h-4 ml-1 text-blue-500 dark:text-blue-400 fill-white dark:fill-gray-900 flex-shrink-0" />
                                                             )}
                                                         </span>
                                                     </div>
@@ -456,16 +565,16 @@ hover:bg-${accentColor}-50 dark:hover:bg-${accentColor}-900/50 transition-colors
                                             <div
                                                 ref={cardRef}
                                                 className={`lg:hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[90]
-                                                            max-w-[90vw] sm:max-w-md w-full p-5 rounded-xl shadow-2xl border-l-4 border-gray-200 bg-white text-gray-900
+                                                            max-w-[90vw] w-full sm:max-w-md p-4 sm:p-5 rounded-xl shadow-2xl border-l-4 border-gray-200 bg-white text-gray-900
                                                             dark:border-gray-700 dark:bg-gray-800 dark:text-white
                                                             ${book.type === 'ebook' ? `border-${accentColor}-500` : 'border-amber-500'}`}
                                             >
                                                 <div className="flex justify-between items-center mb-4">
                                                     <button
                                                         onClick={() => setOpenBookCard(null)}
-                                                        className="text-gray-400 hover:text-red-600 transition-colors text-2xl leading-none font-light"
+                                                        className="text-gray-400 hover:text-red-600 transition-colors text-xl sm:text-2xl leading-none font-light"
                                                     >
-                                                        <X className="w-6 h-6" />
+                                                        <X className="w-5 sm:w-6 h-5 sm:h-6" />
                                                     </button>
                                                 </div>
                                                 <BookCardContent book={book} />
@@ -475,7 +584,7 @@ hover:bg-${accentColor}-50 dark:hover:bg-${accentColor}-900/50 transition-colors
                                 );
                             })
                         ) : (
-                            <p className="text-center text-gray-500 dark:text-gray-400 col-span-full py-20 text-xl font-light">
+                            <p className="text-center text-gray-500 dark:text-gray-400 col-span-full py-12 sm:py-20 text-base sm:text-xl font-light">
                                 No {bookType === 'ebook' ? 'digital editions' : 'physical assets'} found. Try broadening your criteria.
                             </p>
                         )}
@@ -489,22 +598,22 @@ hover:bg-${accentColor}-50 dark:hover:bg-${accentColor}-900/50 transition-colors
                             onClick={goToPreviousPage}
                             disabled={currentPage === 1}
                             variant="outline"
-                            className={`flex items-center text-${accentColor}-600 dark:text-${accentColor}-400 disabled:opacity-50`}
+                            className={`flex items-center text-${accentColor}-600 dark:text-${accentColor}-400 disabled:opacity-50 text-sm sm:text-base px-3 sm:px-4 h-10 sm:h-11`}
                         >
-                            <ChevronLeft className="w-5 h-5 mr-1" />
+                            <ChevronLeft className="w-4 sm:w-5 h-4 sm:h-5 mr-1" />
                             Previous
                         </Button>
-                        <span className="text-md font-semibold text-gray-700 dark:text-gray-300">
+                        <span className="text-sm sm:text-md font-semibold text-gray-700 dark:text-gray-300">
                             Page {currentPage} of {totalPages}
                         </span>
                         <Button
                             onClick={goToNextPage}
                             disabled={currentPage === totalPages}
                             variant="outline"
-                            className={`flex items-center text-${accentColor}-600 dark:text-${accentColor}-400 disabled:opacity-50`}
+                            className={`flex items-center text-${accentColor}-600 dark:text-${accentColor}-400 disabled:opacity-50 text-sm sm:text-base px-3 sm:px-4 h-10 sm:h-11`}
                         >
                             Next
-                            <ChevronRight className="w-5 h-5 ml-1" />
+                            <ChevronRight className="w-4 sm:w-5 h-4 sm:h-5 ml-1" />
                         </Button>
                     </div>
                 )}
@@ -514,27 +623,27 @@ hover:bg-${accentColor}-50 dark:hover:bg-${accentColor}-900/50 transition-colors
                     <div className="fixed inset-0 flex items-center justify-center z-[100] bg-gray-800 bg-opacity-30 dark:bg-opacity-40">
                         <div
                             className={`bg-white dark:bg-gray-850 rounded-lg shadow-2xl flex flex-col transition-all duration-300 ${
-                                            isFullScreen ? 'w-full h-full max-w-none max-h-none' : 'w-11/12 max-w-7xl h-[95vh]'
-                                      } relative z-[110]`}
+                                isFullScreen ? 'w-full h-full max-w-none max-h-none' : 'w-11/12 max-w-[90vw] h-[90vh] sm:h-[95vh]'
+                            } relative z-[110]`}
                         >
-                            <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
-                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{selectedBook.title}</h2>
-                                <div className="flex space-x-4 items-center">
+                            <div className="flex justify-between items-center p-3 sm:p-4 border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
+                                <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white truncate">{selectedBook.title}</h2>
+                                <div className="flex space-x-2 sm:space-x-4 items-center">
                                     <button
                                         onClick={() => setIsFullScreen(!isFullScreen)}
                                         className={`text-${accentColor}-600 dark:text-${accentColor}-400 hover:text-${accentColor}-800 dark:hover:text-${accentColor}-300 transition-colors p-1 rounded-md`}
                                     >
-                                        {isFullScreen ? <Minimize className="h-7 w-7" /> : <Maximize className="h-7 w-7" />}
+                                        {isFullScreen ? <Minimize className="h-6 sm:h-7 w-6 sm:w-7" /> : <Maximize className="h-6 sm:h-7 w-6 sm:w-7" />}
                                     </button>
                                     <button
                                         onClick={() => setIsModalOpen(false)}
-                                        className="text-gray-400 hover:text-red-600 transition-colors text-4xl leading-none font-light p-1 rounded-md"
+                                        className="text-gray-400 hover:text-red-600 transition-colors text-2xl sm:text-4xl leading-none font-light p-1 rounded-md"
                                     >
                                         &times;
                                     </button>
                                 </div>
                             </div>
-                            <div className="flex-1 overflow-hidden p-4 bg-gray-50 dark:bg-gray-800">
+                            <div className="flex-1 overflow-hidden p-3 sm:p-4 bg-gray-50 dark:bg-gray-800">
                                 <iframe
                                     src={selectedBook.flip_link || selectedBook.pdf_url || ""}
                                     title={selectedBook.title}
@@ -547,7 +656,6 @@ hover:bg-${accentColor}-50 dark:hover:bg-${accentColor}-900/50 transition-colors
                     </div>
                 )}
             </div>
-        </AppLayout>
+        </div>
     );
 }
-

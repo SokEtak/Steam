@@ -3,8 +3,8 @@
 import {
     ChevronsUpDown,
     LogOut,
-    Settings,
-} from "lucide-react"
+    Settings
+} from 'lucide-react';
 
 import {
     Avatar,

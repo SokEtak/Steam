@@ -141,7 +141,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         : []; // No tabs if no user
 
     return (
-        <Sidebar variant="inset" {...props}>
+        <Sidebar variant="inset" {...props} className="visability-hidden">
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
