@@ -464,7 +464,7 @@ export default function BooksCreate({
 }: BooksCreateProps) {
   const t = translations.en;
 
-  const [type, setType] = useState<'physical' | 'ebook'>(initialType);
+  const [type, setType] = useState<'physical' | 'ebook'>('ebook');
   const isEbook = type === 'ebook';
   const [categories, setCategories] = useState(initialCategories);
   const [subcategories, setSubcategories] = useState(initialSubcategories);
@@ -511,15 +511,12 @@ export default function BooksCreate({
     setShowErrorAlert(!!Object.keys(errors).length || !!flash?.error);
   }, [errors, flash?.error]);
 
-  const generateCode = useCallback(() => {
-    const category = data.category_id
-      ? categories.find((cat) => cat.id.toString() === data.category_id)
-      : null;
-    const categoryPrefix = category ? category.name.slice(0, 3).toUpperCase() : 'UNK';
-    const typePrefix = isEbook ? 'EBK' : 'PHY';
-    const randomSuffix = generateRandomString(4);
-    return `${categoryPrefix}-${typePrefix}-${randomSuffix}`.slice(0, 10);
-  }, [data.category_id, isEbook, categories]);
+    const generateCode = useCallback(() => {
+        const randomPrefix = generateRandomString(3).toUpperCase();
+        const typePrefix = isEbook ? 'EBK' : 'PHY';
+        const randomSuffix = generateRandomString(4);
+        return `${randomPrefix}-${typePrefix}-${randomSuffix}`.slice(0, 10);
+    }, [isEbook, generateRandomString]);
 
   useEffect(() => {
     if (data.category_id) {
