@@ -249,169 +249,207 @@ interface FileFieldProps {
 }
 
 const FileField: React.FC<FileFieldProps> = ({
-  label,
-  id,
-  accept,
-  onChange,
-  previewUrl,
-  onPreviewClick,
-  error,
-  helperText,
-  isDragDrop = false,
-  dragActive = false,
-  onDrag,
-  onDrop,
-  selectedFileName,
-  onRemove,
-  fileError,
-  required = false, // Default to false
-}) => {
-  const t = translations.en;
-  return (
-    <div className="space-y-2">
-      <Label htmlFor={id} className="text-sm font-medium text-gray-700 dark:text-gray-200">
-        {label}
-      </Label>
-      {isDragDrop ? (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div
-                className={`border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 w-full max-w-md h-64 mx-auto flex flex-col justify-center items-center ${
-    dragActive
-        ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
-        : 'border-gray-300 dark:border-gray-600'
-} ${error || fileError ? 'border-red-500 dark:border-red-400' : ''}`}
-                onDragEnter={onDrag}
-                onDragLeave={onDrag}
-                onDragOver={onDrag}
-                onDrop={onDrop}
-                role="region"
-                aria-label={`Drag and drop ${label.toLowerCase()} file`}
-              >
-                <Input
-                  id={id}
-                  type="file"
-                  accept={accept}
-                  onChange={onChange}
-                  className="hidden"
-                  required={required}
-                  aria-describedby={error || fileError ? `${id}-error` : undefined}
-                />
-                <div className="space-y-3">
-                  {selectedFileName ? (
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      Selected: {selectedFileName}{' '}
-                      {onRemove && (
-                        <Button
-                          variant="link"
-                          onClick={onRemove}
-                          className="text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300"
-                          aria-label={`${t.remove} ${selectedFileName}`}
-                        >
-                          {t.remove}
-                        </Button>
-                      )}
-                      {onPreviewClick && (
-                        <Button
-                          variant="link"
-                          onClick={onPreviewClick}
-                          className="text-indigo-500 dark:text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300"
-                          aria-label={`${t.preview} ${selectedFileName}`}
-                        >
-                          {t.preview}
-                        </Button>
-                      )}
-                    </p>
-                  ) : (
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {t.pdfFilePlaceholder}
-                    </p>
-                  )}
-                  <Button
-                    type="button"
-                    onClick={() => document.getElementById(id)?.click()}
-                    className="bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 px-4 py-2 rounded-lg"
-                    aria-label={t.browse}
-                  >
-                    {t.browse}
-                  </Button>
-                </div>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent className="bg-indigo-600 text-white rounded-lg">
-              {t.pdfFilePlaceholder}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      ) : (
+                                                 label,
+                                                 id,
+                                                 accept,
+                                                 onChange,
+                                                 previewUrl,
+                                                 onPreviewClick,
+                                                 error,
+                                                 helperText,
+                                                 isDragDrop = false,
+                                                 dragActive = false,
+                                                 onDrag,
+                                                 onDrop,
+                                                 selectedFileName,
+                                                 onRemove,
+                                                 fileError,
+                                                 required = false,
+                                             }) => {
+    const t = translations.en;
+
+    // Handle paste event for cover image field only
+    useEffect(() => {
+        if (id !== 'cover') return; // Restrict to cover field
+
+        const handlePaste = (e: ClipboardEvent) => {
+            const items = e.clipboardData?.items;
+            if (!items) return;
+
+            for (const item of items) {
+                if (item.type.match('image/(jpeg|png)')) {
+                    const file = item.getAsFile();
+                    if (!file) return;
+
+                    // Validate file size (2MB limit)
+                    if (file.size > 2 * 1024 * 1024) {
+                        onChange({ target: { files: null } } as any);
+                        return;
+                    }
+
+                    // Create synthetic event for existing onChange handler
+                    const syntheticEvent = {
+                        target: { files: [file] },
+                    } as React.ChangeEvent<HTMLInputElement>;
+                    onChange(syntheticEvent);
+                    break; // Process only the first valid image
+                }
+            }
+        };
+
+        window.addEventListener('paste', handlePaste);
+        return () => window.removeEventListener('paste', handlePaste);
+    }, [id, onChange]);
+
+    return (
         <div className="space-y-2">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div
-                  className={`relative w-full max-w-md h-64 mx-auto bg-gray-100 dark:bg-gray-700 border rounded-lg overflow-hidden flex items-center justify-center cursor-pointer transition-all duration-200 ${
-    error || fileError ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-} hover:border-indigo-500 dark:hover:border-indigo-400`}
-                  onClick={() => document.getElementById(id)?.click()}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <Input
-                    id={id}
-                    type="file"
-                    accept={accept}
-                    onChange={onChange}
-ས
-                    className="hidden"
-                    aria-describedby={error || fileError ? `${id}-error` : undefined}
-                  />
-                  {previewUrl ? (
-                    <div className="relative w-full h-full">
-                      <img
-                        src={previewUrl}
-                        alt={`${t.cover} Preview`}
-                        className="w-full h-full object-contain"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onPreviewClick?.();
-                        }}
-                      />
-                      {onRemove && (
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onRemove();
-                          }}
-                          aria-label={t.remove}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ) : (
-                    <span className="text-gray-500 dark:text-gray-400">{t.coverPlaceholder}</span>
-                  )}
+            <Label htmlFor={id} className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                {label}
+            </Label>
+            {isDragDrop ? (
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <div
+                                className={`border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 w-full max-w-md h-64 mx-auto flex flex-col justify-center items-center ${
+                                    dragActive
+                                        ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
+                                        : 'border-gray-300 dark:border-gray-600'
+                                } ${error || fileError ? 'border-red-500 dark:border-red-400' : ''}`}
+                                onDragEnter={onDrag}
+                                onDragLeave={onDrag}
+                                onDragOver={onDrag}
+                                onDrop={onDrop}
+                                role="region"
+                                aria-label={`Drag and drop ${label.toLowerCase()} file`}
+                            >
+                                <Input
+                                    id={id}
+                                    type="file"
+                                    accept={accept}
+                                    onChange={onChange}
+                                    className="hidden"
+                                    required={required}
+                                    aria-describedby={error || fileError ? `${id}-error` : undefined}
+                                />
+                                <div className="space-y-3">
+                                    {selectedFileName ? (
+                                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                                            Selected: {selectedFileName}{' '}
+                                            {onRemove && (
+                                                <Button
+                                                    variant="link"
+                                                    onClick={onRemove}
+                                                    className="text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300"
+                                                    aria-label={`${t.remove} ${selectedFileName}`}
+                                                >
+                                                    {t.remove}
+                                                </Button>
+                                            )}
+                                            {onPreviewClick && (
+                                                <Button
+                                                    variant="link"
+                                                    onClick={onPreviewClick}
+                                                    className="text-indigo-500 dark:text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300"
+                                                    aria-label={`${t.preview} ${selectedFileName}`}
+                                                >
+                                                    {t.preview}
+                                                </Button>
+                                            )}
+                                        </p>
+                                    ) : (
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                                            {t.pdfFilePlaceholder}
+                                        </p>
+                                    )}
+                                    <Button
+                                        type="button"
+                                        onClick={() => document.getElementById(id)?.click()}
+                                        className="bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 px-4 py-2 rounded-lg"
+                                        aria-label={t.browse}
+                                    >
+                                        {t.browse}
+                                    </Button>
+                                </div>
+                            </div>
+                        </TooltipTrigger>
+                        <TooltipContent className="bg-indigo-600 text-white rounded-lg">
+                            {t.pdfFilePlaceholder}
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            ) : (
+                <div className="space-y-2">
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div
+                                    className={`relative w-full max-w-md h-64 mx-auto bg-gray-100 dark:bg-gray-700 border rounded-lg overflow-hidden flex items-center justify-center cursor-pointer transition-all duration-200 ${
+                                        error || fileError ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+                                    } hover:border-indigo-500 dark:hover:border-indigo-400`}
+                                    onClick={() => document.getElementById(id)?.click()}
+                                    role="button"
+                                    tabIndex={0}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            document.getElementById(id)?.click();
+                                        }
+                                    }}
+                                >
+                                    <Input
+                                        id={id}
+                                        type="file"
+                                        accept={accept}
+                                        onChange={onChange}
+                                        className="hidden"
+                                        aria-describedby={error || fileError ? `${id}-error` : undefined}
+                                    />
+                                    {previewUrl ? (
+                                        <div className="relative w-full h-full">
+                                            <img
+                                                src={previewUrl}
+                                                alt={`${t.cover} Preview`}
+                                                className="w-full h-full object-contain"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onPreviewClick?.();
+                                                }}
+                                            />
+                                            {onRemove && (
+                                                <Button
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        onRemove();
+                                                    }}
+                                                    aria-label={t.remove}
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </Button>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <span className="text-gray-500 dark:text-gray-400">{t.coverPlaceholder} (or paste image with Ctrl+V)</span>
+                                    )}
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent className="bg-indigo-600 text-white rounded-lg">
+                                {t.coverPlaceholder} (or paste image with Ctrl+V)
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                    {(error || fileError) && (
+                        <p id={`${id}-error`} className="text-red-500 dark:text-red-400 text-sm text-center">
+                            {error || fileError || t.coverError}
+                        </p>
+                    )}
+                    {helperText && <p className="text-xs text-gray-500 dark:text-gray-400 text-center">{helperText}</p>}
                 </div>
-              </TooltipTrigger>
-              <TooltipContent className="bg-indigo-600 text-white rounded-lg">
-                {t.coverPlaceholder}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          {(error || fileError) && (
-            <p id={`${id}-error`} className="text-red-500 dark:text-red-400 text-sm text-center">
-              {error || fileError || t.coverError}
-            </p>
-          )}
-          {helperText && <p className="text-xs text-gray-500 dark:text-gray-400 text-center">{helperText}</p>}
+            )}
         </div>
-      )}
-    </div>
-  );
+    );
 };
 
 export default function BooksCreate({
