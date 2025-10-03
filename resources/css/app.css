@@ -7,7 +7,7 @@
 @custom-variant dark (&:is(.dark *));
 
 body {
-    font-family: 'Khmer OS Battambang', sans-serif;
+    font-family: 'Khmer OS Battambang',"lato",sans-serif;
 }
 
 @theme {

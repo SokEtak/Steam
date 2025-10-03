@@ -31,9 +31,17 @@ class StoreBookRequest extends FormRequest
         // If published_at is provided, ensure it's treated as a year
         if ($this->has('published_at') && !empty($this->published_at)) {
             $this->merge([
-                'published_at' => (int) $this->published_at, // Cast to integer
+                'published_at' => (int) $this->published_at,
             ]);
         }
+
+        //set visibility to true for ebook to make sure it works correctly
+        if($this->input('type') === 'ebook'){
+            $this->merge([
+                'is_available' => true,
+            ]);
+        }
+
     }
 
     public function rules()
