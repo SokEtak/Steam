@@ -93,8 +93,8 @@ const translations = {
     languagePlaceholder: 'Select language',
     languageError: 'Please select a valid language.',
     languageHelper: 'Primary language of the book.',
-    publishedAt: 'Published Date',
-    publishedAtPlaceholder: 'Select date',
+    publishedAt: 'Published Year',
+    publishedAtPlaceholder: 'Select Year',
     publishedAtError: 'Please select a valid publication year.',
     publishedAtHelper: 'Optional publication year.',
     author: 'Author',
@@ -151,10 +151,10 @@ const translations = {
     coverPlaceholder: 'Upload a cover image',
     coverError: 'Please upload a valid cover image (JPEG/PNG, max 2MB).',
     coverHelper: 'Optional: JPEG or PNG, max 2MB.',
-    pdfFile: 'PDF File (200MB max, optional for e-books)',
-    pdfFilePlaceholder: 'Upload a PDF file (optional)',
-    pdfFileError: 'Please upload a valid PDF file (max 200MB).',
-    pdfFileHelper: 'Optional: PDF, max 200MB.',
+    pdfFile: 'PDF File (30MB max, optional)',
+    pdfFilePlaceholder: 'Upload a PDF file',
+    pdfFileError: 'Please upload a valid PDF file (max 30MB).',
+    pdfFileHelper: 'Optional: PDF, max 30MB.',
     browse: 'Browse',
     remove: 'Remove',
     preview: 'Preview',
@@ -531,58 +531,58 @@ export default function BooksCreate({
     };
   }, [coverPreviewUrl, pdfPreviewUrl]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'cover' | 'pdf_url') => {
-    const file = e.target.files?.[0];
-    if (!file) {
-      setData(field, null);
-      if (field === 'cover') setCoverPreviewUrl(null);
-      else {
-        setPdfPreviewUrl(null);
-        setPdfFileError(null);
-      }
-      return;
-    }
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'cover' | 'pdf_url') => {
+        const file = e.target.files?.[0];
+        if (!file) {
+            setData(field, null);
+            if (field === 'cover') setCoverPreviewUrl(null);
+            else {
+                setPdfPreviewUrl(null);
+                setPdfFileError(null);
+            }
+            return;
+        }
 
-    if (field === 'cover') {
-      if (!file.type.match('image/(jpeg|png)')) {
-        setData(field, null);
-        e.target.value = '';
-        setPdfFileError(t.coverError);
-        return;
-      }
-      if (file.size > 2 * 1024 * 1024) {
-        setData(field, null);
-        e.target.value = '';
-        setPdfFileError('Cover image exceeds 2MB limit. Please upload a smaller file.');
-        return;
-      }
-    }
-    if (field === 'pdf_url') {
-      if (file.type !== 'application/pdf') {
-        setData(field, null);
-        e.target.value = '';
-        setPdfFileError(t.pdfFileError);
-        return;
-      }
-      if (file.size > 200 * 1024 * 1024) {
-        setData(field, null);
-        e.target.value = '';
-        setPdfFileError('PDF file exceeds 200MB limit. Please upload a smaller file.');
-        return;
-      }
-      setPdfFileError(null);
-    }
+        if (field === 'cover') {
+            if (!file.type.match('image/(jpeg|png)')) {
+                setData(field, null);
+                e.target.value = '';
+                setPdfFileError(t.coverError);
+                return;
+            }
+            if (file.size > 2 * 1024 * 1024) {
+                setData(field, null);
+                e.target.value = '';
+                setPdfFileError('Cover image exceeds 2MB limit. Please upload a smaller file.');
+                return;
+            }
+        }
+        if (field === 'pdf_url') {
+            if (file.type !== 'application/pdf') {
+                setData(field, null);
+                e.target.value = '';
+                setPdfFileError(t.pdfFileError);
+                return;
+            }
+            if (file.size > 30 * 1024 * 1024) { // Changed from 200MB to 30MB
+                setData(field, null);
+                e.target.value = '';
+                setPdfFileError('PDF file exceeds 30MB limit. Please upload a smaller file.');
+                return;
+            }
+            setPdfFileError(null);
+        }
 
-    setData(field, file);
-    const newUrl = URL.createObjectURL(file);
-    if (field === 'cover') {
-      if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl);
-      setCoverPreviewUrl(newUrl);
-    } else {
-      if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl);
-      setPdfPreviewUrl(newUrl);
-    }
-  };
+        setData(field, file);
+        const newUrl = URL.createObjectURL(file);
+        if (field === 'cover') {
+            if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl);
+            setCoverPreviewUrl(newUrl);
+        } else {
+            if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl);
+            setPdfPreviewUrl(newUrl);
+        }
+    };
 
   const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -607,8 +607,8 @@ export default function BooksCreate({
       setPdfFileError(t.pdfFileError);
       return;
     }
-    if (file.size > 200 * 1024 * 1024) {
-      setPdfFileError('PDF file exceeds 200MB limit. Please drop a smaller file.');
+    if (file.size > 30 * 1024 * 1024) { // Changed from 200MB to 30MB
+      setPdfFileError('PDF file exceeds 30MB limit. Please drop a smaller file.');
       return;
     }
     setPdfFileError(null);

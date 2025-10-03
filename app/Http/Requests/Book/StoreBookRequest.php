@@ -65,7 +65,7 @@ class StoreBookRequest extends FormRequest
             'is_available' => [$isEbook ? 'nullable' : 'required', 'boolean'],
             'downloadable' => [$isEbook ? 'required' : 'nullable', 'boolean'],
             'cover' => ['nullable', 'image', 'mimes:jpeg,png', 'max:2048'],
-            'pdf_url' => ['nullable', 'mimes:pdf', 'max:10240'],
+            'pdf_url' => ['nullable', 'mimes:pdf', 'max:30720'],
             'category_id' => ['required', 'exists:categories,id'],
             'subcategory_id' => ['nullable', 'exists:sub_categories,id'],
             'shelf_id' => [$isEbook ? 'nullable' : 'required_if:type,physical', 'exists:shelves,id'],
