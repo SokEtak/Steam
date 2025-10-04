@@ -153,7 +153,7 @@ export default function Welcome() {
                             <img
                                 src="/images/DIS(no back).png"
                                 alt="Dewey Digital Library Logo"
-                                className="h-10 w-auto hover:scale-105 transition-transform duration-300"
+                                className="object-contain h-11 w-18 hover:scale-105 transition-transform duration-300"
                             />
                         </Link>
 
@@ -163,11 +163,11 @@ export default function Welcome() {
                             {/* Navigation Menu (Centered Column) - Absolute positioning is kept for centering, but it only contains core nav links now */}
                             <NavigationMenu className="absolute left-1/2 -translate-x-1/2">
                                 <NavigationMenuList className="flex gap-6 items-center">
-                                    <NavigationMenuItem>
-                                        <NavigationMenuLink asChild>
-                                            <Link href="/" className="text-sm font-medium hover:text-blue-600 dark:hover:text-blue-400 transition p-2 rounded-md">Home</Link>
-                                        </NavigationMenuLink>
-                                    </NavigationMenuItem>
+                                    {/*<NavigationMenuItem>*/}
+                                    {/*    <NavigationMenuLink asChild>*/}
+                                    {/*        <Link href="/" className="text-sm font-medium hover:text-blue-600 dark:hover:text-blue-400 transition p-2 rounded-md">Home</Link>*/}
+                                    {/*    </NavigationMenuLink>*/}
+                                    {/*</NavigationMenuItem>*/}
 
                                     {/* About Us Dropdown */}
                                     <NavigationMenuItem>
