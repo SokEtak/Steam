@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import InputError from '@/components/input-error';
 import { Checkbox } from '@/components/ui/checkbox';
-import { FaGoogle } from 'react-icons/fa';
 
 type LoginForm = {
     email: string;

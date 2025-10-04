@@ -25,7 +25,7 @@ import {
     X,
     User,
     LogOut,
-    UserCircle,
+    UserCircle, Menu
 } from 'lucide-react';
 
 // --- Interface Definitions ---
@@ -241,7 +241,7 @@ export default function Index() {
                     className="flex items-center space-x-3 text-sm sm:text-base px-4 h-10 sm:h-11 rounded-full transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 shadow-sm"
                 >
                     <img
-                        src={user.avatar || "/images/placeholder-avatar.png"}
+                        src={"https://fls-9fd96a88-703c-423b-a3c6-5b74b203b091.laravel.cloud/"+user.avatar}
                         alt={user.name}
                         className="h-8 w-8 rounded-full object-contain border border-gray-300 dark:border-gray-600"
                     />
@@ -276,18 +276,11 @@ export default function Index() {
             {book.subcategory && (
                 <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300"><span className="font-semibold">ប្រភេទរង:</span> {book.subcategory.name}</p>
             )}
-            {book.type === 'physical' ? (
+            {book.type === 'physical' && (
                 <div className={`flex items-center text-sm sm:text-base font-semibold ${book.is_available ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                     {book.is_available ? <CheckCircle className="w-4 sm:w-5 h-4 sm:h-5 mr-1 text-green-500" /> : <XCircle className="w-4 sm:w-5 h-4 sm:h-5 mr-1 text-red-500" />}
                     ស្ថានភាព: {book.is_available ? 'មិនទាន់ខ្ចី' : 'ត្រូវបានខ្ចី'}
                 </div>
-            ) : (
-                book.view !== undefined && (
-                    <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 flex items-center">
-                        <Eye className="w-4 sm:w-5 h-4 sm:h-5 mr-2 text-blue-500 dark:text-blue-400" />
-                        {book.view?.toLocaleString()}
-                    </p>
-                )
             )}
             <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 space-y-1.5 pt-3 border-t border-gray-200 dark:border-gray-600">
                 {book.publisher && <p><span className="font-medium text-gray-700 dark:text-gray-300">បោះពុម្ពផ្សាយ:</span> {book.publisher}</p>}
@@ -326,6 +319,20 @@ export default function Index() {
                             ទាញយក
                         </a>
                     )}
+                    {/*route to Library Client Show(not implement yet*/}
+                    <a
+                        href={"#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`group text-xs sm:text-sm flex items-center font-semibold transition-all p-2 rounded-md w-full justify-start
+                  text-gray-700 dark:text-gray-300
+                  hover:bg-amber-50 dark:hover:bg-amber-800/50 hover:text-amber-700 dark:hover:text-amber-400`}
+                    >
+                        <Info className="w-4 sm:w-5 h-4 sm:h-5 mr-3 transition-colors
+                   text-amber-600 dark:text-amber-400
+                   group-hover:text-amber-700 dark:group-hover:text-amber-400" />
+                        មើលពណ៌មានបន្ថែម
+                    </a>
                 </div>
             )}
         </div>
@@ -337,114 +344,95 @@ export default function Index() {
 
             <div className="py-4 space-y-12 w-full max-w-full mx-auto px-4 sm:px-6 lg:px-12 xl:px-16 text-gray-900 dark:text-gray-100">
                 {/* Header */}
-                <header className="flex flex-col sm:flex-row items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4 gap-4">
-                    <div className="flex items-center space-x-4 sm:space-x-6 w-full sm:w-auto min-w-max">
-                        <Link href="/" className="flex items-center space-x-3">
-                            <img
-                                src="/images/DIS(no back).png"
-                                alt="Logo"
-                                className="h-12 sm:h-14 w-12 sm:w-14 object-contain filter drop-shadow-lg"
-                            />
-                        </Link>
-                        <Select value={currentLibrary} onValueChange={handleLibraryChange}>
-                            <SelectTrigger className={`w-[200px] bg-white border border-gray-300 text-gray-900 hover:border-gray-400
-                                      dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:border-gray-600
-                                      focus:ring-${accentColor}-500 transition rounded-full text-sm sm:text-base`}>
-                                <SelectValue placeholder="Select Library" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-white border-gray-200 text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                                <SelectItem value="global">បណ្ណាល័យសកល</SelectItem>
-                                <SelectItem value="local">បណ្ណាល័យក្នុងសាខា</SelectItem>
-                                <SelectItem value="ebook">បណ្ណាល័យអេឡិចត្រូនិក</SelectItem>
-                            </SelectContent>
-                        </Select>
+                <header className="flex flex-col border-b border-gray-100 dark:border-gray-800 pb-4 gap-4 px-2
+                   sm:flex-row sm:items-center sm:justify-between sm:pb-4">
+
+                    {/* NEW CONTAINER for Logo and Mobile Controls (for the top row on mobile) */}
+                    <div className="flex items-center justify-between w-full sm:w-auto">
+
+                        {/* 1. Logo Section (Left Aligned) - NO CHANGE */}
+                        <div className="flex items-center space-x-4 sm:space-x-6 min-w-max">
+                            <Link href="/" className="flex items-center space-x-3">
+                                <img
+                                    src="/images/DIS(no back).png"
+                                    alt="Logo"
+                                    className="h-12 sm:h-14 w-14 sm:w-14 object-fit"
+                                />
+                            </Link>
+                        </div>
+
+                        {/* 3. User Controls Section (Right Aligned on Mobile) - MODIFIED */}
+                        <div className="flex justify-end items-center min-w-max sm:hidden">
+                            {/* Hamburger Button (Menu Lucide Icon) for Small Screens */}
+                            <Button
+                                variant="ghost"
+                                className="p-2" // Removed sm:hidden as this div is hidden on sm
+                                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                            >
+                                {isMenuOpen ? (
+                                    <X className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+                                ) : (
+                                    <Menu className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+                                )}
+                            </Button>
+                        </div>
+
                     </div>
-                    <div className="relative w-full max-w-md sm:max-w-lg">
+
+                    {/* 2. Search Bar Section (Center Aligned on Desktop, Full Width on Mobile) - NO CHANGE */}
+                    <div className="relative w-full max-w-md sm:max-w-lg sm:mx-auto ">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 sm:h-5 w-4 sm:w-5 text-gray-400 dark:text-gray-500" />
                         <Input
                             placeholder="ស្វែងរក"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className={`w-full bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500 rounded-full shadow-inner pl-10 h-10 sm:h-11
-                      dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:placeholder-gray-500
+                    dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:placeholder-gray-500
                       focus:ring-2 focus:ring-${accentColor}-500 focus:border-${accentColor}-500 transition-all pr-3 text-sm sm:text-base`}
                         />
                     </div>
-                    <div className="w-full sm:w-auto flex justify-end items-center">
-                        {/* Hamburger Button for Small Screens */}
-                        <Button
-                            variant="ghost"
-                            className="sm:hidden p-2"
-                            onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        >
-                            <svg
-                                className="w-6 h-6 text-gray-600 dark:text-gray-300"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d={isMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}
-                                />
-                            </svg>
-                        </Button>
 
-                        {/* Mobile Menu */}
-                        {isMenuOpen && (
-                            <div className="sm:hidden absolute top-16 right-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4 w-48 z-50">
-                                {isAuthenticated ? (
-                                    <>
-                                        <div className="flex flex-col space-y-2 mb-4">
-                                            <span className="text-lg font-bold text-gray-900 dark:text-white">{auth.user!.name}</span>
-                                            <span className="text-sm text-gray-500 dark:text-gray-400">{auth.user!.email}</span>
-                                        </div>
-                                        <button
-                                            onClick={() => {
-                                                router.post(route('logout'), {}, {
-                                                    onSuccess: () => setIsMenuOpen(false),
-                                                });
-                                            }}
-                                            className="flex items-center space-x-2 py-2 text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md w-full text-left"
-                                        >
-                                            <LogOut className="w-5 h-5" />
-                                            <span>Logout</span>
-                                        </button>
-                                    </>
-                                ) : (
-                                    <Link
-                                        href={route("login")}
-                                        className="flex items-center space-x-2 py-2 text-cyan-600 dark:text-cyan-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
-                                        onClick={() => setIsMenuOpen(false)}
-                                    >
-                                        <LogIn className="w-5 h-5" />
-                                        <span>Sign In</span>
-                                    </Link>
-                                )}
-                            </div>
-                        )}
-
+                    {/* 3. User Controls Section (Right Aligned) - DESKTOP ONLY */}
+                    <div className="hidden sm:w-auto sm:flex justify-end items-center min-w-max">
                         {/* User Menu for Larger Screens */}
-                        <div className="hidden sm:flex justify-center sm:justify-end">
+                        {isAuthenticated && (
+                            <NavUser user={auth.user!} />
+                        )}
+                    </div>
+
+                    {/* Mobile Menu (Positioning adjusted to be relative to the header) - Keep this as is */}
+                    {isMenuOpen && (
+                        <div className="sm:hidden absolute top-20 right-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-2xl p-4 w-48 z-50">
                             {isAuthenticated ? (
-                                <NavUser user={auth.user!} />
-                            ) : (
-                                <Link href={route("login")}>
-                                    <Button
-                                        variant="outline"
-                                        className={`bg-transparent border-${accentColor}-500 text-${accentColor}-600 dark:border-${accentColor}-400 dark:text-${accentColor}-400
-                                   hover:bg-${accentColor}-50 dark:hover:bg-${accentColor}-900/50 transition-colors shadow-sm rounded-full text-sm sm:text-base px-3 sm:px-4 h-10 sm:h-11`}
+                                <>
+                                    <div className="flex flex-col space-y-2 mb-4 border-b pb-3 border-gray-100 dark:border-gray-700">
+                                        <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">{auth.user!.name}</span>
+                                        <span className="text-xs text-gray-500 dark:text-gray-400 truncate">{auth.user!.email}</span>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            router.post(route('logout'), {}, {
+                                                onSuccess: () => setIsMenuOpen(false),
+                                            });
+                                        }}
+                                        className="flex items-center space-x-2 py-2 text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md w-full text-left"
                                     >
-                                        <LogIn className="w-4 sm:w-5 h-4 sm:h-5 mr-2" />
-                                        Sign In
-                                    </Button>
+                                        <LogOut className="w-4 h-4" />
+                                        <span>Logout</span>
+                                    </button>
+                                </>
+                            ) : (
+                                <Link
+                                    href={route("login")}
+                                    className="flex items-center space-x-2 py-2 text-cyan-600 dark:text-cyan-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                                    onClick={() => setIsMenuOpen(false)}
+                                >
+                                    <LogIn className="w-4 h-4" />
+                                    <span>Sign In</span>
                                 </Link>
                             )}
                         </div>
-                    </div>
+                    )}
                 </header>
 
                 {flash.message && (
@@ -455,6 +443,20 @@ export default function Index() {
 
                 {/* Filters */}
                 <div className="flex flex-col sm:flex-row flex-wrap items-center gap-x-4 sm:gap-x-6 gap-y-4 justify-center">
+                    {/* Library Selector: Updated for full responsiveness */}
+                    <Select value={currentLibrary} onValueChange={handleLibraryChange}>
+                        <SelectTrigger className={`w-full sm:w-auto min-w-max bg-white border border-gray-300 text-gray-900 hover:border-gray-400
+                                                dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:border-gray-600
+                                                  focus:ring-${accentColor}-500 transition rounded-full text-sm sm:text-base text-center
+                                                  `}>
+                            <SelectValue placeholder="Select Library" className="whitespace-nowrap" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border-gray-200 text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                            <SelectItem value="global">បណ្ណាល័យសកល</SelectItem>
+                            <SelectItem value="local">បណ្ណាល័យក្នុងក្នុងតំបន់</SelectItem>
+                            <SelectItem value="ebook">បណ្ណាល័យអេឡិចត្រូនិក</SelectItem>
+                        </SelectContent>
+                    </Select>
                     {[
                         { label: "ប្រភេទ", value: filterCategory, onChange: setFilterCategory, options: categories },
                         { label: "ប្រភេទរង", value: filterSubCategory, onChange: setFilterSubCategory, options: subcategories },
@@ -462,8 +464,8 @@ export default function Index() {
                         { label: "កម្រិតថ្នាក់", value: filterGrade, onChange: setFilterGrade, options: grades },
                         { label: "មុខវិជ្ជា", value: filterSubject, onChange: setFilterSubject, options: subjects },
                         ...(bookType === 'physical' ? [
-                            { label: "ទូរសៀវភៅ", value: filterBookcase, onChange: setFilterBookcase, options: bookcases },
-                            { label: "ធ្នើរ", value: filterShelf, onChange: setFilterShelf, options: shelves },
+                            // { label: "ទូរសៀវភៅ", value: filterBookcase, onChange: setFilterBookcase, options: bookcases },
+                            // { label: "ធ្នើរ", value: filterShelf, onChange: setFilterShelf, options: shelves },
                         ] : []),
                         ...(bookType === 'physical' && scope !== 'local' ? [
                             { label: "ទីតាំង", value: filterCampus, onChange: setFilterCampus, options: campuses },
@@ -472,8 +474,8 @@ export default function Index() {
                         <Select key={label} value={value} onValueChange={onChange}>
                             <SelectTrigger
                                 className={`w-full sm:w-40 md:w-48 bg-white border border-gray-300 text-gray-900 hover:border-gray-400
-                                          dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:border-gray-600
-                                          focus:ring-${accentColor}-500 transition rounded-full text-sm sm:text-base text-center`}
+                          dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:border-gray-600
+                          focus:ring-${accentColor}-500 transition rounded-full text-sm sm:text-base text-center`}
                             >
                                 <SelectValue placeholder={label} />
                             </SelectTrigger>
@@ -487,20 +489,21 @@ export default function Index() {
                             </SelectContent>
                         </Select>
                     ))}
-                    <Select value={sortBy} onValueChange={setSortBy}>
-                        <SelectTrigger className={`w-full sm:w-40 md:w-48 bg-white border border-gray-300 text-gray-900 hover:border-gray-400
-                                                 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:border-gray-600
-                                                 focus:ring-${accentColor}-500 transition font-semibold rounded-full text-sm sm:text-base text-center`}
-                        >
-                            <ArrowDownUp className="h-4 w-4 mr-2 text-gray-500 dark:text-gray-400" />
-                            <SelectValue placeholder="Sort By" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white border-gray-200 text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-white min-w-[150px] max-w-[90vw]">
-                            <SelectItem value="Newest" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">ថ្មីបំផុត</SelectItem>
-                            <SelectItem value="Title A-Z" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">ចំណងជើង(ក-អ)</SelectItem>
-                            <SelectItem value="Most Viewed" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">ពេញនិយម</SelectItem>
-                        </SelectContent>
-                    </Select>
+                    {/* Sort Selector*/}
+                    {/*<Select value={sortBy} onValueChange={setSortBy}>*/}
+                    {/*    <SelectTrigger className={`w-full sm:w-40 md:w-48 bg-white border border-gray-300 text-gray-900 hover:border-gray-400*/}
+                    {/*             dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:border-gray-600*/}
+                    {/*             focus:ring-${accentColor}-500 transition font-semibold rounded-full text-sm sm:text-base text-center`}*/}
+                    {/*    >*/}
+                    {/*        <ArrowDownUp className="h-4 w-4 mr-2 text-gray-500 dark:text-gray-400" />*/}
+                    {/*        <SelectValue placeholder="Sort By" />*/}
+                    {/*    </SelectTrigger>*/}
+                    {/*    <SelectContent className="bg-white border-gray-200 text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-white min-w-[150px] max-w-[90vw]">*/}
+                    {/*        <SelectItem value="Newest" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">ថ្មីបំផុត</SelectItem>*/}
+                    {/*        <SelectItem value="Title A-Z" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">ចំណងជើង(ក-អ)</SelectItem>*/}
+                    {/*        <SelectItem value="Most Viewed" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">ពេញនិយម</SelectItem>*/}
+                    {/*    </SelectContent>*/}
+                    {/*</Select>*/}
                 </div>
 
                 {/* Book Grid */}

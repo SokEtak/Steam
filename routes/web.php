@@ -33,8 +33,6 @@ Route::get('/auth/facebook/callback', function () {
         ->setHttpClient(new Client(['verify' => false])) // remove this if you fix SSL certs
         ->user();
 
-//    dd($facebookUser);
-
     // Handle missing email
     $email = $facebookUser->getEmail() ?? $facebookUser->getId().'@facebook.local';
 
