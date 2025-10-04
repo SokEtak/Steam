@@ -19,7 +19,45 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Socialite\Facades\Socialite;
 
+
 //Socialite Practice
+
+Route::get('/auth/google', function () {
+    return Socialite::driver('google')
+        ->scopes(['openid','email','profile'])
+        ->redirect();
+});
+
+Route::get('/auth/google/callback', function () {
+    $googleUser = Socialite::driver('google')
+        ->stateless()
+        ->setHttpClient(new Client(['verify' => false]))//disable for production
+        ->user();
+    dd($googleUser);
+    $email = $googleUser->getEmail();
+
+    // Check if email domain matches @diu.edu.kh
+    if (!$email || !str_ends_with($email, '@diu.edu.kh')) {
+        return response('⚠️ Danger: Only @diu.edu.kh emails are allowed!', 403);
+    }
+
+    // ✅ Allowed, proceed
+    $user = User::updateOrCreate(
+        ['google_id' => $googleUser->getId()],
+        [
+            'name' => $googleUser->getName(),
+            'email' => $email,
+            'avatar' => $googleUser->getAvatar(),
+            'password' => Hash::make(Str::random(24)),
+        ]
+    );
+
+    Auth::login($user);
+
+    return redirect('/home');
+});
+
+//facebook
 Route::get('/auth/facebook', function () {
     return Socialite::driver('facebook')
         ->scopes(['email'])
@@ -30,7 +68,7 @@ Route::get('/auth/facebook/callback', function () {
     // Get user from Facebook
     $facebookUser = Socialite::driver('facebook')
         ->stateless()
-        ->setHttpClient(new Client(['verify' => false])) // remove this if you fix SSL certs
+        ->setHttpClient(new Client(['verify' => false])) //disable for production
         ->user();
 
     // Handle missing email
