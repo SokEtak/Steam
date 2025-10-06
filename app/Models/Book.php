@@ -29,6 +29,7 @@ class Book extends Model
         'page_count',
         'publisher',
         'language',
+        'program',
         'published_at',
         'cover',
         'pdf_url',

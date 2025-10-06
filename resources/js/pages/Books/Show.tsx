@@ -3,7 +3,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
-import { Copy, Check, X } from 'lucide-react';
+import { Copy, Check, X, ArrowRight, ArrowLeft } from 'lucide-react';
 
 interface User {
     id: number;
@@ -68,6 +68,7 @@ interface Book {
     page_count: number | null;
     publisher: string | null;
     language: string | null;
+    program: string | null;
     published_at: string | null;
     author: string | null;
     type: string | null;
@@ -108,12 +109,11 @@ export default function BooksShow({ book }: BooksShowProps) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Book Details" />
             <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 p-6">
-                <div className="max-w-6xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-10">
-                    <h1 className="text-4xl font-extrabold text-gray-800 dark:text-gray-100 mb-10 tracking-tight">Book Details</h1>
+                <div className="max-w-1xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-10">
                     {book.cover && (
                         <div className="mb-10 flex justify-center">
                             <img
-                                src={`/storage/${book.cover}`}
+                                src={book.cover}
                                 alt="Book Cover"
                                 className="w-full max-w-sm rounded-xl shadow-lg hover:scale-105 hover:shadow-xl transition-transform duration-300 cursor-pointer"
                                 onClick={toggleModal}
@@ -135,6 +135,11 @@ export default function BooksShow({ book }: BooksShowProps) {
                                         ? 'Khmer'
                                         : 'N/A',
                                 field: 'language'
+                            },
+                            {
+                                label: 'Program',
+                                value: book.program || 'N/A',
+                                field: 'program',
                             },
                             {
                                 label: 'Published At',
@@ -330,14 +335,9 @@ export default function BooksShow({ book }: BooksShowProps) {
                         ))}
                     </div>
                     <div className="mt-12 flex gap-4 justify-center">
-                        <Link href={route('books.edit', book.id)}>
-                            <Button className="bg-indigo-600 text-white hover:bg-indigo-700 px-8 py-3 rounded-lg font-semibold transition-colors duration-200">
-                                Edit
-                            </Button>
-                        </Link>
                         <Link href={route('books.index')}>
-                            <Button className="border-2 border-gray-400 text-gray-600 dark:border-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 px-8 py-3 rounded-lg font-semibold transition-colors duration-200">
-                                Back
+                            <Button className="border-2  px-8 py-3 rounded-lg font-semibold cursor-pointer">
+                                <ArrowLeft/> Go Back Book List
                             </Button>
                         </Link>
                     </div>

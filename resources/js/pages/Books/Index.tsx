@@ -52,7 +52,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Books',
+        title: 'សៀវភៅទាំងអស់',
         href: '/books',
     },
 ];
@@ -143,6 +143,7 @@ interface Book {
     subject_id: number;
     grade_id: number;
     campus_id: number;
+    program: string;
     created_at: string;
     updated_at: string;
     category?: {
@@ -199,7 +200,7 @@ const getColumns = (
     return [
         {
             accessorKey: 'code',
-            header: 'Code',
+            header: 'លេខកូដសម្គាល់',
             cell: ({ row }) => <div className="px-0">{row.getValue('code') || 'N/A'}</div>,
             enableHiding: true,
         },
@@ -207,7 +208,7 @@ const getColumns = (
             accessorKey: 'title',
             header: ({ column }) => (
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                    Title
+                    ចំណងជើង
                     {column.getIsSorted() === 'asc' ? (
                         <ArrowUp className="ml-2 h-4 w-4" />
                     ) : column.getIsSorted() === 'desc' ? (
@@ -223,7 +224,7 @@ const getColumns = (
             accessorKey: 'author',
             header: ({ column }) => (
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                    Author
+                    អ្នកនិពន្ធ
                     {column.getIsSorted() === 'asc' ? (
                         <ArrowUp className="ml-2 h-4 w-4" />
                     ) : column.getIsSorted() === 'desc' ? (
@@ -237,13 +238,13 @@ const getColumns = (
         },
         {
             accessorKey: 'cover',
-            header: 'Cover',
+            header: 'ក្របសៀវភៅ',
             cell: ({ row }) =>
                 row.getValue('cover') ? (
                     //for local
                     // <img src={'/storage/' + row.getValue('cover')} alt="Book cover" className="h-12 w-8 object-cover" />
                     //for production
-                    <img src={row.getValue('cover')} alt="Book cover" className="h-12 w-8 object-cover" />
+                    <img src={row.getValue('cover')} alt="Book cover" className="h-12 w-8 object-fill" />
                 ) : (
                     <ImageOff className="h-10 w-8 text-red-500 dark:text-red-300" />
                 ),
@@ -252,7 +253,7 @@ const getColumns = (
         },
         {
             accessorKey: 'description',
-            header: 'Description',
+            header: 'ការពណ៌នា',
             cell: ({ row }) => <div className="max-w-xs truncate px-3">{row.getValue('description') || 'N/A'}</div>,
             enableHiding: true,
         },
@@ -260,7 +261,7 @@ const getColumns = (
             accessorKey: 'page_count',
             header: ({ column }) => (
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                    Page Count
+                    ចំនួនទំព័រ
                     {column.getIsSorted() === 'asc' ? (
                         <ArrowUp className="ml-2 h-4 w-4" />
                     ) : column.getIsSorted() === 'desc' ? (
@@ -277,7 +278,7 @@ const getColumns = (
             accessorKey: 'publisher',
             header: ({ column }) => (
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                    Publisher
+                    បោះពុម្ពផ្សាយ
                     {column.getIsSorted() === 'asc' ? (
                         <ArrowUp className="h-4 w-4" />
                     ) : column.getIsSorted() === 'desc' ? (
@@ -298,7 +299,7 @@ const getColumns = (
 
                 return (
                     <div className="flex items-center space-x-2">
-                        <span>Language</span>
+                        <span>ភាសា</span>
                         <DropdownMenu open={isLanguageDropdownOpen} onOpenChange={setIsLanguageDropdownOpen}>
                             <TooltipProvider>
                                 <Tooltip>
@@ -322,12 +323,12 @@ const getColumns = (
                                     }}
                                 >
                                     <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select Language" />
+                                        <SelectValue placeholder="សូមជ្រើសរើសភាសា" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="All">All Languages</SelectItem>
-                                        <SelectItem value="en">English</SelectItem>
-                                        <SelectItem value="kh">Khmer</SelectItem>
+                                        <SelectItem value="All">ភាសាទាំងអស់</SelectItem>
+                                        <SelectItem value="en">ភាសាអង់គ្លេស</SelectItem>
+                                        <SelectItem value="kh">ភាសាខ្មែរ</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </DropdownMenuContent>
@@ -337,14 +338,76 @@ const getColumns = (
             },
             cell: ({ row }) => {
                 const language = row.getValue('language');
-                const displayLanguage = language === 'en' ? 'English' : language === 'kh' ? 'Khmer' : 'N/A';
-                return <div className="px-3">{displayLanguage}</div>;
+                const displayLanguage = language === 'en' ? 'ភាសាអង់គ្លេស' : language === 'kh' ? 'ភាសាខ្មែរ' : 'N/A';
+                return <div className="px-0">{displayLanguage}</div>;
             },
             filterFn: (row, columnId, filterValue) => {
                 const language = String(row.getValue(columnId)).toLowerCase();
                 return filterValue === '' || language === filterValue.toLowerCase();
             },
             enableSorting: false,
+            enableHiding: true,
+        },
+        {
+            accessorKey: 'program',
+            header: ({ column }) => {
+                const filterValue = (column.getFilterValue() || '') as string;
+                const [isProgramDropdownOpen, setIsProgramDropdownOpen] = useState(false);
+                return (
+                    <div className="flex items-center space-x-2">
+                        <Button
+                            variant="ghost"
+                            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+                        >
+                            កម្មវិធីសិក្សា
+                        </Button>
+                        <DropdownMenu open={isProgramDropdownOpen} onOpenChange={setIsProgramDropdownOpen}>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 data-[state=open]:bg-accent">
+                                                <FilterIcon className={`h-4 w-4 ${filterValue ? 'text-blue-500' : 'text-gray-400'}`} />
+                                                <span className="sr-only">Open filter menu</span>
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Filter by Program</TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                            <DropdownMenuContent align="start" className="w-[180px] p-2">
+                                <Select
+                                    value={filterValue}
+                                    onValueChange={(value) => {
+                                        column.setFilterValue(value === 'All' ? '' : value);
+                                        setIsProgramDropdownOpen(false);
+                                    }}
+                                >
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="ជ្រើសរើសកម្មវិធី" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="All">កម្មវិធីសិក្សាទាំងអស់</SelectItem>
+                                        <SelectItem value="Cambodia">កម្មវិធីខ្មែរ</SelectItem>
+                                        <SelectItem value="American">កម្មវិធីអាមេរិកកាំង</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                );
+            },
+            cell: ({ row }) => <div className="px-10">{row.getValue('program') || 'N/A'}</div>,
+            filterFn: (row, columnId, filterValue) => {
+                if (!filterValue || filterValue === 'All') return true;
+                return String(row.getValue(columnId)).toLowerCase().includes(String(filterValue).toLowerCase());
+            },
+            sortingFn: (rowA, rowB, columnId) => {
+                const valueA = String(rowA.getValue(columnId) || '').toLowerCase();
+                const valueB = String(rowB.getValue(columnId) || '').toLowerCase();
+                return valueA.localeCompare(valueB);
+            },
+            enableSorting: true,
             enableHiding: true,
         },
         {
@@ -359,7 +422,7 @@ const getColumns = (
                             variant="ghost"
                             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
                         >
-                            Published Year
+                            ឆ្នាំបោះពុម្ព
                             {column.getIsSorted() === 'asc' ? (
                                 <ArrowUp className="ml-2 h-4 w-4" />
                             ) : column.getIsSorted() === 'desc' ? (
@@ -409,7 +472,7 @@ const getColumns = (
             },
             cell: ({ row }) => {
                 const publishedAt = row.getValue('published_at');
-                return <div className="px-2">{publishedAt ? publishedAt : 'N/A'}</div>;
+                return <div className="px-6">{publishedAt ? publishedAt : 'N/A'}</div>;
             },
             filterFn: (row, columnId, filterValue) => {
                 const filterYearString = String(filterValue);
@@ -429,7 +492,7 @@ const getColumns = (
         },
         {
             accessorKey: 'pdf_url',
-            header: 'PDF',
+            header: 'ឯកសារ(PDF)',
             cell: ({ row }) =>
                 row.getValue('pdf_url') ? (
                     // <a href={'/storage/' + row.getValue('pdf_url')} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
@@ -444,7 +507,7 @@ const getColumns = (
         },
         {
             accessorKey: 'flip_link',
-            header: 'Flip Link',
+            header: 'លីងសៀវភៅឌីជីថល',
             cell: ({ row }) =>
                 row.getValue('flip_link') ? (
                     <a href={row.getValue('flip_link')} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
@@ -460,7 +523,7 @@ const getColumns = (
             accessorKey: 'view',
             header: ({ column }) => (
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                    Views
+                    ចំនួនអ្នកមើល
                     {column.getIsSorted() === 'asc' ? (
                         <ArrowUp className="ml-2 h-4 w-4" />
                     ) : column.getIsSorted() === 'desc' ? (
@@ -482,7 +545,7 @@ const getColumns = (
                 return (
                     <div className="flex items-center space-x-2">
                         <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                            Availability
+                            ស្ថានភាពសៀវភៅ
                         </Button>
                         <DropdownMenu open={isAvailabilityDropdownOpen} onOpenChange={setIsAvailabilityDropdownOpen}>
                             <TooltipProvider>
@@ -507,12 +570,12 @@ const getColumns = (
                                     }}
                                 >
                                     <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select Availability" />
+                                        <SelectValue placeholder="ជ្រើសរើសស្ថានភាព" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="All">All</SelectItem>
-                                        <SelectItem value="true">Available</SelectItem>
-                                        <SelectItem value="false">Not Available</SelectItem>
+                                        <SelectItem value="All">ទាំងអស់</SelectItem>
+                                        <SelectItem value="true">មិនទាន់ខ្ចី</SelectItem>
+                                        <SelectItem value="false">ត្រូវបានខ្ចី</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </DropdownMenuContent>
@@ -521,7 +584,7 @@ const getColumns = (
                 );
             },
             cell: ({ row }) =>
-                <div className="px-10">{row.getValue('is_available')
+                <div className="px-12">{row.getValue('is_available')
                 ?   <EyeIcon className={"text-blue-500 dark:text-blue-300"}/> :
                     <EyeOff className={"text-red-500 dark:text-red-300"}/>}
                 </div>,
@@ -556,7 +619,7 @@ const getColumns = (
 
                 return (
                     <div className="flex items-center space-x-2">
-                        <span>Type</span>
+                        <span>ប្រភេទសៀវភៅ</span>
                         <DropdownMenu open={isTypeDropdownOpen} onOpenChange={setIsTypeDropdownOpen}>
                             <TooltipProvider>
                                 <Tooltip>
@@ -580,12 +643,12 @@ const getColumns = (
                                     }}
                                 >
                                     <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select Type" />
+                                        <SelectValue placeholder="ប្រភេទសៀបវភៅ" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="All">All Book Types</SelectItem>
-                                        <SelectItem value="physical">Physical</SelectItem>
-                                        <SelectItem value="ebook">E-Book</SelectItem>
+                                        <SelectItem value="All">ប្រភេទសៀបវភៅទាំងអស់</SelectItem>
+                                        <SelectItem value="physical">សៀវភៅ</SelectItem>
+                                        <SelectItem value="ebook">សៀវភៅឌីជីថល</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </DropdownMenuContent>
@@ -593,12 +656,18 @@ const getColumns = (
                     </div>
                 );
             },
-            cell: ({ row }) => <div className="px-3 capitalize">{row.getValue('type') || 'N/A'}</div>,
+            cell: ({ row }) => {
+                const type = row.getValue('type');
+                const displayText = type === 'physical' ? 'សៀវភៅ' : type === 'ebook' ? 'សៀវភៅឌីជីថល' : 'N/A';
+                return <div className="px-3 capitalize">{displayText}</div>;
+            },
             filterFn: (row, columnId, filterValue) => {
                 if (filterValue === '' || filterValue === 'All') {
                     return true;
                 }
-                return String(row.getValue(columnId)).toLowerCase() === filterValue.toLowerCase();
+                const rowValue = String(row.getValue(columnId)).toLowerCase();
+                const filterLower = filterValue.toLowerCase();
+                return rowValue === filterLower;
             },
             enableSorting: false,
             enableHiding: true,
@@ -611,7 +680,7 @@ const getColumns = (
 
                 return (
                     <div className="flex items-center space-x-2">
-                        <span>Downloadable</span>
+                        <span>ទាញយក</span>
                         <DropdownMenu open={isDownloadableDropdownOpen} onOpenChange={setIsDownloadableDropdownOpen}>
                             <TooltipProvider>
                                 <Tooltip>
@@ -638,9 +707,9 @@ const getColumns = (
                                         <SelectValue placeholder="Select" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="All">All</SelectItem>
-                                        <SelectItem value="1">Downloadable</SelectItem>
-                                        <SelectItem value="0">Not Downloadable</SelectItem>
+                                        <SelectItem value="All">ទាំងអស់</SelectItem>
+                                        <SelectItem value="1">ទាញយកបាន</SelectItem>
+                                        <SelectItem value="0">ទាញយកបានមិនបាន</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </DropdownMenuContent>
@@ -649,7 +718,7 @@ const getColumns = (
                 );
             },
             cell: ({ row }) =>
-                <div className="px-10">{row.getValue('downloadable') === 1 ?
+                <div className="px-4">{row.getValue('downloadable') === 1 ?
                 <Download className={"text-blue-500 dark:text-blue-300"}/> : <Download className={"text-red-500 dark:text-red-300"}/>}</div>,
             filterFn: (row, columnId, filterValue) => {
                 if (filterValue === '' || filterValue === 'All') {
@@ -670,7 +739,7 @@ const getColumns = (
 
                         return (
                             <div className="flex items-center space-x-2">
-                                Posted By
+                                ចែកចាយដោយ
                                 <DropdownMenu open={isPostedByDropdownOpen} onOpenChange={setIsPostedByDropdownOpen}>
                                     <TooltipProvider>
                                         <Tooltip>
@@ -733,7 +802,7 @@ const getColumns = (
 
                 return (
                     <div className="flex items-center space-x-2">
-                        <span>Category</span>
+                        <span>ប្រភេទ</span>
                         <DropdownMenu open={isCategoryDropdownOpen} onOpenChange={setIsCategoryDropdownOpen}>
                             <TooltipProvider>
                                 <Tooltip>
@@ -757,10 +826,10 @@ const getColumns = (
                                     }}
                                 >
                                     <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select Category" />
+                                        <SelectValue placeholder="ជ្រើសរើសប្រភេទ" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="All">All Categories</SelectItem>
+                                        <SelectItem value="All">ប្រភេទទាំងអស់</SelectItem>
                                         {availableCategories.map((category) => (
                                             <SelectItem key={category.id} value={category.name}>
                                                 {category.name}
@@ -788,7 +857,7 @@ const getColumns = (
 
                 return (
                     <div className="flex items-center space-x-2">
-                        <span>Bookcase</span>
+                        <span>ទូរសៀវភៅ</span>
                         <DropdownMenu open={isBookcaseDropdownOpen} onOpenChange={setIsBookcaseDropdownOpen}>
                             <TooltipProvider>
                                 <Tooltip>
@@ -812,10 +881,10 @@ const getColumns = (
                                     }}
                                 >
                                     <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select Bookcase" />
+                                        <SelectValue placeholder="ជ្រើសរើស" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="All">All Bookcases</SelectItem>
+                                        <SelectItem value="All">ទូរសៀវភៅទាំងអស់</SelectItem>
                                         {availableBookcases
                                             .sort((a, b) => (a.code || '').localeCompare(b.code || ''))
                                             .map((bookcase) => (
@@ -846,7 +915,7 @@ const getColumns = (
 
                 return (
                     <div className="flex items-center space-x-2">
-                        <span>Shelf</span>
+                        <span>លេខកូដធ្នើរសៀវភៅ</span>
                         <DropdownMenu open={isShelfDropdownOpen} onOpenChange={setIsShelfDropdownOpen}>
                             <TooltipProvider>
                                 <Tooltip>
@@ -870,10 +939,10 @@ const getColumns = (
                                     }}
                                 >
                                     <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select Shelf" />
+                                        <SelectValue placeholder="ជ្រើសរើស" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="All">All Shelves</SelectItem>
+                                        <SelectItem value="All">ធ្នើរសៀវភៅទាំងអស់</SelectItem>
                                         {availableShelves
                                             .sort((a, b) => (a.code || '').localeCompare(b.code || ''))
                                             .map((shelf) => (
@@ -906,7 +975,7 @@ const getColumns = (
 
                         return (
                             <div className="flex items-center space-x-2">
-                                <span>Campus</span>
+                                <span>សាខា</span>
                                 <DropdownMenu open={isCampusDropdownOpen} onOpenChange={setIsCampusDropdownOpen}>
                                     <TooltipProvider>
                                         <Tooltip>
@@ -930,10 +999,10 @@ const getColumns = (
                                             }}
                                         >
                                             <SelectTrigger className="w-full">
-                                                <SelectValue placeholder="Select Campus" />
+                                                <SelectValue placeholder="ជ្រើសរើសសាខា" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="All">All Campuses</SelectItem>
+                                                <SelectItem value="All">គ្រប់សាខា</SelectItem>
                                                 {availableCampuses
                                                     .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
                                                     .map((campus) => (
@@ -991,7 +1060,7 @@ const getColumns = (
                                     }}
                                 >
                                     <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select Subcategory" />
+                                        <SelectValue placeholder="ប្រភេទរង" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="All">All Subcategories</SelectItem>
@@ -1003,7 +1072,7 @@ const getColumns = (
                                             ))
                                         ) : (
                                             <SelectItem value="none" disabled>
-                                                No subcategories available
+                                                គ្មានប្រភេទរងសម្រាប់ជ្រើសរើស
                                             </SelectItem>
                                         )}
                                     </SelectContent>
@@ -1031,7 +1100,7 @@ const getColumns = (
 
                 return (
                     <div className="flex items-center space-x-2">
-                        <span>Grade</span>
+                        <span>កម្រិតថ្នាក់</span>
                         <DropdownMenu open={isGradeDropdownOpen} onOpenChange={setIsGradeDropdownOpen}>
                             <TooltipProvider>
                                 <Tooltip>
@@ -1055,13 +1124,13 @@ const getColumns = (
                                     }}
                                 >
                                     <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select Grade" />
+                                        <SelectValue placeholder="ជ្រើសរើសកម្រិតថ្នាក់" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="All">All Grades</SelectItem>
+                                        <SelectItem value="All">កម្រិតថ្នាក់ទាំងអស់</SelectItem>
                                         {grades.map((grade) => (
                                             <SelectItem key={grade.id} value={grade.name}>
-                                                {grade.name}
+                                                ថ្នាក់ទី {grade.name}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -1086,7 +1155,7 @@ const getColumns = (
 
                 return (
                     <div className="flex items-center space-x-2">
-                        <span>Subject</span>
+                        <span>មុខវិជ្ជា</span>
                         <DropdownMenu open={isSubjectDropdownOpen} onOpenChange={setIsSubjectDropdownOpen}>
                             <TooltipProvider>
                                 <Tooltip>
@@ -1110,10 +1179,10 @@ const getColumns = (
                                     }}
                                 >
                                     <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select Subject" />
+                                        <SelectValue placeholder="ជ្រើសរើសមុខវិជ្ជា" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="All">All Subjects</SelectItem>
+                                        <SelectItem value="All">មុខវិជ្ជាទាំងអស់</SelectItem>
                                         {availableSubjects.map((subject) => (
                                             <SelectItem key={subject.id} value={subject.name}>
                                                 {subject.name}
@@ -1137,7 +1206,7 @@ const getColumns = (
             accessorKey: 'created_at',
             header: ({ column }) => (
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                    Created At
+                    បង្កើតឡើងនៅ
                     {column.getIsSorted() === 'asc' ? (
                         <ArrowUp className="ml-2 h-4 w-4" />
                     ) : column.getIsSorted() === 'desc' ? (
@@ -1171,7 +1240,7 @@ const getColumns = (
             accessorKey: 'updated_at',
             header: ({ column }) => (
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                    Updated At
+                    ថ្ងៃកែប្រែរ
                     {column.getIsSorted() === 'asc' ? (
                         <ArrowUp className="ml-2 h-4 w-4" />
                     ) : column.getIsSorted() === 'desc' ? (
@@ -1261,6 +1330,7 @@ function BookIndex() {
         page_count: false,
         publisher: false,
         language: true,
+        program: true,
         pdf_url: false,
         flip_link: false,
         view: false,
@@ -1438,7 +1508,7 @@ function BookIndex() {
                     {/* Left: Search Input */}
                     <div className="flex items-center">
                         <Input
-                            placeholder="Search"
+                            placeholder="ស្វែងរក"
                             value={globalFilter ?? ''}
                             onChange={(event) => setGlobalFilter(event.target.value)}
                             className="sm:max-w-4xl max-w-2xl flex-grow sm:flex-grow-0"
@@ -1481,7 +1551,7 @@ function BookIndex() {
                                                 className="h-8 rounded-lg border-blue-200 bg-white text-sm text-blue-600 hover:bg-blue-50 dark:border-blue-600 dark:bg-gray-700 dark:text-blue-300 dark:hover:bg-blue-800"
                                                 disabled={isTableLoading || processing}
                                             >
-                                                <Columns2 className="h-4 w-4" /> Customize Columns <ChevronDown className="h-4 w-4" />
+                                                <Columns2 className="h-4 w-4" />
                                             </Button>
                                         </DropdownMenuTrigger>
                                     </TooltipTrigger>
@@ -1518,7 +1588,7 @@ function BookIndex() {
                                             className="h-8 rounded-lg border-cyan-200 bg-cyan-100 text-sm text-cyan-600 hover:bg-cyan-200 dark:border-cyan-600 dark:bg-gray-700 dark:text-cyan-300 dark:hover:bg-cyan-800"
                                             disabled={isTableLoading || processing}
                                         >
-                                            <Globe className="h-4 w-4 mr-2" /> Global Library
+                                            <Globe className="h-4 w-4 mr-2" /> បណ្ណាល័យសកល
                                         </Button>
                                     </Link>
                                 </TooltipTrigger>
@@ -1537,7 +1607,7 @@ function BookIndex() {
                                             className="h-8 rounded-lg border-yellow-200 bg-yellow-100 text-sm text-yellow-600 hover:bg-yellow-200 dark:border-yellow-600 dark:bg-gray-700 dark:text-yellow-300 dark:hover:bg-yellow-800"
                                             disabled={isTableLoading || processing}
                                         >
-                                            <Library className="h-4 w-4 mr-2" /> Local Library
+                                            <Library className="h-4 w-4 mr-2" /> បណ្ណាល័យក្នុងតំបន់
                                         </Button>
                                     </Link>
                                 </TooltipTrigger>
@@ -1556,7 +1626,7 @@ function BookIndex() {
                                             className="h-8 rounded-lg border-rose-200 bg-rose-100 text-sm text-rose-600 hover:bg-rose-200 dark:border-rose-600 dark:bg-gray-700 dark:text-rose-300 dark:hover:bg-rose-800"
                                             disabled={isTableLoading || processing}
                                         >
-                                            <BookOpen className="h-4 w-4 mr-2" /> E-Library
+                                            <BookOpen className="h-4 w-4 mr-2" /> បណ្ណាល័យអេឡិចត្រូនិច
                                         </Button>
                                     </Link>
                                 </TooltipTrigger>
@@ -1570,7 +1640,7 @@ function BookIndex() {
                     {/* Right: Filtered Books Count */}
                     <div className="flex items-center sm:justify-center">
                         <span className="text-sm font-medium">
-                          {`${table.getFilteredRowModel().rows.length} filtered out of ${books.length} books`}
+                          ចំនួនសៀវភៅ{`${table.getFilteredRowModel().rows.length} ក្បាលនៃ ${books.length} ត្រូវបានរកឃើញ `}
                         </span>
                     </div>
                 </div>
@@ -1630,14 +1700,13 @@ function BookIndex() {
                                 ) : (
                                     <TableRow>
                                         <TableCell colSpan={columns.length} className="h-24 text-center text-sm text-gray-600 dark:text-gray-300">
-                                            No results.
+                                            គ្មានទិន្នន័យ
                                         </TableCell>
                                     </TableRow>
                                 )}
                             </TableBody>
                     </Table>
 
-                    {/* Big Modal on Row Click */}
                     {/* Big Modal on Row Click */}
                     {rowModal && (
                         <div
@@ -1653,7 +1722,7 @@ function BookIndex() {
                                 onClick={(e) => e.stopPropagation()} // Prevent clicks inside the modal from bubbling up
                             >
                                 <div className="mb-4 flex items-center justify-between">
-                                    <h2 className="flex items-center gap-2 text-2xl font-bold text-blue-700 dark:text-blue-200">{rowModal.title}</h2>
+                                    <h2 className="flex items-center gap-2 text-2xl font-bold text-blue-700 dark:text-blue-200">ចំណងជើង:{rowModal.title}</h2>
                                     <Button
                                         variant="ghost"
                                         size="lg"
@@ -1667,34 +1736,39 @@ function BookIndex() {
                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:gap-6">
                                     {/* Book Info Section */}
                                     <div className="space-y-2">
-                                        <h3 className="text-lg font-semibold text-blue-600 dark:text-blue-300">Book Information</h3>
+                                        <h3 className="text-lg font-bold text-Orange-600 dark:text-orange-300">ពត៌មានមូលដ្ធាន</h3>
                                         <p>
-                                            <strong className="text-blue-600 dark:text-blue-300">Author:</strong> {rowModal.author || 'N/A'}
+                                            <strong className="text-blue-600 dark:text-blue-300">អ្នកនិពន្ធ:</strong> {rowModal.author || 'N/A'}
                                         </p>
                                         <p>
-                                            <strong className="text-blue-600 dark:text-blue-300">Description:</strong> {rowModal.description || 'N/A'}
+                                            <strong className="text-blue-600 dark:text-blue-300">ការពណ៌នា:</strong> {rowModal.description || 'N/A'}
                                         </p>
                                         <p>
-                                            <strong className="text-blue-600 dark:text-blue-300">Publisher:</strong> {rowModal.publisher || 'N/A'}
+                                            <strong className="text-blue-600 dark:text-blue-300">បោះពុម្ពផ្សាយ:</strong> {rowModal.publisher || 'N/A'}
                                         </p>
                                         <p>
-                                            <strong className="text-blue-600 dark:text-blue-300">Language:</strong>{' '}
-                                            {rowModal.language === 'en' ? 'English' : rowModal.language === 'kh' ? 'Khmer' : 'N/A'}
+                                            <strong className="text-blue-600 dark:text-blue-300">ភាសា:</strong>{' '}
+                                            {rowModal.language === 'en' ? 'អង់គ្លេស' : rowModal.language === 'kh' ? 'ខ្មែរ' : 'N/A'}
+                                        </p>
+
+                                        <p>
+                                            <strong className="text-blue-600 dark:text-blue-300">កម្មវិធីសិក្សា:</strong> {rowModal.program || 'N/A'}
+                                        </p>
+
+                                        <p>
+                                            <strong className="text-blue-600 dark:text-blue-300">ចំនួនទំព័រសរុប:</strong> {rowModal.page_count || 'N/A'}
                                         </p>
                                         <p>
-                                            <strong className="text-blue-600 dark:text-blue-300">Page Count:</strong> {rowModal.page_count || 'N/A'}
-                                        </p>
-                                        <p>
-                                            <strong className="text-blue-600 dark:text-blue-300">Published At:</strong>{' '}
+                                            <strong className="text-blue-600 dark:text-blue-300">ឆ្នាំបោះពុម្ព:</strong>{' '}
                                             {rowModal.published_at ? rowModal.published_at : 'N/A'}
                                         </p>
                                     </div>
 
                                     {/* Categorization Section */}
                                     <div className="space-y-2">
-                                        <h3 className="text-lg font-semibold text-blue-600 dark:text-blue-300">Categorization</h3>
+                                        <h3 className="text-lg font-bold text-Orange-600 dark:text-orange-300">ការចាត់ថ្នាក់</h3>
                                         <p>
-                                            <strong className="text-blue-600 dark:text-blue-300">Category:</strong>{' '}
+                                            <strong className="text-blue-600 dark:text-blue-300">ប្រភេទ:</strong>{' '}
                                             {rowModal.category ? (
                                                 <Link
                                                     href={route('categories.show', rowModal.category.id)}
@@ -1706,8 +1780,23 @@ function BookIndex() {
                                                 'N/A'
                                             )}
                                         </p>
+
                                         <p>
-                                            <strong className="text-blue-600 dark:text-blue-300">Bookcase:</strong>{' '}
+                                            <strong className="text-blue-600 dark:text-blue-300">ប្រភេទរង:</strong>{' '}
+                                            {rowModal.subcategory ? (
+                                                <Link
+                                                    href={route('subcategories.show', rowModal.subcategory.id)}
+                                                    className="text-blue-500 underline hover:text-blue-700 dark:text-blue-200 dark:hover:text-blue-100"
+                                                >
+                                                    {rowModal.subcategory.name}
+                                                </Link>
+                                            ) : (
+                                                'N/A'
+                                            )}
+                                        </p>
+
+                                        <p>
+                                            <strong className="text-blue-600 dark:text-blue-300">លេដកូដទូរសៀវភៅ:</strong>{' '}
                                             {rowModal.bookcase ? (
                                                 <Link
                                                     href={route('bookcases.show', rowModal.bookcase.id)}
@@ -1720,23 +1809,10 @@ function BookIndex() {
                                             )}
                                         </p>
                                         <p>
-                                            <strong className="text-blue-600 dark:text-blue-300">Subcategory:</strong>{' '}
-                                            {rowModal.subcategory ? (
-                                                <Link
-                                                    href={route('subcategories.show', rowModal.subcategory.id)}
-                                                    className="text-blue-500 underline hover:text-blue-700 dark:text-blue-200 dark:hover:text-blue-100"
-                                                >
-                                                    {rowModal.subcategory.name}
-                                                </Link>
-                                            ) : (
-                                                'N/A'
-                                            )}
+                                            <strong className="text-blue-600 dark:text-blue-300">មុខវិជ្ជា:</strong> {rowModal.subject?.name || 'N/A'}
                                         </p>
                                         <p>
-                                            <strong className="text-blue-600 dark:text-blue-300">Subject:</strong> {rowModal.subject?.name || 'N/A'}
-                                        </p>
-                                        <p>
-                                            <strong className="text-blue-600 dark:text-blue-300">Shelf:</strong>{' '}
+                                            <strong className="text-blue-600 dark:text-blue-300">លេដកូដធ្នើរ:</strong>{' '}
                                             {rowModal.shelf ? (
                                                 <Link
                                                     href={route('shelves.show', rowModal.shelf.id)}
@@ -1749,44 +1825,44 @@ function BookIndex() {
                                             )}
                                         </p>
                                         <p>
-                                            <strong className="text-blue-600 dark:text-blue-300">Grade:</strong> {rowModal.grade?.name || 'N/A'}
+                                            <strong className="text-blue-600 dark:text-blue-300">ថ្នាក់ទី:</strong> {rowModal.grade?.name || 'N/A'}
                                         </p>
                                     </div>
 
                                     {/* Links Section */}
                                     <div className="space-y-2">
-                                        <h3 className="text-lg font-semibold text-blue-600 dark:text-blue-300">Links & Media</h3>
+                                        <h3 className="text-lg font-bold text-Orange-600 dark:text-orange-300">ក្របសៀបវភៅ</h3>
+                                        {/*<p>*/}
+                                        {/*    <strong className="text-blue-600 dark:text-blue-300">PDF URL:</strong>{' '}*/}
+                                        {/*    {rowModal.pdf_url ? (*/}
+                                        {/*        <a*/}
+                                        {/*            href={rowModal.pdf_url}*/}
+                                        {/*            target="_blank"*/}
+                                        {/*            rel="noopener noreferrer"*/}
+                                        {/*            className="text-blue-500 underline hover:text-blue-700 dark:text-blue-200 dark:hover:text-blue-100"*/}
+                                        {/*            onClick={(e) => e.stopPropagation()}*/}
+                                        {/*        >*/}
+                                        {/*            Preview PDF*/}
+                                        {/*        </a>*/}
+                                        {/*    ) : (*/}
+                                        {/*        'N/A'*/}
+                                        {/*    )}*/}
+                                        {/*</p>*/}
+                                        {/*{rowModal.flip_link && (*/}
+                                        {/*    <p>*/}
+                                        {/*        <strong className="text-blue-600 dark:text-blue-300">Flip Link:</strong>{' '}*/}
+                                        {/*        <a*/}
+                                        {/*            href={rowModal.flip_link}*/}
+                                        {/*            target="_blank"*/}
+                                        {/*            rel="noopener noreferrer"*/}
+                                        {/*            className="text-blue-500 underline hover:text-blue-700 dark:text-blue-200 dark:hover:text-blue-100"*/}
+                                        {/*        >*/}
+                                        {/*            View Flip*/}
+                                        {/*        </a>*/}
+                                        {/*    </p>*/}
+                                        {/*)}*/}
                                         <p>
-                                            <strong className="text-blue-600 dark:text-blue-300">PDF URL:</strong>{' '}
-                                            {rowModal.pdf_url ? (
-                                                <a
-                                                    href={rowModal.pdf_url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-blue-500 underline hover:text-blue-700 dark:text-blue-200 dark:hover:text-blue-100"
-                                                    onClick={(e) => e.stopPropagation()}
-                                                >
-                                                    Preview PDF
-                                                </a>
-                                            ) : (
-                                                'N/A'
-                                            )}
-                                        </p>
-                                        {rowModal.flip_link && (
-                                            <p>
-                                                <strong className="text-blue-600 dark:text-blue-300">Flip Link:</strong>{' '}
-                                                <a
-                                                    href={rowModal.flip_link}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-blue-500 underline hover:text-blue-700 dark:text-blue-200 dark:hover:text-blue-100"
-                                                >
-                                                    View Flip
-                                                </a>
-                                            </p>
-                                        )}
-                                        <p>
-                                            <strong className="text-blue-600 dark:text-blue-300">Cover:</strong>{' '}
+                                            {/*<strong className="text-blue-600 dark:text-blue-300">Cover:</strong>{' '}*/}
                                             {rowModal.cover ? (
                                                 <img
                                                     src={rowModal.cover}
@@ -1802,31 +1878,31 @@ function BookIndex() {
 
                                     {/* Metadata Section */}
                                     <div className="space-y-2">
-                                        <h3 className="text-lg font-semibold text-blue-600 dark:text-blue-300">Metadata</h3>
+                                        <h3 className="text-lg font-bold text-Orange-600 dark:text-orange-300">Metadata</h3>
                                         <p>
                                             <strong className="text-blue-600 dark:text-blue-300">ISBN:</strong> {rowModal.isbn || 'N/A'}
                                         </p>
                                         <p>
-                                            <strong className="text-blue-600 dark:text-blue-300">Code:</strong> {rowModal.code || 'N/A'}
+                                            <strong className="text-blue-600 dark:text-blue-300">លេខកូដសៀវភៅ:</strong> {rowModal.code || 'N/A'}
                                         </p>
                                         <p>
-                                            <strong className="text-blue-600 dark:text-blue-300">Type:</strong> {rowModal.type || 'N/A'}
+                                            <strong className="text-blue-600 dark:text-blue-300">ប្រភេទសៀវភៅ:</strong> {rowModal.type || 'N/A'}
                                         </p>
                                         <p>
-                                            <strong className="text-blue-600 dark:text-blue-300">Availability:</strong>{' '}
-                                            {rowModal.is_available ? 'Available' : 'Not Available'}
+                                            <strong className="text-blue-600 dark:text-blue-300">ស្ថានភាព:</strong>{' '}
+                                            {rowModal.is_available ? 'មិនទាន់បានខ្ចី' : 'បានខ្ចី'}
                                         </p>
                                         <p>
-                                            <strong className="text-blue-600 dark:text-blue-300">Downloadable:</strong>{' '}
-                                            {rowModal.downloadable ? 'Yes' : 'No'}
+                                            <strong className="text-blue-600 dark:text-blue-300">អនុញ្ញាតអោយទាញយក:</strong>{' '}
+                                            {rowModal.downloadable ? 'បាន' : 'មិនបាន'}
                                         </p>
                                         <p>
-                                            <strong className="text-blue-600 dark:text-blue-300">Views:</strong> {rowModal.view || 0}
+                                            <strong className="text-blue-600 dark:text-blue-300">ចំនួនអ្នកទស្សានា:</strong> {rowModal.view || 0}
                                         </p>
                                         {isSuperLibrarian && (
                                             <>
                                                 <p>
-                                                    <strong className="text-blue-600 dark:text-blue-300">Posted By:</strong>{' '}
+                                                    <strong className="text-blue-600 dark:text-blue-300">ចែកចាយដោយ:</strong>{' '}
                                                     {rowModal.user ? (
                                                         <Link
                                                             href={""}
@@ -1839,12 +1915,12 @@ function BookIndex() {
                                                     )}
                                                 </p>
                                                 <p>
-                                                    <strong className="text-blue-600 dark:text-blue-300">Campus:</strong> {rowModal.campus?.name || 'N/A'}
+                                                    <strong className="text-blue-600 dark:text-blue-300">ទីតាំង:</strong> {rowModal.campus?.name || 'N/A'}
                                                 </p>
                                             </>
                                         )}
                                         <p>
-                                            <strong className="text-blue-600 dark:text-blue-300">Created At:</strong>{' '}
+                                            <strong className="text-blue-600 dark:text-blue-300">បង្កើតឡើងនៅ:</strong>{' '}
                                             {rowModal.created_at
                                                 ? new Date(rowModal.created_at).toLocaleDateString('en-US', {
                                                     year: 'numeric',
@@ -1858,7 +1934,7 @@ function BookIndex() {
                                                 : 'N/A'}
                                         </p>
                                         <p>
-                                            <strong className="text-blue-600 dark:text-blue-300">Updated At:</strong>{' '}
+                                            <strong className="text-blue-600 dark:text-blue-300">បានកែប្រែនៅ:</strong>{' '}
                                             {rowModal.updated_at
                                                 ? new Date(rowModal.updated_at).toLocaleDateString('en-US', {
                                                     year: 'numeric',
@@ -1874,17 +1950,26 @@ function BookIndex() {
                                     </div>
                                 </div>
                                 <div className="mt-6 flex justify-end gap-2">
-                                    <Link href={route('books.show', rowModal.id)}>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="flex h-8 cursor-pointer items-center gap-1 rounded-lg border-blue-300 bg-white text-blue-700 hover:bg-blue-100 dark:border-blue-500 dark:bg-gray-800 dark:text-blue-200 dark:hover:bg-blue-700"
-                                        >
-                                            <EyeIcon className="h-4 w-4" /> View
-                                        </Button>
-                                    </Link>
+                                    {/*<Link href={route('books.show', rowModal.id)}>*/}
+                                    {/*    <Button*/}
+                                    {/*        variant="outline"*/}
+                                    {/*        size="sm"*/}
+                                    {/*        className="flex h-8 cursor-pointer items-center gap-1 rounded-lg border-blue-300 bg-white text-blue-700 hover:bg-blue-100 dark:border-blue-500 dark:bg-gray-800 dark:text-blue-200 dark:hover:bg-blue-700"*/}
+                                    {/*    >*/}
+                                    {/*        <EyeIcon className="h-4 w-4" /> View*/}
+                                    {/*    </Button>*/}
+                                    {/*</Link>*/}
                                     {!isSuperLibrarian && (
                                         <>
+                                            <a
+                                                href={"https://online.fliphtml5.com/ayjcf/rkht"}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex h-8 cursor-pointer items-center gap-1 rounded-lg border-blue-300 bg-white text-blue-700 hover:bg-blue-100 dark:border-blue-500 dark:bg-gray-800 dark:text-blue-200 dark:hover:bg-blue-700"
+                                            >
+                                                <BookOpen className="h-4 w-4" /> ចាប់ផ្តើមអាន
+                                            </a>
+
                                             <Button
                                                 variant="outline"
                                                 size="sm"
@@ -1894,8 +1979,10 @@ function BookIndex() {
                                                     setRowModal(null);
                                                 }}
                                             >
-                                                <TrashIcon className="h-4 w-4" /> Delete
+                                                <TrashIcon className="h-4 w-4" /> លុប
                                             </Button>
+
+
                                         </>
                                     )}
                                 </div>
@@ -1909,7 +1996,7 @@ function BookIndex() {
                 >
                     <div className="flex flex-wrap items-center gap-2">
                         <div className="flex items-center space-x-2">
-                            <span className="text-sm font-medium whitespace-nowrap text-gray-800 dark:text-gray-100">Rows per page:</span>
+                            <span className="text-sm font-medium whitespace-nowrap text-gray-800 dark:text-gray-100">ចំនួនសៀវភៅក្នុងមួយទំព័រ:</span>
                             <Select
                                 value={String(table.getState().pagination.pageSize)}
                                 onValueChange={(value) => {
@@ -1953,7 +2040,7 @@ function BookIndex() {
                                         </Button>
                                     </TooltipTrigger>
                                     <TooltipContent className="rounded-xl bg-gradient-to-br from-blue-900 to-blue-600 text-white">
-                                        Previous Page
+                                        ទំព័រមុន
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
@@ -1971,13 +2058,13 @@ function BookIndex() {
                                         </Button>
                                     </TooltipTrigger>
                                     <TooltipContent className="rounded-xl bg-gradient-to-br from-blue-900 to-blue-600 text-white">
-                                        Next Page
+                                        ទំព័របន្ទាប់
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
                         </div>
                         <div className="text-sm text-gray-800 dark:text-gray-100">
-                                Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+                                ទំព័រ {table.getState().pagination.pageIndex + 1} នៃ {table.getPageCount()}
                         </div>
                     </div>
                 </div>
@@ -1985,16 +2072,16 @@ function BookIndex() {
                 <AlertDialog open={!!bookToDelete} onOpenChange={(openState) => !openState && setBookToDelete(null)}>
                     <AlertDialogContent>
                         <AlertDialogHeader>
-                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogTitle>ពិតប្រាកដឬ?</AlertDialogTitle>
                             <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete <strong>{bookToDelete?.title}</strong> by{' '}
+                                សកម្មភាពនេះមុនអាចត្រឡប់វិញបាននុះទេ ហើយវានឹងលុបសៀវភៅ<strong>{bookToDelete?.title}</strong> ជានិរន្នដែលនិពន្ធដោយ{' '}
                                 <strong>{bookToDelete?.author}</strong>.
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                            <AlertDialogCancel onClick={() => setBookToDelete(null)}>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel onClick={() => setBookToDelete(null)}>បធិសេធ</AlertDialogCancel>
                             <AlertDialogAction onClick={confirmDelete} disabled={processing}>
-                                Continue
+                                បន្ត
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>

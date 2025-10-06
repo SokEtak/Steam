@@ -93,6 +93,10 @@ const translations = {
     languagePlaceholder: 'Select language',
     languageError: 'Please select a valid language.',
     languageHelper: 'Primary language of the book.',
+      program: 'Program',
+      programPlaceholder: 'Select program',
+      programError: 'Please select a valid program.',
+      programHelper: 'Select the program for the book (Cambodia or American).',
     publishedAt: 'Published Year',
     publishedAtPlaceholder: 'Select Year',
     publishedAtError: 'Please select a valid publication year.',
@@ -150,8 +154,8 @@ const translations = {
     cover: 'Cover (portrait recommended)',
     coverPlaceholder: 'Upload a cover image',
     coverError: 'Please upload a valid cover image (JPEG/PNG, max 2MB).',
-    coverHelper: 'Optional: JPEG or PNG, max 2MB.',
-    pdfFile: 'PDF File (30MB max, optional)',
+    coverHelper: 'JPEG or PNG, max 2MB.',
+    pdfFile: 'PDF File (30MB max)',
     pdfFilePlaceholder: 'Upload a PDF file',
     pdfFileError: 'Please upload a valid PDF file (max 30MB).',
     pdfFileHelper: 'Optional: PDF, max 30MB.',
@@ -481,6 +485,7 @@ export default function BooksCreate({
     page_count: '',
     publisher: '',
     language: 'en',
+      program: '' as 'Cambodia' | 'American' | '',
     published_at: '',
     author: '',
     flip_link: '',
@@ -496,7 +501,7 @@ export default function BooksCreate({
     bookcase_id: isEbook ? null : (null as string | null),
     grade_id: null as string | null,
     subject_id: null as string | null,
-    downloadable: isEbook,
+    downloadable: !isEbook,
     type,
   });
 
@@ -938,7 +943,9 @@ export default function BooksCreate({
                   )}
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t.publishedAtHelper}</p>
                 </div>
+
               </div>
+
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="author" className="text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -952,9 +959,9 @@ export default function BooksCreate({
                           value={data.author}
                           onChange={(e) => setData('author', e.target.value)}
                           className={`w-full mt-1 rounded-lg border ${
-    errors.author ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
-                          aria-describedby={errors.author ? 'author-error' : undefined}
+                            errors.author ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+                        } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+                                                  aria-describedby={errors.author ? 'author-error' : undefined}
                         />
                       </TooltipTrigger>
                       <TooltipContent className="bg-indigo-600 text-white rounded-lg">
@@ -982,8 +989,8 @@ export default function BooksCreate({
                           onChange={(e) => setData('flip_link', e.target.value)}
                           type="url"
                           className={`w-full mt-1 rounded-lg border ${
-    errors.flip_link ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+                            errors.flip_link ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+                        } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                           aria-describedby={errors.flip_link ? 'flip_link-error' : undefined}
                         />
                       </TooltipTrigger>
@@ -1066,8 +1073,47 @@ export default function BooksCreate({
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t.isbnHelper}</p>
                 </div>
               </div>
+
               <div className="space-y-4 col-span-full">
-                <div>
+                  <div>
+                      <Label htmlFor="program" className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                          {t.program} <span className="text-red-500">*</span>
+                      </Label>
+                      <TooltipProvider>
+                          <Tooltip>
+                              <TooltipTrigger asChild>
+                                  <Select
+                                      value={data.program || undefined}
+                                      onValueChange={(value) => setData('program', value as 'Cambodia' | 'American')}
+                                      required
+                                  >
+                                      <SelectTrigger
+                                          className={`w-full mt-1 rounded-lg border ${
+                                              errors.program ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+                                          } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+                                          aria-describedby={errors.program ? 'program-error' : undefined}
+                                      >
+                                          <SelectValue placeholder={t.programPlaceholder} />
+                                      </SelectTrigger>
+                                      <SelectContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
+                                          <SelectItem value="Cambodia">Cambodia</SelectItem>
+                                          <SelectItem value="American">American</SelectItem>
+                                      </SelectContent>
+                                  </Select>
+                              </TooltipTrigger>
+                              <TooltipContent className="bg-indigo-600 text-white rounded-lg">
+                                  {t.programPlaceholder}
+                              </TooltipContent>
+                          </Tooltip>
+                      </TooltipProvider>
+                      {errors.program && (
+                          <p id="program-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
+                              {errors.program || t.programError}
+                          </p>
+                      )}
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t.programHelper}</p>
+                  </div>
+                  <div>
                   <Label className="text-sm font-medium text-gray-700 dark:text-gray-200">
                     {isEbook ? t.downloadable : t.availability} <span className="text-red-500">*</span>
                   </Label>
@@ -1126,6 +1172,7 @@ export default function BooksCreate({
                     {isEbook ? t.downloadableHelper : t.availabilityHelper}
                   </p>
                 </div>
+
               </div>
 
               {/* Classification */}

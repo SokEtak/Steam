@@ -28,7 +28,7 @@ class UpdateBookRequest extends FormRequest
     protected function prepareForValidation()
     {
         $campusId = Auth::user()->campus_id;
-        $isEbook = $this->input('type', 'physical') === 'ebook';
+        $isEbook = $this->has('type') ? $this->input('type') === 'ebook' : false;
 
         // Log incoming data for debugging
         Log::debug('UpdateBookRequest Input', $this->all());
@@ -47,6 +47,7 @@ class UpdateBookRequest extends FormRequest
         $this->merge([
             'campus_id' => $isEbook ? null : $this->input('campus_id', $campusId),
             'user_id' => $this->input('user_id', Auth::id()),
+            'type' => $this->input('type', 'physical'), // Ensure default value
             'is_available' => $isEbook ? null : ($isAvailable === 'true' || $isAvailable === '1' ? true : ($isAvailable === 'false' || $isAvailable === '0' ? false : $isAvailable)),
             'downloadable' => $isEbook ? ($downloadable === 'true' || $downloadable === '1' ? true : ($downloadable === 'false' || $downloadable === '0' ? false : $downloadable)) : null,
         ]);
@@ -63,13 +64,13 @@ class UpdateBookRequest extends FormRequest
         $bookId = $this->route('book')->id;
 
         return [
-            'type' => ['nullable', Rule::in(['physical', 'ebook'])],
+            'type' => ['required', Rule::in(['physical', 'ebook'])],
             'title' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'page_count' => ['nullable', 'integer', 'min:1'],
             'publisher' => ['nullable', 'string', 'max:255'],
             'language' => ['nullable', Rule::in(['kh', 'en'])],
-            'published_at' => ['nullable', 'date', 'date_format:Y-m-d'],
+            'published_at' => ['nullable', 'date'],
             'author' => ['nullable', 'string', 'max:255'],
             'flip_link' => ['nullable', 'url', 'max:255'],
             'code' => [
@@ -85,14 +86,14 @@ class UpdateBookRequest extends FormRequest
                 Rule::unique('books', 'isbn')->ignore($bookId),
             ],
             'view' => ['nullable', 'integer', 'min:0'],
-//            'is_available' => [$isEbook ? 'nullable' : 'required_if:type,physical', 'boolean'],
+            'is_available' => ['nullable', 'boolean'],
             'downloadable' => [$isEbook ? 'required_if:type,ebook' : 'nullable', 'boolean'],
             'cover' => ['nullable', 'image', 'mimes:jpeg,png', 'max:2048'],
             'pdf_url' => ['nullable', 'mimes:pdf', 'max:10240'],
             'category_id' => ['nullable', 'exists:categories,id'],
             'subcategory_id' => ['nullable', 'exists:sub_categories,id'],
-            'shelf_id' => [$isEbook ? 'nullable' : 'required_if:type,physical', 'exists:shelves,id'],
-            'bookcase_id' => [$isEbook ? 'nullable' : 'required_if:type,physical', 'exists:bookcases,id'],
+            'shelf_id' => ['nullable', 'exists:shelves,id'],
+            'bookcase_id' => ['nullable', 'exists:bookcases,id'],
             'grade_id' => ['nullable', 'exists:grades,id'],
             'subject_id' => ['nullable', 'exists:subjects,id'],
             'campus_id' => [$isEbook ? 'nullable' : 'required_if:type,physical', 'exists:campuses,id'],

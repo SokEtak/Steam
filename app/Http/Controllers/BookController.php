@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Book\BaseBookRequest;
 use App\Http\Requests\Book\StoreBookRequest;
 use App\Http\Requests\Book\UpdateBookRequest;
 use App\Models\{Book, Bookcase, Campus, Category, Shelf, SubCategory, Grade, Subject};
@@ -163,7 +162,7 @@ class BookController extends Controller
             'grades' => Grade::all(['id', 'name']),
             'subjects' => Subject::all(['id', 'name']),
             'campuses' => Campus::all(['id', 'name']),
-            'type' => $book->type,
+//            'type' => $book->type,
         ]);
     }
 

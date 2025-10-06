@@ -460,6 +460,9 @@ export default function BooksEdit({
             return;
         }
 
+        // Debug form data
+        console.log('Form Data:', data);
+
         put(route('books.update', book.id), {
             forceFormData: true,
             onSuccess: () => {
@@ -529,7 +532,7 @@ export default function BooksEdit({
                         )}
 
                         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-6" encType="multipart/form-data">
-                            <input type="hidden" name="type" value={type} />
+                            <input type="hidden" name="type" value={data.type} />
 
                             {/* Tabs for Physical/Ebook */}
                             <div className="col-span-full">

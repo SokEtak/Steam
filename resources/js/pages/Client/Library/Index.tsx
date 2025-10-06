@@ -25,12 +25,14 @@ import {
     X,
     User,
     LogOut,
-    UserCircle, Menu
-} from 'lucide-react';
+    UserCircle,
+    Menu,
+} from "lucide-react";
 
 // --- Interface Definitions ---
 interface Book {
     language: any;
+    program?: string | null;
     code: any;
     publisher: any;
     isbn: any;
@@ -70,31 +72,82 @@ interface PageProps {
     flash: { message?: string };
     books: Book[];
     auth: { user: AuthUser | null };
-    scope?: 'local' | 'global';
-    bookType?: 'ebook' | 'physical';
+    scope?: "local" | "global";
+    bookType?: "ebook" | "physical";
 }
+
+// --- Translations ---
+const translations = {
+    en: {
+        programLabel: "Program",
+        programPlaceholder: "Select Program",
+        programAll: "All Programs",
+        programCambodia: "Khmer Program",
+        programAmerican: "American Program",
+        author: "Author",
+        category: "Category",
+        subcategory: "Subcategory",
+        status: "Status",
+        available: "Available",
+        borrowed: "Borrowed",
+        publisher: "Publisher",
+        isbn: "ISBN",
+        pageCount: "Page Count",
+        language: "Language",
+        location: "Location",
+        publishedYear: "Published Year",
+        read: "Start Reading",
+        download: "Download",
+        moreInfo: "View More Info",
+    },
+    kh: {
+        programLabel: "កម្មវិធីសិក្សា",
+        programPlaceholder: "ជ្រើសរើសកម្មវិធី",
+        programAll: "កម្មវិធីទាំងអស់",
+        programCambodia: "កម្មវិធីខ្មែរ",
+        programAmerican: "កម្មវិធីអាមេរិកកាំង",
+        author: "អ្នកនិពន្ធ",
+        category: "ប្រភេទ",
+        subcategory: "ប្រភេទរង",
+        status: "ស្ថានភាព",
+        available: "មិនទាន់ខ្ចី",
+        borrowed: "ត្រូវបានខ្ចី",
+        publisher: "បោះពុម្ពផ្សាយ",
+        isbn: "ISBN",
+        pageCount: "ចំនួនទំព័រ",
+        language: "ភាសា",
+        location: "ទីតាំង",
+        publishedYear: "ឆ្នាំបោះពុម្ព",
+        read: "ចាប់ផ្តើមអាន",
+        download: "ទាញយក",
+        moreInfo: "មើលព័ត៌មានបន្ថែម",
+    },
+};
+
+// For now, use Khmer as default; can be dynamic based on user preference later
+const t = translations.kh;
 
 // --- Utilities ---
 const ITEMS_PER_PAGE = 16;
 
 const formatDate = (dateInput: string | number | undefined): string => {
-    if (!dateInput) return 'Unknown';
-    if (typeof dateInput === 'number') {
+    if (!dateInput) return "Unknown";
+    if (typeof dateInput === "number") {
         return dateInput.toString();
     }
     try {
-        return new Date(dateInput).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
+        return new Date(dateInput).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
         });
     } catch {
-        return 'Invalid Date';
+        return "Invalid Date";
     }
 };
 
 export default function Index() {
-    const { books, flash, auth, scope, bookType = 'physical' } = usePage<PageProps>().props;
+    const { books, flash, auth, scope, bookType = "physical" } = usePage<PageProps>().props;
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [search, setSearch] = useState("");
     const [filterCategory, setFilterCategory] = useState("All");
@@ -105,25 +158,26 @@ export default function Index() {
     const [filterSubject, setFilterSubject] = useState("All");
     const [filterCampus, setFilterCampus] = useState("All");
     const [filterLanguage, setFilterLanguage] = useState("All");
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedBook, setSelectedBook] = useState<Book | null>(null);
-    const [isFullScreen, setIsFullScreen] = useState(false);
+    const [sortProgram, setSortProgram] = useState("All");
     const [sortBy, setSortBy] = useState("Newest");
     const [currentPage, setCurrentPage] = useState(1);
     const [openBookCard, setOpenBookCard] = useState<number | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false); // Added
+    const [isFullScreen, setIsFullScreen] = useState(false); // Added
+    const [selectedBook, setSelectedBook] = useState<Book | null>(null); // Added
     const cardRef = useRef<HTMLDivElement>(null);
 
     // Determine current library type for the dropdown
-    const currentLibrary = bookType === 'ebook' ? 'ebook' : scope === 'global' ? 'global' : 'local';
+    const currentLibrary = bookType === "ebook" ? "ebook" : scope === "global" ? "global" : "local";
 
     // Handle library switch
     const handleLibraryChange = (value: string) => {
-        if (value === 'ebook') {
-            router.get(route('global e-library'));
-        } else if (value === 'local') {
-            router.get(route('local library'));
-        } else if (value === 'global') {
-            router.get(route('global library'));
+        if (value === "ebook") {
+            router.get(route("global e-library"));
+        } else if (value === "local") {
+            router.get(route("local library"));
+        } else if (value === "global") {
+            router.get(route("global library"));
         }
     };
 
@@ -136,29 +190,38 @@ export default function Index() {
     const subjects = useMemo(() => Array.from(new Set(books.map((b) => b.subject?.name).filter(Boolean))), [books]);
     const campuses = useMemo(() => Array.from(new Set(books.map((b) => b.campus?.name).filter(Boolean))), [books]);
     const languages = useMemo(() => Array.from(new Set(books.map((b) => b.language).filter(Boolean))), [books]);
+    const programs = useMemo(() => Array.from(new Set(books.map((b) => b.program?.toLowerCase()).filter(Boolean))), [books]);
 
     // Filtered and Sorted books logic
     const allFilteredBooks = useMemo(() => {
         let filtered = books.filter((book) => {
             if (book.type !== bookType) return false;
             const matchesSearch =
-                //define which field can be search
                 book.title.toLowerCase().includes(search.toLowerCase()) ||
                 book.author.toLowerCase().includes(search.toLowerCase()) ||
                 String(book.isbn)?.toLowerCase().includes(search.toLowerCase());
 
             const matchesCategory = filterCategory === "All" || book.category?.name === filterCategory;
             const matchesSubCategory = filterSubCategory === "All" || book.subcategory?.name === filterSubCategory;
-            const matchesBookcase = bookType === 'ebook' || filterBookcase === "All" || book.bookcase?.code === filterBookcase;
-            const matchesShelf = bookType === 'ebook' || filterShelf === "All" || book.shelf?.code === filterShelf;
+            const matchesBookcase = bookType === "ebook" || filterBookcase === "All" || book.bookcase?.code === filterBookcase;
+            const matchesShelf = bookType === "ebook" || filterShelf === "All" || book.shelf?.code === filterShelf;
             const matchesGrade = filterGrade === "All" || book.grade?.name === filterGrade;
             const matchesSubject = filterSubject === "All" || book.subject?.name === filterSubject;
-            const matchesCampus = bookType === 'ebook' || scope !== 'local' || filterCampus === "All" || book.campus?.name === filterCampus;
+            const matchesCampus = bookType === "ebook" || scope !== "local" || filterCampus === "All" || book.campus?.name === filterCampus;
             const matchesLanguage = filterLanguage === "All" || book.language === filterLanguage;
+            const matchesProgram = sortProgram === "All" || book.program?.toLowerCase() === sortProgram.toLowerCase();
 
             return (
-                matchesSearch && matchesCategory && matchesSubCategory && matchesBookcase &&
-                matchesShelf && matchesGrade && matchesSubject && matchesCampus && matchesLanguage
+                matchesSearch &&
+                matchesCategory &&
+                matchesSubCategory &&
+                matchesBookcase &&
+                matchesShelf &&
+                matchesGrade &&
+                matchesSubject &&
+                matchesCampus &&
+                matchesLanguage &&
+                matchesProgram
             );
         });
 
@@ -167,7 +230,7 @@ export default function Index() {
                 const dateA = a.created_at || a.published_at;
                 const dateB = b.created_at || b.published_at;
                 if (dateA && dateB) {
-                    if (typeof dateA === 'number' && typeof dateB === 'number') {
+                    if (typeof dateA === "number" && typeof dateB === "number") {
                         return dateB - dateA;
                     }
                     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
@@ -182,7 +245,22 @@ export default function Index() {
             }
             return 0;
         });
-    }, [books, search, filterCategory, filterSubCategory, filterBookcase, filterShelf, filterGrade, filterSubject, filterCampus, filterLanguage, bookType, scope, sortBy]);
+    }, [
+        books,
+        search,
+        filterCategory,
+        filterSubCategory,
+        filterBookcase,
+        filterShelf,
+        filterGrade,
+        filterSubject,
+        filterCampus,
+        filterLanguage,
+        sortProgram,
+        sortBy,
+        bookType,
+        scope,
+    ]);
 
     // Pagination Logic
     const totalPages = Math.ceil(allFilteredBooks.length / ITEMS_PER_PAGE);
@@ -193,7 +271,19 @@ export default function Index() {
     // Reset page on filter/sort change
     useEffect(() => {
         setCurrentPage(1);
-    }, [search, filterCategory, filterSubCategory, filterBookcase, filterShelf, filterGrade, filterSubject, filterCampus, filterLanguage, sortBy]);
+    }, [
+        search,
+        filterCategory,
+        filterSubCategory,
+        filterBookcase,
+        filterShelf,
+        filterGrade,
+        filterSubject,
+        filterCampus,
+        filterLanguage,
+        sortProgram,
+        sortBy,
+    ]);
 
     // Pagination handlers
     const goToPreviousPage = () => {
@@ -211,16 +301,19 @@ export default function Index() {
                 setOpenBookCard(null);
             }
         };
-        document.addEventListener('mousedown', handleOutsideClick);
-        return () => document.removeEventListener('mousedown', handleOutsideClick);
+        document.addEventListener("mousedown", handleOutsideClick);
+        return () => document.removeEventListener("mousedown", handleOutsideClick);
     }, []);
 
     // Handle modal and card keydown events
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (isModalOpen) {
-                if (e.key === "Escape") { setIsModalOpen(false); }
-                else if (e.key === "f" || e.key === "F") { setIsFullScreen(!isFullScreen); }
+                if (e.key === "Escape") {
+                    setIsModalOpen(false);
+                } else if (e.key === "f" || e.key === "F") {
+                    setIsFullScreen(!isFullScreen);
+                }
             } else if (openBookCard !== null && e.key === "Escape") {
                 setOpenBookCard(null);
             }
@@ -229,7 +322,7 @@ export default function Index() {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [isModalOpen, isFullScreen, openBookCard]);
 
-    const accentColor = 'cyan';
+    const accentColor = "cyan";
     const isAuthenticated = auth.user !== null;
 
     // Updated NavUser with dropdown
@@ -241,7 +334,7 @@ export default function Index() {
                     className="flex items-center space-x-3 text-sm sm:text-base px-4 h-10 sm:h-11 rounded-full transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 shadow-sm"
                 >
                     <img
-                        src={"https://fls-9fd96a88-703c-423b-a3c6-5b74b203b091.laravel.cloud/"+user.avatar}
+                        src={"https://fls-9fd96a88-703c-423b-a3c6-5b74b203b091.laravel.cloud/" + user.avatar}
                         alt={user.name}
                         className="h-8 w-8 rounded-full object-contain border border-gray-300 dark:border-gray-600"
                     />
@@ -255,11 +348,11 @@ export default function Index() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="my-2" />
                 <DropdownMenuItem
-                    onClick={() => router.post(route('logout'))}
+                    onClick={() => router.post(route("logout"))}
                     className="flex items-center space-x-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors text-red-600 dark:text-red-400"
                 >
                     <LogOut className="w-5 h-5" />
-                    <span>Logout</span>
+                    <span>ចាកចេញ</span>
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
@@ -269,28 +362,83 @@ export default function Index() {
     const BookCardContent = ({ book }: { book: Book }) => (
         <div className="space-y-4">
             <h3 className="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">{book.title}</h3>
-            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300"><span className="font-semibold">អ្នកនិពន្ធ:</span> {book.author}</p>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+                <span className="font-semibold">{t.author}:</span> {book.author}
+            </p>
             {book.category && (
-                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300"><span className="font-semibold">ប្រភេទ:</span> {book.category.name}</p>
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+                    <span className="font-semibold">{t.category}:</span> {book.category.name}
+                </p>
             )}
             {book.subcategory && (
-                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300"><span className="font-semibold">ប្រភេទរង:</span> {book.subcategory.name}</p>
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+                    <span className="font-semibold">{t.subcategory}:</span> {book.subcategory.name}
+                </p>
             )}
-            {book.type === 'physical' && (
-                <div className={`flex items-center text-sm sm:text-base font-semibold ${book.is_available ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                    {book.is_available ? <CheckCircle className="w-4 sm:w-5 h-4 sm:h-5 mr-1 text-green-500" /> : <XCircle className="w-4 sm:w-5 h-4 sm:h-5 mr-1 text-red-500" />}
-                    ស្ថានភាព: {book.is_available ? 'មិនទាន់ខ្ចី' : 'ត្រូវបានខ្ចី'}
+            {book.program && (
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+                    <span className="font-semibold">{t.programLabel}:</span>{" "}
+                    {book.program.toLowerCase() === "cambodia" ? t.programCambodia : t.programAmerican}
+                </p>
+            )}
+            {book.type === "physical" && (
+                <div
+                    className={`flex items-center text-sm sm:text-base font-semibold ${
+                        book.is_available ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                    }`}
+                >
+                    {book.is_available ? (
+                        <CheckCircle className="w-4 sm:w-5 h-4 sm:h-5 mr-1 text-green-500" />
+                    ) : (
+                        <XCircle className="w-4 sm:w-5 h-4 sm:h-5 mr-1 text-red-500" />
+                    )}
+                    {t.status}: {book.is_available ? t.available : t.borrowed}
                 </div>
             )}
             <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 space-y-1.5 pt-3 border-t border-gray-200 dark:border-gray-600">
-                {book.publisher && <p><span className="font-medium text-gray-700 dark:text-gray-300">បោះពុម្ពផ្សាយ:</span> {book.publisher}</p>}
-                {book.isbn && <p className="break-words"><span className="font-medium text-gray-700 dark:text-gray-300">ISBN:</span> {book.isbn}</p>}
-                {book.page_count && <p><span className="font-medium text-gray-700 dark:text-gray-300">ចំនួនទំព័រ:</span> {book.page_count}</p>}
-                {book.language && <p><span className="font-medium text-gray-700 dark:text-gray-300">ភាសា:</span> {book.language === 'en' ? 'អង់គ្លេស' : book.language === 'kh' ? 'ខ្មែរ' : book.language}</p>}
-                {book.bookcase?.code && <p><span className="font-medium text-gray-700 dark:text-gray-300">ទីតាំង:</span> {book.bookcase.code} / {book.shelf?.code}</p>}
-                {book.published_at && <p><span className="font-medium text-gray-700 dark:text-gray-300">ឆ្នាំបោះពុម្ព:</span> {formatDate(book.published_at)}</p>}
+                {book.publisher && (
+                    <p>
+                        <span className="font-medium text-gray-700 dark:text-gray-300">{t.publisher}:</span> {book.publisher}
+                    </p>
+                )}
+                {book.isbn && (
+                    <p className="break-words">
+                        <span className="font-medium text-gray-700 dark:text-gray-300">{t.isbn}:</span> {book.isbn}
+                    </p>
+                )}
+                {book.page_count && (
+                    <p>
+                        <span className="font-medium text-gray-700 dark:text-gray-300">{t.pageCount}:</span> {book.page_count}
+                    </p>
+                )}
+                {book.language && (
+                    <p>
+                        <span className="font-medium text-gray-700 dark:text-gray-300">{t.language}:</span>{" "}
+                        {book.language === "en"
+                            ? t.language === "en"
+                                ? "English"
+                                : "អង់គ្លេស"
+                            : book.language === "kh"
+                                ? t.language === "kh"
+                                    ? "Khmer"
+                                    : "ខ្មែរ"
+                                : book.language}
+                    </p>
+                )}
+                {book.bookcase?.code && (
+                    <p>
+                        <span className="font-medium text-gray-700 dark:text-gray-300">{t.location}:</span>{" "}
+                        {book.bookcase.code} / {book.shelf?.code}
+                    </p>
+                )}
+                {book.published_at && (
+                    <p>
+                        <span className="font-medium text-gray-700 dark:text-gray-300">{t.publishedYear}:</span>{" "}
+                        {formatDate(book.published_at)}
+                    </p>
+                )}
             </div>
-            {book.type === 'ebook' && (
+            {book.type === "ebook" && (
                 <div className="flex flex-col items-start w-full space-y-2 pt-3 border-t border-gray-200 dark:border-gray-600">
                     {book.flip_link && (
                         <button
@@ -303,8 +451,10 @@ export default function Index() {
                             className={`group text-xs sm:text-sm flex items-center font-semibold transition-all text-gray-700 dark:text-gray-300 p-2 rounded-md w-full justify-start
                                     hover:bg-green-50 dark:hover:bg-green-700 hover:text-green-600 dark:hover:text-green-400`}
                         >
-                            <BookOpen className={`w-4 sm:w-5 h-4 sm:h-5 mr-3 text-green-500 dark:text-green-400 group-hover:text-green-600 dark:group-hover:text-green-400`} />
-                            ចាប់ផ្តើមអាន
+                            <BookOpen
+                                className={`w-4 sm:w-5 h-4 sm:h-5 mr-3 text-green-500 dark:text-green-400 group-hover:text-green-600 dark:group-hover:text-green-400`}
+                            />
+                            {t.read}
                         </button>
                     )}
                     {book.pdf_url && book.downloadable === 1 && (
@@ -315,23 +465,26 @@ export default function Index() {
                             className={`group text-xs sm:text-sm flex items-center font-semibold transition-all text-gray-700 dark:text-gray-300 p-2 rounded-md w-full justify-start
                                       hover:bg-blue-50 dark:hover:bg-blue-700 hover:text-blue-600 dark:hover:text-blue-400`}
                         >
-                            <Download className="w-4 sm:w-5 h-4 sm:h-5 mr-3 text-blue-500 dark:text-blue-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
-                            ទាញយក
+                            <Download
+                                className="w-4 sm:w-5 h-4 sm:h-5 mr-3 text-blue-500 dark:text-blue-400 group-hover:text-blue-600 dark:group-hover:text-blue-400"
+                            />
+                            {t.download}
                         </a>
                     )}
-                    {/*route to Library Client Show(not implement yet*/}
                     <a
-                        href={"#"}
+                        href={route("books.show", book.id)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={`group text-xs sm:text-sm flex items-center font-semibold transition-all p-2 rounded-md w-full justify-start
-                  text-gray-700 dark:text-gray-300
-                  hover:bg-amber-50 dark:hover:bg-amber-800/50 hover:text-amber-700 dark:hover:text-amber-400`}
+                                  text-gray-700 dark:text-gray-300
+                                  hover:bg-amber-50 dark:hover:bg-amber-800/50 hover:text-amber-700 dark:hover:text-amber-400`}
                     >
-                        <Info className="w-4 sm:w-5 h-4 sm:h-5 mr-3 transition-colors
+                        <Info
+                            className="w-4 sm:w-5 h-4 sm:h-5 mr-3 transition-colors
                    text-amber-600 dark:text-amber-400
-                   group-hover:text-amber-700 dark:group-hover:text-amber-400" />
-                        មើលពណ៌មានបន្ថែម
+                   group-hover:text-amber-700 dark:group-hover:text-amber-400"
+                        />
+                        {t.moreInfo}
                     </a>
                 </div>
             )}
@@ -340,17 +493,23 @@ export default function Index() {
 
     return (
         <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
-            <Head title={bookType === 'ebook' ? "eBooks Library" : "Books Library"} />
+            <Head
+                title={
+                    bookType === "ebook"
+                        ? t.language === "en"
+                            ? "eBooks Library"
+                            : "បណ្ណាល័យអេឡិចត្រូនិក"
+                        : t.language === "en"
+                            ? "Books Library"
+                            : "បណ្ណាល័យសៀវភៅ"
+                }
+            />
 
             <div className="py-4 space-y-12 w-full max-w-full mx-auto px-4 sm:px-6 lg:px-12 xl:px-16 text-gray-900 dark:text-gray-100">
                 {/* Header */}
                 <header className="flex flex-col border-b border-gray-100 dark:border-gray-800 pb-4 gap-4 px-2
                    sm:flex-row sm:items-center sm:justify-between sm:pb-4">
-
-                    {/* NEW CONTAINER for Logo and Mobile Controls (for the top row on mobile) */}
                     <div className="flex items-center justify-between w-full sm:w-auto">
-
-                        {/* 1. Logo Section (Left Aligned) - NO CHANGE */}
                         <div className="flex items-center space-x-4 sm:space-x-6 min-w-max">
                             <Link href="/" className="flex items-center space-x-3">
                                 <img
@@ -360,13 +519,10 @@ export default function Index() {
                                 />
                             </Link>
                         </div>
-
-                        {/* 3. User Controls Section (Right Aligned on Mobile) - MODIFIED */}
                         <div className="flex justify-end items-center min-w-max sm:hidden">
-                            {/* Hamburger Button (Menu Lucide Icon) for Small Screens */}
                             <Button
                                 variant="ghost"
-                                className="p-2" // Removed sm:hidden as this div is hidden on sm
+                                className="p-2"
                                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                             >
                                 {isMenuOpen ? (
@@ -376,14 +532,11 @@ export default function Index() {
                                 )}
                             </Button>
                         </div>
-
                     </div>
-
-                    {/* 2. Search Bar Section (Center Aligned on Desktop, Full Width on Mobile) - NO CHANGE */}
-                    <div className="relative w-full max-w-md sm:max-w-lg sm:mx-auto ">
+                    <div className="relative w-full max-w-md sm:max-w-lg sm:mx-auto md:left-30">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 sm:h-5 w-4 sm:w-5 text-gray-400 dark:text-gray-500" />
                         <Input
-                            placeholder="ស្វែងរក"
+                            placeholder={t.language === "en" ? "Search" : "ស្វែងរក"}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className={`w-full bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500 rounded-full shadow-inner pl-10 h-10 sm:h-11
@@ -391,34 +544,31 @@ export default function Index() {
                       focus:ring-2 focus:ring-${accentColor}-500 focus:border-${accentColor}-500 transition-all pr-3 text-sm sm:text-base`}
                         />
                     </div>
-
-                    {/* 3. User Controls Section (Right Aligned) - DESKTOP ONLY */}
                     <div className="hidden sm:w-auto sm:flex justify-end items-center min-w-max">
-                        {/* User Menu for Larger Screens */}
-                        {isAuthenticated && (
-                            <NavUser user={auth.user!} />
-                        )}
+                        {isAuthenticated && <NavUser user={auth.user!} />}
                     </div>
-
-                    {/* Mobile Menu (Positioning adjusted to be relative to the header) - Keep this as is */}
                     {isMenuOpen && (
                         <div className="sm:hidden absolute top-20 right-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-2xl p-4 w-48 z-50">
                             {isAuthenticated ? (
                                 <>
                                     <div className="flex flex-col space-y-2 mb-4 border-b pb-3 border-gray-100 dark:border-gray-700">
-                                        <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">{auth.user!.name}</span>
-                                        <span className="text-xs text-gray-500 dark:text-gray-400 truncate">{auth.user!.email}</span>
+                                        <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                                            {auth.user!.name}
+                                        </span>
+                                        <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                            {auth.user!.email}
+                                        </span>
                                     </div>
                                     <button
                                         onClick={() => {
-                                            router.post(route('logout'), {}, {
+                                            router.post(route("logout"), {}, {
                                                 onSuccess: () => setIsMenuOpen(false),
                                             });
                                         }}
                                         className="flex items-center space-x-2 py-2 text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md w-full text-left"
                                     >
                                         <LogOut className="w-4 h-4" />
-                                        <span>Logout</span>
+                                        <span>{t.language === "en" ? "Logout" : "ចាកចេញ"}</span>
                                     </button>
                                 </>
                             ) : (
@@ -428,7 +578,7 @@ export default function Index() {
                                     onClick={() => setIsMenuOpen(false)}
                                 >
                                     <LogIn className="w-4 h-4" />
-                                    <span>Sign In</span>
+                                    <span>{t.language === "en" ? "Sign In" : "ចូល"}</span>
                                 </Link>
                             )}
                         </div>
@@ -443,33 +593,67 @@ export default function Index() {
 
                 {/* Filters */}
                 <div className="flex flex-col sm:flex-row flex-wrap items-center gap-x-4 sm:gap-x-6 gap-y-4 justify-center">
-                    {/* Library Selector: Updated for full responsiveness */}
+                    <Select value={sortProgram} onValueChange={setSortProgram}>
+                        <SelectTrigger
+                            className={`w-full sm:w-40 md:w-48 bg-white border border-gray-300 text-gray-900 hover:border-gray-400
+                                     dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:border-gray-600
+                                       focus:ring-${accentColor}-500 transition rounded-full text-sm sm:text-base text-center`}
+                        >
+                            <SelectValue placeholder={t.programPlaceholder} />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border-gray-200 text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-white min-w-[150px] max-w-[90vw]">
+                            <SelectItem value="All" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">
+                                {t.programAll}
+                            </SelectItem>
+                            <SelectItem value="Cambodia" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">
+                                {t.programCambodia}
+                            </SelectItem>
+                            <SelectItem value="American" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">
+                                {t.programAmerican}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
                     <Select value={currentLibrary} onValueChange={handleLibraryChange}>
-                        <SelectTrigger className={`w-full sm:w-auto min-w-max bg-white border border-gray-300 text-gray-900 hover:border-gray-400
+                        <SelectTrigger
+                            className={`w-full sm:w-auto min-w-max bg-white border border-gray-300 text-gray-900 hover:border-gray-400
                                                 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:border-gray-600
-                                                  focus:ring-${accentColor}-500 transition rounded-full text-sm sm:text-base text-center
-                                                  `}>
-                            <SelectValue placeholder="Select Library" className="whitespace-nowrap" />
+                                                  focus:ring-${accentColor}-500 transition rounded-full text-sm sm:text-base text-center`}
+                        >
+                            <SelectValue
+                                placeholder={t.language === "en" ? "Select Library" : "ជ្រើសរើសបណ្ណាល័យ"}
+                                className="whitespace-nowrap"
+                            />
                         </SelectTrigger>
                         <SelectContent className="bg-white border-gray-200 text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                            <SelectItem value="global">បណ្ណាល័យសកល</SelectItem>
-                            <SelectItem value="local">បណ្ណាល័យក្នុងក្នុងតំបន់</SelectItem>
-                            <SelectItem value="ebook">បណ្ណាល័យអេឡិចត្រូនិក</SelectItem>
+                            <SelectItem value="global">{t.language === "en" ? "Global Library" : "បណ្ណាល័យសកល"}</SelectItem>
+                            <SelectItem value="local">{t.language === "en" ? "Local Library" : "បណ្ណាល័យក្នុងតំបន់"}</SelectItem>
+                            <SelectItem value="ebook">{t.language === "en" ? "eBooks Library" : "បណ្ណាល័យអេឡិចត្រូនិក"}</SelectItem>
                         </SelectContent>
                     </Select>
                     {[
-                        { label: "ប្រភេទ", value: filterCategory, onChange: setFilterCategory, options: categories },
-                        { label: "ប្រភេទរង", value: filterSubCategory, onChange: setFilterSubCategory, options: subcategories },
-                        { label: "ភាសា", value: filterLanguage, onChange: setFilterLanguage, options: languages, display: (lang: string) => lang === 'en' ? 'ភាសាអង់គ្លេស' : lang === 'kh' ? 'ភាសាខ្មែរ' : lang },
-                        { label: "កម្រិតថ្នាក់", value: filterGrade, onChange: setFilterGrade, options: grades },
-                        { label: "មុខវិជ្ជា", value: filterSubject, onChange: setFilterSubject, options: subjects },
-                        ...(bookType === 'physical' ? [
-                            // { label: "ទូរសៀវភៅ", value: filterBookcase, onChange: setFilterBookcase, options: bookcases },
-                            // { label: "ធ្នើរ", value: filterShelf, onChange: setFilterShelf, options: shelves },
-                        ] : []),
-                        ...(bookType === 'physical' && scope !== 'local' ? [
-                            { label: "ទីតាំង", value: filterCampus, onChange: setFilterCampus, options: campuses },
-                        ] : []),
+                        { label: t.category, value: filterCategory, onChange: setFilterCategory, options: categories },
+                        { label: t.subcategory, value: filterSubCategory, onChange: setFilterSubCategory, options: subcategories },
+                        {
+                            label: t.language,
+                            value: filterLanguage,
+                            onChange: setFilterLanguage,
+                            options: languages,
+                            display: (lang: string) =>
+                                lang === "en"
+                                    ? t.language === "en"
+                                        ? "English"
+                                        : "ភាសាអង់គ្លេស"
+                                    : lang === "kh"
+                                        ? t.language === "kh"
+                                            ? "Khmer"
+                                            : "ភាសាខ្មែរ"
+                                        : lang,
+                        },
+                        { label: t.language === "en" ? "Grade" : "កម្រិតថ្នាក់", value: filterGrade, onChange: setFilterGrade, options: grades },
+                        { label: t.language === "en" ? "Subject" : "មុខវិជ្ជា", value: filterSubject, onChange: setFilterSubject, options: subjects },
+                        ...(bookType === "physical" && scope !== "local"
+                            ? [{ label: t.language === "en" ? "Campus" : "ទីតាំង", value: filterCampus, onChange: setFilterCampus, options: campuses }]
+                            : []),
                     ].map(({ label, value, onChange, options, display }) => (
                         <Select key={label} value={value} onValueChange={onChange}>
                             <SelectTrigger
@@ -480,7 +664,9 @@ export default function Index() {
                                 <SelectValue placeholder={label} />
                             </SelectTrigger>
                             <SelectContent className="bg-white border-gray-200 text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-white min-w-[150px] max-w-[90vw]">
-                                <SelectItem value="All" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">{label}ទាំងអស់</SelectItem>
+                                <SelectItem value="All" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">
+                                    {t.language === "en" ? `${label} (All)` : `${label}ទាំងអស់`}
+                                </SelectItem>
                                 {options.map((opt) => (
                                     <SelectItem key={opt} value={opt} className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">
                                         {display ? display(opt) : opt}
@@ -489,21 +675,27 @@ export default function Index() {
                             </SelectContent>
                         </Select>
                     ))}
-                    {/* Sort Selector*/}
-                    {/*<Select value={sortBy} onValueChange={setSortBy}>*/}
-                    {/*    <SelectTrigger className={`w-full sm:w-40 md:w-48 bg-white border border-gray-300 text-gray-900 hover:border-gray-400*/}
-                    {/*             dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:border-gray-600*/}
-                    {/*             focus:ring-${accentColor}-500 transition font-semibold rounded-full text-sm sm:text-base text-center`}*/}
-                    {/*    >*/}
-                    {/*        <ArrowDownUp className="h-4 w-4 mr-2 text-gray-500 dark:text-gray-400" />*/}
-                    {/*        <SelectValue placeholder="Sort By" />*/}
-                    {/*    </SelectTrigger>*/}
-                    {/*    <SelectContent className="bg-white border-gray-200 text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-white min-w-[150px] max-w-[90vw]">*/}
-                    {/*        <SelectItem value="Newest" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">ថ្មីបំផុត</SelectItem>*/}
-                    {/*        <SelectItem value="Title A-Z" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">ចំណងជើង(ក-អ)</SelectItem>*/}
-                    {/*        <SelectItem value="Most Viewed" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">ពេញនិយម</SelectItem>*/}
-                    {/*    </SelectContent>*/}
-                    {/*</Select>*/}
+                    <Select value={sortBy} onValueChange={setSortBy}>
+                        <SelectTrigger
+                            className={`w-full sm:w-40 md:w-48 bg-white border border-gray-300 text-gray-900 hover:border-gray-400
+                                 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:border-gray-600
+                                 focus:ring-${accentColor}-500 transition font-semibold rounded-full text-sm sm:text-base text-center`}
+                        >
+                            <ArrowDownUp className="h-4 w-4 mr-2 text-gray-500 dark:text-gray-400" />
+                            <SelectValue placeholder={t.language === "en" ? "Sort By" : "តម្រៀបតាម"} />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border-gray-200 text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-white min-w-[150px] max-w-[90vw]">
+                            <SelectItem value="Newest" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">
+                                {t.language === "en" ? "Newest" : "ថ្មីបំផុត"}
+                            </SelectItem>
+                            <SelectItem value="Title A-Z" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">
+                                {t.language === "en" ? "Title (A-Z)" : "ចំណងជើង (ក-អ)"}
+                            </SelectItem>
+                            {/*<SelectItem value="Most Viewed" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">*/}
+                            {/*    {t.language === "en" ? "Most Viewed" : "ពេញនិយម"}*/}
+                            {/*</SelectItem>*/}
+                        </SelectContent>
+                    </Select>
                 </div>
 
                 {/* Book Grid */}
@@ -512,17 +704,15 @@ export default function Index() {
                         {paginatedBooks.length > 0 ? (
                             paginatedBooks.map((book) => {
                                 const contributorId = book.posted_by_user_id || book.user?.id;
-                                const contributorName = book.user?.name || (contributorId ? `User #${contributorId}` : 'Unknown');
+                                const contributorName =
+                                    book.user?.name ||
+                                    (contributorId ? `User #${contributorId}` : t.language === "en" ? "Unknown" : "មិនស្គាល់");
                                 const isContributorVerified = !!book.user?.isVerified;
 
                                 return (
                                     <div key={book.id} className="relative">
-                                        {/* Book Card */}
                                         <Tooltip>
-                                            <TooltipTrigger
-                                                asChild
-                                                className="lg:cursor-pointer"
-                                            >
+                                            <TooltipTrigger asChild className="lg:cursor-pointer">
                                                 <div
                                                     onClick={() => setOpenBookCard(book.id)}
                                                     className={`group flex flex-col items-start space-y-3 cursor-pointer p-3 rounded-xl bg-white border border-gray-200 shadow-lg
@@ -552,25 +742,22 @@ export default function Index() {
                                                     </div>
                                                 </div>
                                             </TooltipTrigger>
-                                            {/* Hover Card for Large Screens */}
                                             <TooltipContent
                                                 side="right"
                                                 className={`hidden lg:block max-w-md w-full p-5 rounded-xl shadow-2xl border-l-4 border-gray-200 bg-white text-gray-900
                                                             dark:border-gray-700 dark:bg-gray-800 dark:text-white z-50
-                                                            ${book.type === 'ebook' ? `border-${accentColor}-500` : 'border-amber-500'}`}
+                                                            ${book.type === "ebook" ? `border-${accentColor}-500` : "border-amber-500"}`}
                                             >
                                                 <BookCardContent book={book} />
                                             </TooltipContent>
                                         </Tooltip>
-
-                                        {/* Click-Based Card for Smaller Screens */}
                                         {openBookCard === book.id && (
                                             <div
                                                 ref={cardRef}
                                                 className={`lg:hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[90]
                                                             max-w-[90vw] w-full sm:max-w-md p-4 sm:p-5 rounded-xl shadow-2xl border-l-4 border-gray-200 bg-white text-gray-900
                                                             dark:border-gray-700 dark:bg-gray-800 dark:text-white
-                                                            ${book.type === 'ebook' ? `border-${accentColor}-500` : 'border-amber-500'}`}
+                                                            ${book.type === "ebook" ? `border-${accentColor}-500` : "border-amber-500"}`}
                                             >
                                                 <div className="flex justify-between items-center mb-4">
                                                     <button
@@ -588,13 +775,14 @@ export default function Index() {
                             })
                         ) : (
                             <p className="text-center text-gray-500 dark:text-gray-400 col-span-full py-12 sm:py-20 text-base sm:text-xl font-light">
-                                No {bookType === 'ebook' ? 'digital editions' : 'physical assets'} found. Try broadening your criteria.
+                                {t.language === "en"
+                                    ? `No ${bookType === "ebook" ? "digital editions" : "physical assets"} found. Try broadening your criteria.`
+                                    : `រកមិនឃើញ${bookType === "ebook" ? "សៀវភៅអេឡិចត្រូនិក" : "សៀវភៅជាក់ស្តែង"}ទេ។ សូមព្យាយាមពង្រីកលក្ខខណ្ឌរបស់អ្នក។`}
                             </p>
                         )}
                     </div>
                 </TooltipProvider>
 
-                {/* Pagination Controls */}
                 {totalPages > 1 && (
                     <div className="flex justify-center items-center space-x-4 pt-8 pb-4">
                         <Button
@@ -604,10 +792,10 @@ export default function Index() {
                             className={`flex items-center text-${accentColor}-600 dark:text-${accentColor}-400 disabled:opacity-50 text-sm sm:text-base px-3 sm:px-4 h-10 sm:h-11`}
                         >
                             <ChevronLeft className="w-4 sm:w-5 h-4 sm:h-5 mr-1" />
-                            Previous
+                            {t.language === "en" ? "Previous" : "មុន"}
                         </Button>
                         <span className="text-sm sm:text-md font-semibold text-gray-700 dark:text-gray-300">
-                            Page {currentPage} of {totalPages}
+                            {t.language === "en" ? `Page ${currentPage} of ${totalPages}` : `ទំព័រ ${currentPage} នៃ ${totalPages}`}
                         </span>
                         <Button
                             onClick={goToNextPage}
@@ -615,45 +803,61 @@ export default function Index() {
                             variant="outline"
                             className={`flex items-center text-${accentColor}-600 dark:text-${accentColor}-400 disabled:opacity-50 text-sm sm:text-base px-3 sm:px-4 h-10 sm:h-11`}
                         >
-                            Next
+                            {t.language === "en" ? "Next" : "បន្ទាប់"}
                             <ChevronRight className="w-4 sm:w-5 h-4 sm:h-5 ml-1" />
                         </Button>
                     </div>
                 )}
 
-                {/* Modal for Book Display (Reader/Viewer) */}
                 {isModalOpen && selectedBook && (
                     <div className="fixed inset-0 flex items-center justify-center z-[100] bg-gray-800 bg-opacity-30 dark:bg-opacity-40">
                         <div
                             className={`bg-white dark:bg-gray-850 rounded-lg shadow-2xl flex flex-col transition-all duration-300 ${
-                                isFullScreen ? 'w-full h-full max-w-none max-h-none' : 'w-11/12 max-w-[90vw] h-[90vh] sm:h-[95vh]'
+                                isFullScreen ? "w-full h-full max-w-none max-h-none" : "w-[90vw] max-w-[95vw] h-[80vh] sm:h-[90vh] md:h-[85vh]"
                             } relative z-[110]`}
                         >
                             <div className="flex justify-between items-center p-3 sm:p-4 border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
-                                <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white truncate">{selectedBook.title}</h2>
+                                <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white truncate">
+                                    {selectedBook.title}
+                                </h2>
                                 <div className="flex space-x-2 sm:space-x-4 items-center">
                                     <button
                                         onClick={() => setIsFullScreen(!isFullScreen)}
                                         className={`text-${accentColor}-600 dark:text-${accentColor}-400 hover:text-${accentColor}-800 dark:hover:text-${accentColor}-300 transition-colors p-1 rounded-md`}
+                                        aria-label={isFullScreen ? "Exit Full Screen" : "Enter Full Screen"}
                                     >
                                         {isFullScreen ? <Minimize className="h-6 sm:h-7 w-6 sm:w-7" /> : <Maximize className="h-6 sm:h-7 w-6 sm:w-7" />}
                                     </button>
                                     <button
                                         onClick={() => setIsModalOpen(false)}
                                         className="text-gray-400 hover:text-red-600 transition-colors text-2xl sm:text-4xl leading-none font-light p-1 rounded-md"
+                                        aria-label="Close Modal"
                                     >
                                         &times;
                                     </button>
                                 </div>
                             </div>
-                            <div className="flex-1 overflow-hidden p-3 sm:p-4 bg-gray-50 dark:bg-gray-800">
-                                <iframe
-                                    src={selectedBook.flip_link || selectedBook.pdf_url || ""}
-                                    title={selectedBook.title}
-                                    className="w-full h-full border-0 bg-white dark:bg-gray-900"
-                                    sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                                    style={{ background: 'inherit' }}
-                                ></iframe>
+                            <div className="flex-1 overflow-hidden p-3 sm:p-4 bg-gray-50 dark:bg-gray-800 relative">
+                                {selectedBook.flip_link || selectedBook.pdf_url ? (
+                                    <iframe
+                                        src={selectedBook.flip_link || selectedBook.pdf_url}
+                                        title={selectedBook.title}
+                                        className="w-full h-full border-0 bg-white dark:bg-gray-900"
+                                        sandbox="allow-same-origin allow-scripts"
+                                        style={{ background: "inherit" }}
+                                        onError={() => setIsModalOpen(false)}
+                                        loading="lazy"
+                                    />
+                                ) : (
+                                    <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
+                                        No content available for this book.
+                                    </div>
+                                )}
+                                {!selectedBook.flip_link && !selectedBook.pdf_url && (
+                                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-700 opacity-90">
+                                        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">Loading...</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
