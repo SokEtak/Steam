@@ -33,30 +33,30 @@ Route::middleware('auth:sanctum')->post('/logout', function (Request $request) {
     return ['message' => 'Logged out'];
 });
 
-Route::get('/file/download/{book}', function (Book $book) {
-
-    // Check if the book is downloadable and has a PDF URL
-    if (!$book->downloadable || !$book->pdf_url) {
-        abort(403, 'This book is not available for download.');
-    }
-
-    // Assuming pdf_url is a path relative to the storage disk (e.g., 'public/pdfs/book123.pdf')
-    $filePath = $book->pdf_url;
-
-    // Verify the file exists in storage
-    if (!Storage::disk('public')->exists($filePath)) {
-        abort(404, 'File not found.');
-    }
-
-    // Get the full path to the file
-    $fullPath = Storage::disk('public')->path($filePath);
-
-    // Generate a safe filename (e.g., based on book title or ID)
-    $fileName = 'book_' . $book->id . '.pdf';
-
-    // Return the file as a download response
-    return response()->download($fullPath, $fileName);
-})->name('download');
+//Route::get('/file/download/{book}', function (Book $book) {
+//
+//    // Check if the book is downloadable and has a PDF URL
+//    if (!$book->downloadable || !$book->pdf_url) {
+//        abort(403, 'This book is not available for download.');
+//    }
+//
+//    // Assuming pdf_url is a path relative to the storage disk (e.g., 'public/pdfs/book123.pdf')
+//    $filePath = $book->pdf_url;
+//
+//    // Verify the file exists in storage
+//    if (!Storage::disk('public')->exists($filePath)) {
+//        abort(404, 'File not found.');
+//    }
+//
+//    // Get the full path to the file
+//    $fullPath = Storage::disk('public')->path($filePath);
+//
+//    // Generate a safe filename (e.g., based on book title or ID)
+//    $fileName = 'book_' . $book->id . '.pdf';
+//
+//    // Return the file as a download response
+//    return response()->download($fullPath, $fileName);
+//})->name('download');
 
 //60 request per minute
 Route::middleware('throttle:60,1')->apiResource('/library/v1/books',BookController::class );

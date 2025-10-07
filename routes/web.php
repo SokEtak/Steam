@@ -139,7 +139,7 @@ Route::middleware(['auth', 'verified', 'role:librarian','is_account_activated'])
 Route::get('/global/library', function (Request $request) {
     $books = Book::active("physical","global")->get();
 
-    $lang = $request->user()->language ?? session('language', 'kh'); // Default to 'kh' if not set
+    $lang = $request->user()->language ?? session('language', 'kh');
 
     // Optionally, allow language to be set via query parameter
     if ($request->has('lang') && in_array($request->query('lang'), ['en', 'kh'])) {
@@ -147,7 +147,6 @@ Route::get('/global/library', function (Request $request) {
         session(['language' => $lang]); // Persist in session
     }
 
-//    dd($books->toArray());
     return Inertia::render('Client/Library/Index', [
         'books' => $books,
         'scope' => 'global',

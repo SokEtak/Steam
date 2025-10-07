@@ -525,20 +525,21 @@ export default function Index() {
                             {t.read}
                         </button>
                     )}
-                    {book.pdf_url && book.downloadable === 1 && (
-                        <a
-                            href={route('download', book.id)}
-                            rel="noopener noreferrer"
-                            className={`group text-xs sm:text-sm flex items-center font-semibold transition-all text-gray-700 dark:text-gray-300 p-2 rounded-md w-full justify-start
-                                      hover:bg-blue-50 dark:hover:bg-blue-700 hover:text-blue-600 dark:hover:text-blue-400`}
-                            download // Add download attribute to trigger file download
-                        >
-                            <Download
-                                className="w-4 sm:w-5 h-4 sm:h-5 mr-3 text-blue-500 dark:text-blue-400 group-hover:text-blue-600 dark:group-hover:text-blue-400"
-                            />
-                            {t.download}
-                        </a>
-                    )}
+                    {/*download button*/}
+                    {/*{book.pdf_url && book.downloadable === 1 && (*/}
+                    {/*    <a*/}
+                    {/*        href={route('download', book.id)}*/}
+                    {/*        rel="noopener noreferrer"*/}
+                    {/*        className={`group text-xs sm:text-sm flex items-center font-semibold transition-all text-gray-700 dark:text-gray-300 p-2 rounded-md w-full justify-start*/}
+                    {/*                  hover:bg-blue-50 dark:hover:bg-blue-700 hover:text-blue-600 dark:hover:text-blue-400`}*/}
+                    {/*        download // Add download attribute to trigger file download*/}
+                    {/*    >*/}
+                    {/*        <Download*/}
+                    {/*            className="w-4 sm:w-5 h-4 sm:h-5 mr-3 text-blue-500 dark:text-blue-400 group-hover:text-blue-600 dark:group-hover:text-blue-400"*/}
+                    {/*        />*/}
+                    {/*        {t.download}*/}
+                    {/*    </a>*/}
+                    {/*)}*/}
                     <a
                         href={route("books.show", book.id)}
                         target="_blank"
@@ -869,7 +870,7 @@ export default function Index() {
                             } relative z-[110]`}
                         >
                             <div className="flex justify-between items-center p-3 sm:p-4 border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
-                                <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white truncate">
+                                <h2 className="pt-2 text-lg sm:text-2xl font-bold text-gray-900 dark:text-white truncate">
                                     {selectedBook.title}
                                 </h2>
                                 <div className="flex space-x-2 sm:space-x-4 items-center">
