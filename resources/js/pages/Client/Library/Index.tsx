@@ -99,6 +99,25 @@ const translations = {
         read: "Start Reading",
         download: "Download",
         moreInfo: "View More Info",
+        searchPlaceholder: "Search",
+        logout: "Logout",
+        signIn: "Sign In",
+        selectLibrary: "Select Library",
+        globalLibrary: "Global Library",
+        localLibrary: "Local Library",
+        ebooksLibrary: "eBooks Library",
+        noBooksFound: "No {type} found. Try broadening your criteria.",
+        grade: "Grade",
+        subject: "Subject",
+        campus: "Campus",
+        sortBy: "Sort By",
+        newest: "Newest",
+        titleAZ: "Title (A-Z)",
+        mostViewed: "Most Viewed",
+        previous: "Previous",
+        next: "Next",
+        pageOf: "Page {current} of {total}",
+        unknownContributor: "Unknown",
     },
     kh: {
         programLabel: "កម្មវិធីសិក្សា",
@@ -121,28 +140,47 @@ const translations = {
         read: "ចាប់ផ្តើមអាន",
         download: "ទាញយក",
         moreInfo: "មើលព័ត៌មានបន្ថែម",
+        searchPlaceholder: "ស្វែងរក",
+        logout: "ចាកចេញ",
+        signIn: "ចូល",
+        selectLibrary: "ជ្រើសរើសបណ្ណាល័យ",
+        globalLibrary: "បណ្ណាល័យសកល",
+        localLibrary: "បណ្ណាល័យក្នុងតំបន់",
+        ebooksLibrary: "បណ្ណាល័យអេឡិចត្រូនិក",
+        noBooksFound: "រកមិនឃើញ{type}ទេ។ សូមព្យាយាមពង្រីកលក្ខខណ្ឌរបស់អ្នក។",
+        grade: "កម្រិតថ្នាក់",
+        subject: "មុខវិជ្ជា",
+        campus: "ទីតាំង",
+        sortBy: "តម្រៀបតាម",
+        newest: "ថ្មីបំផុត",
+        titleAZ: "ចំណងជើង (ក-អ)",
+        mostViewed: "ពេញនិយម",
+        previous: "មុន",
+        next: "បន្ទាប់",
+        pageOf: "ទំព័រ {current} នៃ {total}",
+        unknownContributor: "មិនស្គាល់",
     },
 };
 
-// For now, use Khmer as default; can be dynamic based on user preference later
+// Use Khmer as default
 const t = translations.kh;
 
 // --- Utilities ---
 const ITEMS_PER_PAGE = 16;
 
 const formatDate = (dateInput: string | number | undefined): string => {
-    if (!dateInput) return "Unknown";
+    if (!dateInput) return t.unknownContributor;
     if (typeof dateInput === "number") {
         return dateInput.toString();
     }
     try {
-        return new Date(dateInput).toLocaleDateString("en-US", {
+        return new Date(dateInput).toLocaleDateString("km-KH", {
             year: "numeric",
-            month: "short",
+            month: "long",
             day: "numeric",
         });
     } catch {
-        return "Invalid Date";
+        return "កាលបរិច្ឆេទមិនត្រឹមត្រូវ";
     }
 };
 
@@ -162,9 +200,9 @@ export default function Index() {
     const [sortBy, setSortBy] = useState("Newest");
     const [currentPage, setCurrentPage] = useState(1);
     const [openBookCard, setOpenBookCard] = useState<number | null>(null);
-    const [isModalOpen, setIsModalOpen] = useState(false); // Added
-    const [isFullScreen, setIsFullScreen] = useState(false); // Added
-    const [selectedBook, setSelectedBook] = useState<Book | null>(null); // Added
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isFullScreen, setIsFullScreen] = useState(false);
+    const [selectedBook, setSelectedBook] = useState<Book | null>(null);
     const cardRef = useRef<HTMLDivElement>(null);
 
     // Determine current library type for the dropdown
@@ -325,7 +363,7 @@ export default function Index() {
     const accentColor = "cyan";
     const isAuthenticated = auth.user !== null;
 
-    // Updated NavUser with dropdown
+    // NavUser with dropdown
     const NavUser = ({ user }: { user: AuthUser }) => (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -352,13 +390,13 @@ export default function Index() {
                     className="flex items-center space-x-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors text-red-600 dark:text-red-400"
                 >
                     <LogOut className="w-5 h-5" />
-                    <span>ចាកចេញ</span>
+                    <span>{t.logout}</span>
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
     );
 
-    // Common card content component to avoid duplication
+    // Common card content component
     const BookCardContent = ({ book }: { book: Book }) => (
         <div className="space-y-4">
             <h3 className="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">{book.title}</h3>
@@ -415,13 +453,9 @@ export default function Index() {
                     <p>
                         <span className="font-medium text-gray-700 dark:text-gray-300">{t.language}:</span>{" "}
                         {book.language === "en"
-                            ? t.language === "en"
-                                ? "English"
-                                : "អង់គ្លេស"
+                            ? "អង់គ្លេស"
                             : book.language === "kh"
-                                ? t.language === "kh"
-                                    ? "Khmer"
-                                    : "ខ្មែរ"
+                                ? "ខ្មែរ"
                                 : book.language}
                     </p>
                 )}
@@ -494,15 +528,7 @@ export default function Index() {
     return (
         <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
             <Head
-                title={
-                    bookType === "ebook"
-                        ? t.language === "en"
-                            ? "eBooks Library"
-                            : "បណ្ណាល័យអេឡិចត្រូនិក"
-                        : t.language === "en"
-                            ? "Books Library"
-                            : "បណ្ណាល័យសៀវភៅ"
-                }
+                title={bookType === "ebook" ? t.ebooksLibrary : t.language === "kh" ? "បណ្ណាល័យសៀវភៅ" : "Books Library"}
             />
 
             <div className="py-4 space-y-12 w-full max-w-full mx-auto px-4 sm:px-6 lg:px-12 xl:px-16 text-gray-900 dark:text-gray-100">
@@ -514,7 +540,7 @@ export default function Index() {
                             <Link href="/" className="flex items-center space-x-3">
                                 <img
                                     src="/images/DIS(no back).png"
-                                    alt="Logo"
+                                    alt="រូបសញ្ញា"
                                     className="h-12 sm:h-14 w-14 sm:w-14 object-fit"
                                 />
                             </Link>
@@ -536,7 +562,7 @@ export default function Index() {
                     <div className="relative w-full max-w-md sm:max-w-lg sm:mx-auto md:left-30">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 sm:h-5 w-4 sm:w-5 text-gray-400 dark:text-gray-500" />
                         <Input
-                            placeholder={t.language === "en" ? "Search" : "ស្វែងរក"}
+                            placeholder={t.searchPlaceholder}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className={`w-full bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500 rounded-full shadow-inner pl-10 h-10 sm:h-11
@@ -568,7 +594,7 @@ export default function Index() {
                                         className="flex items-center space-x-2 py-2 text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md w-full text-left"
                                     >
                                         <LogOut className="w-4 h-4" />
-                                        <span>{t.language === "en" ? "Logout" : "ចាកចេញ"}</span>
+                                        <span>{t.logout}</span>
                                     </button>
                                 </>
                             ) : (
@@ -578,7 +604,7 @@ export default function Index() {
                                     onClick={() => setIsMenuOpen(false)}
                                 >
                                     <LogIn className="w-4 h-4" />
-                                    <span>{t.language === "en" ? "Sign In" : "ចូល"}</span>
+                                    <span>{t.signIn}</span>
                                 </Link>
                             )}
                         </div>
@@ -619,15 +645,12 @@ export default function Index() {
                                                 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:border-gray-600
                                                   focus:ring-${accentColor}-500 transition rounded-full text-sm sm:text-base text-center`}
                         >
-                            <SelectValue
-                                placeholder={t.language === "en" ? "Select Library" : "ជ្រើសរើសបណ្ណាល័យ"}
-                                className="whitespace-nowrap"
-                            />
+                            <SelectValue placeholder={t.selectLibrary} className="whitespace-nowrap" />
                         </SelectTrigger>
                         <SelectContent className="bg-white border-gray-200 text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                            <SelectItem value="global">{t.language === "en" ? "Global Library" : "បណ្ណាល័យសកល"}</SelectItem>
-                            <SelectItem value="local">{t.language === "en" ? "Local Library" : "បណ្ណាល័យក្នុងតំបន់"}</SelectItem>
-                            <SelectItem value="ebook">{t.language === "en" ? "eBooks Library" : "បណ្ណាល័យអេឡិចត្រូនិក"}</SelectItem>
+                            <SelectItem value="global">{t.globalLibrary}</SelectItem>
+                            <SelectItem value="local">{t.localLibrary}</SelectItem>
+                            <SelectItem value="ebook">{t.ebooksLibrary}</SelectItem>
                         </SelectContent>
                     </Select>
                     {[
@@ -638,21 +661,12 @@ export default function Index() {
                             value: filterLanguage,
                             onChange: setFilterLanguage,
                             options: languages,
-                            display: (lang: string) =>
-                                lang === "en"
-                                    ? t.language === "en"
-                                        ? "English"
-                                        : "ភាសាអង់គ្លេស"
-                                    : lang === "kh"
-                                        ? t.language === "kh"
-                                            ? "Khmer"
-                                            : "ភាសាខ្មែរ"
-                                        : lang,
+                            display: (lang: string) => (lang === "en" ? "អង់គ្លេស" : lang === "kh" ? "ខ្មែរ" : lang),
                         },
-                        { label: t.language === "en" ? "Grade" : "កម្រិតថ្នាក់", value: filterGrade, onChange: setFilterGrade, options: grades },
-                        { label: t.language === "en" ? "Subject" : "មុខវិជ្ជា", value: filterSubject, onChange: setFilterSubject, options: subjects },
+                        { label: t.grade, value: filterGrade, onChange: setFilterGrade, options: grades },
+                        { label: t.subject, value: filterSubject, onChange: setFilterSubject, options: subjects },
                         ...(bookType === "physical" && scope !== "local"
-                            ? [{ label: t.language === "en" ? "Campus" : "ទីតាំង", value: filterCampus, onChange: setFilterCampus, options: campuses }]
+                            ? [{ label: t.campus, value: filterCampus, onChange: setFilterCampus, options: campuses }]
                             : []),
                     ].map(({ label, value, onChange, options, display }) => (
                         <Select key={label} value={value} onValueChange={onChange}>
@@ -665,7 +679,7 @@ export default function Index() {
                             </SelectTrigger>
                             <SelectContent className="bg-white border-gray-200 text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-white min-w-[150px] max-w-[90vw]">
                                 <SelectItem value="All" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">
-                                    {t.language === "en" ? `${label} (All)` : `${label}ទាំងអស់`}
+                                    {`${label}ទាំងអស់`}
                                 </SelectItem>
                                 {options.map((opt) => (
                                     <SelectItem key={opt} value={opt} className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">
@@ -682,18 +696,18 @@ export default function Index() {
                                  focus:ring-${accentColor}-500 transition font-semibold rounded-full text-sm sm:text-base text-center`}
                         >
                             <ArrowDownUp className="h-4 w-4 mr-2 text-gray-500 dark:text-gray-400" />
-                            <SelectValue placeholder={t.language === "en" ? "Sort By" : "តម្រៀបតាម"} />
+                            <SelectValue placeholder={t.sortBy} />
                         </SelectTrigger>
                         <SelectContent className="bg-white border-gray-200 text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-white min-w-[150px] max-w-[90vw]">
                             <SelectItem value="Newest" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">
-                                {t.language === "en" ? "Newest" : "ថ្មីបំផុត"}
+                                {t.newest}
                             </SelectItem>
                             <SelectItem value="Title A-Z" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">
-                                {t.language === "en" ? "Title (A-Z)" : "ចំណងជើង (ក-អ)"}
+                                {t.titleAZ}
                             </SelectItem>
-                            {/*<SelectItem value="Most Viewed" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">*/}
-                            {/*    {t.language === "en" ? "Most Viewed" : "ពេញនិយម"}*/}
-                            {/*</SelectItem>*/}
+                            {/* <SelectItem value="Most Viewed" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">
+                                {t.mostViewed}
+                            </SelectItem> */}
                         </SelectContent>
                     </Select>
                 </div>
@@ -705,8 +719,7 @@ export default function Index() {
                             paginatedBooks.map((book) => {
                                 const contributorId = book.posted_by_user_id || book.user?.id;
                                 const contributorName =
-                                    book.user?.name ||
-                                    (contributorId ? `User #${contributorId}` : t.language === "en" ? "Unknown" : "មិនស្គាល់");
+                                    book.user?.name || (contributorId ? `អ្នកប្រើ #${contributorId}` : t.unknownContributor);
                                 const isContributorVerified = !!book.user?.isVerified;
 
                                 return (
@@ -730,7 +743,7 @@ export default function Index() {
                                                     <div className="flex items-center justify-center space-x-2 pt-1 border-t border-gray-100 dark:border-gray-700 w-full">
                                                         <img
                                                             src={"https://fls-9fd96a88-703c-423b-a3c6-5b74b203b091.laravel.cloud/" + book.user?.avatar}
-                                                            alt="Contributor Avatar"
+                                                            alt="រូបភាពអ្នកបរិច្ចាគ"
                                                             className="w-5 sm:w-6 h-5 sm:h-6 rounded-full object-cover border border-gray-300 dark:border-gray-600 flex-shrink-0"
                                                         />
                                                         <span className="text-xs text-gray-400 dark:text-gray-500 truncate font-medium flex items-center min-w-0">
@@ -775,9 +788,7 @@ export default function Index() {
                             })
                         ) : (
                             <p className="text-center text-gray-500 dark:text-gray-400 col-span-full py-12 sm:py-20 text-base sm:text-xl font-light">
-                                {t.language === "en"
-                                    ? `No ${bookType === "ebook" ? "digital editions" : "physical assets"} found. Try broadening your criteria.`
-                                    : `រកមិនឃើញ${bookType === "ebook" ? "សៀវភៅអេឡិចត្រូនិក" : "សៀវភៅជាក់ស្តែង"}ទេ។ សូមព្យាយាមពង្រីកលក្ខខណ្ឌរបស់អ្នក។`}
+                                {t.noBooksFound.replace("{type}", bookType === "ebook" ? "សៀវភៅអេឡិចត្រូនិក" : "សៀវភៅជាក់ស្តែង")}
                             </p>
                         )}
                     </div>
@@ -792,10 +803,10 @@ export default function Index() {
                             className={`flex items-center text-${accentColor}-600 dark:text-${accentColor}-400 disabled:opacity-50 text-sm sm:text-base px-3 sm:px-4 h-10 sm:h-11`}
                         >
                             <ChevronLeft className="w-4 sm:w-5 h-4 sm:h-5 mr-1" />
-                            {t.language === "en" ? "Previous" : "មុន"}
+                            {t.previous}
                         </Button>
                         <span className="text-sm sm:text-md font-semibold text-gray-700 dark:text-gray-300">
-                            {t.language === "en" ? `Page ${currentPage} of ${totalPages}` : `ទំព័រ ${currentPage} នៃ ${totalPages}`}
+                            {t.pageOf.replace("{current}", String(currentPage)).replace("{total}", String(totalPages))}
                         </span>
                         <Button
                             onClick={goToNextPage}
@@ -803,7 +814,7 @@ export default function Index() {
                             variant="outline"
                             className={`flex items-center text-${accentColor}-600 dark:text-${accentColor}-400 disabled:opacity-50 text-sm sm:text-base px-3 sm:px-4 h-10 sm:h-11`}
                         >
-                            {t.language === "en" ? "Next" : "បន្ទាប់"}
+                            {t.next}
                             <ChevronRight className="w-4 sm:w-5 h-4 sm:h-5 ml-1" />
                         </Button>
                     </div>
@@ -824,14 +835,14 @@ export default function Index() {
                                     <button
                                         onClick={() => setIsFullScreen(!isFullScreen)}
                                         className={`text-${accentColor}-600 dark:text-${accentColor}-400 hover:text-${accentColor}-800 dark:hover:text-${accentColor}-300 transition-colors p-1 rounded-md`}
-                                        aria-label={isFullScreen ? "Exit Full Screen" : "Enter Full Screen"}
+                                        aria-label={isFullScreen ? "ចាកចេញពីអេក្រង់ពេញ" : "បើកអេក្រង់ពេញ"}
                                     >
                                         {isFullScreen ? <Minimize className="h-6 sm:h-7 w-6 sm:w-7" /> : <Maximize className="h-6 sm:h-7 w-6 sm:w-7" />}
                                     </button>
                                     <button
                                         onClick={() => setIsModalOpen(false)}
                                         className="text-gray-400 hover:text-red-600 transition-colors text-2xl sm:text-4xl leading-none font-light p-1 rounded-md"
-                                        aria-label="Close Modal"
+                                        aria-label="បិទផ្ទាំង"
                                     >
                                         &times;
                                     </button>
@@ -850,12 +861,12 @@ export default function Index() {
                                     />
                                 ) : (
                                     <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
-                                        No content available for this book.
+                                        មិនមានខ្លឹមសារសម្រាប់សៀវភៅនេះទេ។
                                     </div>
                                 )}
                                 {!selectedBook.flip_link && !selectedBook.pdf_url && (
                                     <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-700 opacity-90">
-                                        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">Loading...</p>
+                                        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">កំពុងផ្ទុក...</p>
                                     </div>
                                 )}
                             </div>

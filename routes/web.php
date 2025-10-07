@@ -33,7 +33,7 @@ Route::get('/auth/google/callback', function () {
         ->stateless()
         ->setHttpClient(new Client(['verify' => false]))//disable for production
         ->user();
-    dd($googleUser);
+//    dd($googleUser);
     $email = $googleUser->getEmail();
 
     // Check if email domain matches @diu.edu.kh
@@ -54,7 +54,7 @@ Route::get('/auth/google/callback', function () {
 
     Auth::login($user);
 
-    return redirect('/home');
+    return redirect(route('home'));
 });
 
 //facebook

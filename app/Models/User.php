@@ -46,6 +46,7 @@ class User extends Authenticatable
         'role_id',
         'campus_id',
         'facebook_id',
+        'google_id',
     ];
 
     /**
