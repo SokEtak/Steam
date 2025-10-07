@@ -31,7 +31,7 @@ Route::get('/auth/google', function () {
 Route::get('/auth/google/callback', function () {
     $googleUser = Socialite::driver('google')
         ->stateless()
-        ->setHttpClient(new Client(['verify' => false]))//disable for production
+//        ->setHttpClient(new Client(['verify' => false]))//disable for production
         ->user();
 //    dd($googleUser);
     $email = $googleUser->getEmail();
@@ -136,12 +136,22 @@ Route::middleware(['auth', 'verified', 'role:librarian','is_account_activated'])
     });
 
 //for global library
-Route::get('/global/library', function () {
+Route::get('/global/library', function (Request $request) {
     $books = Book::active("physical","global")->get();
+
+    $lang = $request->user()->language ?? session('language', 'kh'); // Default to 'kh' if not set
+
+    // Optionally, allow language to be set via query parameter
+    if ($request->has('lang') && in_array($request->query('lang'), ['en', 'kh'])) {
+        $lang = $request->query('lang');
+        session(['language' => $lang]); // Persist in session
+    }
+
 //    dd($books->toArray());
     return Inertia::render('Client/Library/Index', [
         'books' => $books,
         'scope' => 'global',
+        'lang' => $lang,
     ]);
 })->middleware('auth')->name('global library');
 

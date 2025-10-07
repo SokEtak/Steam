@@ -12,7 +12,7 @@ use Illuminate\Http\RedirectResponse;
 
 class BookController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $book_type = request()->query('type', null);
 

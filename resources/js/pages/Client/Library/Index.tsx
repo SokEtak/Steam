@@ -27,6 +27,7 @@ import {
     LogOut,
     UserCircle,
     Menu,
+    Globe,
 } from "lucide-react";
 
 // --- Interface Definitions ---
@@ -74,6 +75,7 @@ interface PageProps {
     auth: { user: AuthUser | null };
     scope?: "local" | "global";
     bookType?: "ebook" | "physical";
+    lang?: "en" | "kh"; // Add lang prop
 }
 
 // --- Translations ---
@@ -118,6 +120,8 @@ const translations = {
         next: "Next",
         pageOf: "Page {current} of {total}",
         unknownContributor: "Unknown",
+        switchToKhmer: "Switch to Khmer",
+        switchToEnglish: "Switch to English",
     },
     kh: {
         programLabel: "កម្មវិធីសិក្សា",
@@ -159,17 +163,16 @@ const translations = {
         next: "បន្ទាប់",
         pageOf: "ទំព័រ {current} នៃ {total}",
         unknownContributor: "មិនស្គាល់",
+        switchToKhmer: "ប្តូរទៅភាសាខ្មែរ",
+        switchToEnglish: "ប្តូរទៅភាសាអង់គ្លេស",
     },
 };
 
-// Use Khmer as default
-const t = translations.kh;
-
 // --- Utilities ---
-const ITEMS_PER_PAGE = 16;
+const ITEMS_PER_PAGE = 40;
 
 const formatDate = (dateInput: string | number | undefined): string => {
-    if (!dateInput) return t.unknownContributor;
+    if (!dateInput) return translations.kh.unknownContributor;
     if (typeof dateInput === "number") {
         return dateInput.toString();
     }
@@ -185,7 +188,7 @@ const formatDate = (dateInput: string | number | undefined): string => {
 };
 
 export default function Index() {
-    const { books, flash, auth, scope, bookType = "physical" } = usePage<PageProps>().props;
+    const { books, flash, auth, scope, bookType = "physical", lang = "kh" } = usePage<PageProps>().props;
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [search, setSearch] = useState("");
     const [filterCategory, setFilterCategory] = useState("All");
@@ -203,7 +206,25 @@ export default function Index() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+    const [language, setLanguage] = useState<"en" | "kh">(() => {
+        // Initialize language from localStorage or fallback to prop
+        const savedLanguage = typeof window !== "undefined" ? localStorage.getItem("language") : null;
+        return (savedLanguage === "en" || savedLanguage === "kh" ? savedLanguage : lang) as "en" | "kh";
+    });
     const cardRef = useRef<HTMLDivElement>(null);
+
+    // Dynamically select translations based on language state
+    const t = translations[language];
+
+    // Save language to localStorage whenever it changes
+    useEffect(() => {
+        localStorage.setItem("language", language);
+    }, [language]);
+
+    // Toggle language between English and Khmer
+    const toggleLanguage = () => {
+        setLanguage((prev) => (prev === "kh" ? "en" : "kh"));
+    };
 
     // Determine current library type for the dropdown
     const currentLibrary = bookType === "ebook" ? "ebook" : scope === "global" ? "global" : "local";
@@ -362,6 +383,7 @@ export default function Index() {
 
     const accentColor = "cyan";
     const isAuthenticated = auth.user !== null;
+    const allText = language === 'en' ? 'All' : 'ទាំងអស់';
 
     // NavUser with dropdown
     const NavUser = ({ user }: { user: AuthUser }) => (
@@ -385,6 +407,13 @@ export default function Index() {
                     <div className="text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="my-2" />
+                <DropdownMenuItem
+                    onClick={toggleLanguage}
+                    className="flex items-center space-x-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors text-gray-700 dark:text-gray-300"
+                >
+                    <Globe className="w-5 h-5" />
+                    <span>{language === "kh" ? t.switchToEnglish : t.switchToKhmer}</span>
+                </DropdownMenuItem>
                 <DropdownMenuItem
                     onClick={() => router.post(route("logout"))}
                     className="flex items-center space-x-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors text-red-600 dark:text-red-400"
@@ -419,7 +448,7 @@ export default function Index() {
                     {book.program.toLowerCase() === "cambodia" ? t.programCambodia : t.programAmerican}
                 </p>
             )}
-            {book.type === "physical" && (
+            {book.type === "physical" ? (
                 <div
                     className={`flex items-center text-sm sm:text-base font-semibold ${
                         book.is_available ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
@@ -432,7 +461,12 @@ export default function Index() {
                     )}
                     {t.status}: {book.is_available ? t.available : t.borrowed}
                 </div>
-            )}
+            ) : book.type === "ebook" ? (
+                <div className="flex items-center text-md sm:text-base font-semibold text-gray-600 dark:text-gray-300">
+                    <Eye className="w-4 sm:w-5 h-4 sm:h-5 mr-1 text-blue-500 dark:text-blue-400" />
+                    {book.view ?? 0}
+                </div>
+            ) : null}
             <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 space-y-1.5 pt-3 border-t border-gray-200 dark:border-gray-600">
                 {book.publisher && (
                     <p>
@@ -453,9 +487,9 @@ export default function Index() {
                     <p>
                         <span className="font-medium text-gray-700 dark:text-gray-300">{t.language}:</span>{" "}
                         {book.language === "en"
-                            ? "អង់គ្លេស"
+                            ? t.language === "en" ? "English" : "អង់គ្លេស"
                             : book.language === "kh"
-                                ? "ខ្មែរ"
+                                ? t.language === "en" ? "Khmer" : "ខ្មែរ"
                                 : book.language}
                     </p>
                 )}
@@ -493,11 +527,11 @@ export default function Index() {
                     )}
                     {book.pdf_url && book.downloadable === 1 && (
                         <a
-                            href={book.pdf_url}
-                            target="_blank"
+                            href={route('download', book.id)}
                             rel="noopener noreferrer"
                             className={`group text-xs sm:text-sm flex items-center font-semibold transition-all text-gray-700 dark:text-gray-300 p-2 rounded-md w-full justify-start
                                       hover:bg-blue-50 dark:hover:bg-blue-700 hover:text-blue-600 dark:hover:text-blue-400`}
+                            download // Add download attribute to trigger file download
                         >
                             <Download
                                 className="w-4 sm:w-5 h-4 sm:h-5 mr-3 text-blue-500 dark:text-blue-400 group-hover:text-blue-600 dark:group-hover:text-blue-400"
@@ -515,8 +549,8 @@ export default function Index() {
                     >
                         <Info
                             className="w-4 sm:w-5 h-4 sm:h-5 mr-3 transition-colors
-                   text-amber-600 dark:text-amber-400
-                   group-hover:text-amber-700 dark:group-hover:text-amber-400"
+                                     text-amber-600 dark:text-amber-400
+                                     group-hover:text-amber-700 dark:group-hover:text-amber-400"
                         />
                         {t.moreInfo}
                     </a>
@@ -540,7 +574,7 @@ export default function Index() {
                             <Link href="/" className="flex items-center space-x-3">
                                 <img
                                     src="/images/DIS(no back).png"
-                                    alt="រូបសញ្ញា"
+                                    alt={t.language === "en" ? "Logo" : "រូបសញ្ញា"}
                                     className="h-12 sm:h-14 w-14 sm:w-14 object-fit"
                                 />
                             </Link>
@@ -585,6 +619,13 @@ export default function Index() {
                                             {auth.user!.email}
                                         </span>
                                     </div>
+                                    <button
+                                        onClick={toggleLanguage}
+                                        className="flex items-center space-x-2 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md w-full text-left"
+                                    >
+                                        <Globe className="w-4 h-4" />
+                                        <span>{language === "kh" ? t.switchToEnglish : t.switchToKhmer}</span>
+                                    </button>
                                     <button
                                         onClick={() => {
                                             router.post(route("logout"), {}, {
@@ -661,7 +702,7 @@ export default function Index() {
                             value: filterLanguage,
                             onChange: setFilterLanguage,
                             options: languages,
-                            display: (lang: string) => (lang === "en" ? "អង់គ្លេស" : lang === "kh" ? "ខ្មែរ" : lang),
+                            display: (lang: string) => (lang === "en" ? (t.language === "en" ? "English" : "អង់គ្លេស") : lang === "kh" ? (t.language === "en" ? "Khmer" : "ខ្មែរ") : lang),
                         },
                         { label: t.grade, value: filterGrade, onChange: setFilterGrade, options: grades },
                         { label: t.subject, value: filterSubject, onChange: setFilterSubject, options: subjects },
@@ -679,7 +720,7 @@ export default function Index() {
                             </SelectTrigger>
                             <SelectContent className="bg-white border-gray-200 text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-white min-w-[150px] max-w-[90vw]">
                                 <SelectItem value="All" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">
-                                    {`${label}ទាំងអស់`}
+                                    {language === "en" ? `${allText} ${label}` : `${label}${allText}`}
                                 </SelectItem>
                                 {options.map((opt) => (
                                     <SelectItem key={opt} value={opt} className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">
@@ -743,7 +784,7 @@ export default function Index() {
                                                     <div className="flex items-center justify-center space-x-2 pt-1 border-t border-gray-100 dark:border-gray-700 w-full">
                                                         <img
                                                             src={"https://fls-9fd96a88-703c-423b-a3c6-5b74b203b091.laravel.cloud/" + book.user?.avatar}
-                                                            alt="រូបភាពអ្នកបរិច្ចាគ"
+                                                            alt={t.language === "en" ? "Contributor's avatar" : "រូបភាពអ្នកបរិច្ចាគ"}
                                                             className="w-5 sm:w-6 h-5 sm:h-6 rounded-full object-cover border border-gray-300 dark:border-gray-600 flex-shrink-0"
                                                         />
                                                         <span className="text-xs text-gray-400 dark:text-gray-500 truncate font-medium flex items-center min-w-0">
@@ -788,7 +829,7 @@ export default function Index() {
                             })
                         ) : (
                             <p className="text-center text-gray-500 dark:text-gray-400 col-span-full py-12 sm:py-20 text-base sm:text-xl font-light">
-                                {t.noBooksFound.replace("{type}", bookType === "ebook" ? "សៀវភៅអេឡិចត្រូនិក" : "សៀវភៅជាក់ស្តែង")}
+                                {t.noBooksFound.replace("{type}", bookType === "ebook" ? (t.language === "en" ? "eBooks" : "សៀវភៅអេឡិចត្រូនិក") : (t.language === "en" ? "physical books" : "សៀវភៅជាក់ស្តែង"))}
                             </p>
                         )}
                     </div>
@@ -835,14 +876,14 @@ export default function Index() {
                                     <button
                                         onClick={() => setIsFullScreen(!isFullScreen)}
                                         className={`text-${accentColor}-600 dark:text-${accentColor}-400 hover:text-${accentColor}-800 dark:hover:text-${accentColor}-300 transition-colors p-1 rounded-md`}
-                                        aria-label={isFullScreen ? "ចាកចេញពីអេក្រង់ពេញ" : "បើកអេក្រង់ពេញ"}
+                                        aria-label={isFullScreen ? t.language === "en" ? "Exit Fullscreen" : "ចាកចេញពីអេក្រង់ពេញ" : t.language === "en" ? "Enter Fullscreen" : "បើកអេក្រង់ពេញ"}
                                     >
                                         {isFullScreen ? <Minimize className="h-6 sm:h-7 w-6 sm:w-7" /> : <Maximize className="h-6 sm:h-7 w-6 sm:w-7" />}
                                     </button>
                                     <button
                                         onClick={() => setIsModalOpen(false)}
                                         className="text-gray-400 hover:text-red-600 transition-colors text-2xl sm:text-4xl leading-none font-light p-1 rounded-md"
-                                        aria-label="បិទផ្ទាំង"
+                                        aria-label={t.language === "en" ? "Close Modal" : "បិទផ្ទាំង"}
                                     >
                                         &times;
                                     </button>
@@ -861,12 +902,12 @@ export default function Index() {
                                     />
                                 ) : (
                                     <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
-                                        មិនមានខ្លឹមសារសម្រាប់សៀវភៅនេះទេ។
+                                        {t.language === "en" ? "No content available for this book." : "មិនមានខ្លឹមសារសម្រាប់សៀវភៅនេះទេ។"}
                                     </div>
                                 )}
                                 {!selectedBook.flip_link && !selectedBook.pdf_url && (
                                     <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-700 opacity-90">
-                                        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">កំពុងផ្ទុក...</p>
+                                        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">{t.language === "en" ? "Loading..." : "កំពុងផ្ទុក..."}</p>
                                     </div>
                                 )}
                             </div>
