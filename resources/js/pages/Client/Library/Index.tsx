@@ -107,7 +107,7 @@ const translations = {
         selectLibrary: "Select Library",
         globalLibrary: "Global Library",
         localLibrary: "Local Library",
-        ebooksLibrary: "eBooks Library",
+        ebooksLibrary: "e-Library",
         noBooksFound: "No {type} found. Try broadening your criteria.",
         grade: "Grade",
         subject: "Subject",
@@ -541,7 +541,7 @@ export default function Index() {
                     {/*    </a>*/}
                     {/*)}*/}
                     <a
-                        href={route("books.show", book.id)}
+                        href={route("library.show", book.id)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={`group text-xs sm:text-sm flex items-center font-semibold transition-all p-2 rounded-md w-full justify-start

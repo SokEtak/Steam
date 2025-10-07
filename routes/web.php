@@ -146,7 +146,6 @@ Route::get('/global/library', function (Request $request) {
         $lang = $request->query('lang');
         session(['language' => $lang]); // Persist in session
     }
-
     return Inertia::render('Client/Library/Index', [
         'books' => $books,
         'scope' => 'global',
@@ -177,6 +176,41 @@ Route::get('/e-library', function () {
     }
 })->middleware('auth')->name('global e-library');
 
+//Show Library
+Route::get('/library/{book}', function (Book $book) {
+    // Fetch related books: prioritize same category, supplement with same contributor
+    $relatedBooks = Book::query()
+        ->where(function ($query) use ($book) {
+            $query->where('category_id', $book->category_id)
+                ->orWhere('user_id', $book->user_id);
+        })
+        ->where('id', '!=', $book->id) // Exclude the current book
+        ->where('is_deleted', false) // Ensure books are not deleted
+        ->inRandomOrder() // Randomize results
+        ->take(5) // Limit to 5 books
+        ->with(['user', 'category']) // Load relationships for display
+        ->get()
+        ->map(function ($relatedBook) {
+            return [
+                'id' => $relatedBook->id,
+                'title' => $relatedBook->title,
+                'cover' => $relatedBook->cover,
+                'user' => $relatedBook->user ? [
+                    'name' => $relatedBook->user->name,
+                ] : null,
+            ];
+        });
+
+    return Inertia::render('Client/Library/Show', [
+        'book' => $book->load('user', 'category', 'bookcase', 'campus'), // Load relationships for main book
+        'lang' => app()->getLocale(), // Pass current locale (e.g., 'en' or 'km')
+        'authUser' => auth()->user() ? [
+            'name' => auth()->user()->name,
+            'avatar' => auth()->user()->avatar ?? null,
+        ] : null,
+        'relatedBooks' => $relatedBooks,
+    ]);
+})->middleware('auth')->name('library.show');
 //old project
 Route::prefix('digital/resource')->group(function () {
 
