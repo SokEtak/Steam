@@ -114,6 +114,10 @@ class BookController extends Controller
             $redirectRoute = $request['is_continue'] ?
                     route('books.create', ['type' => $validated['type']])
                   : route('books.index');
+
+            $locale = app()->getLocale();
+            $message = $locale === 'kh' ? 'សៀវភៅត្រូវបានបង្កើតដោយជោគជ័យ!' : 'Book created successfully!';
+            return redirect()->to($redirectRoute)->with('flash', ['message' => $message]);
             return redirect()->to($redirectRoute)->with('flash', ['message' => 'Book created successfully!']);
         } catch (\Illuminate\Database\QueryException $e) {
             Log::error('Database error during book store', [

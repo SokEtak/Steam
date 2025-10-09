@@ -54,7 +54,7 @@ class StoreBookRequest extends FormRequest
             'page_count' => ['required', 'integer', 'min:1'],
             'publisher' => ['required', 'string', 'max:255'],
             'language' => ['required', 'in:en,kh'],
-            'program' => 'required|in:Cambodia,American',
+            'program' => 'nullable|in:Cambodia,American',
             'published_at' => ['nullable', 'integer', 'digits:4', 'min:1000', 'max:2025'],
             'author' => ['nullable', 'string', 'max:255'],
             'flip_link' => ['nullable', 'url', 'max:255'],

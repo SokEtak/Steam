@@ -600,32 +600,33 @@ export default function BooksCreate({
   const [pdfFileError, setPdfFileError] = useState<string | null>(null);
   const [showErrorAlert, setShowErrorAlert] = useState(!!flash?.error);
 
-  const { data, setData, post, processing, errors, reset, setErrors } = useForm({
-    title: '',
-    description: '',
-    page_count: '',
-    publisher: '',
-    language: 'kh',
-    program: '' as 'Cambodia' | 'American' | '',
-    published_at: '',
-    author: '',
-    flip_link: '',
-    cover: null as File | null,
-    code: '',
-    isbn: '',
-    view: '0',
-    is_available: !isEbook,
-    pdf_url: null as File | null,
-    category_id: null as string | null,
-    subcategory_id: null as string | null,
-    shelf_id: isEbook ? null : (null as string | null),
-    bookcase_id: isEbook ? null : (null as string | null),
-    grade_id: null as string | null,
-    subject_id: null as string | null,
-    downloadable: !isEbook,
-    type,
-    is_continue: true,
-  });
+    const { data, setData, post, processing, errors, reset, setErrors } = useForm({
+        //where to set initial form value
+        title: '',
+        description: '',
+        page_count: '',
+        publisher: 'បណ្ណាគារ បន្ទាយស្រី',
+        language: 'kh',
+        program: '',
+        published_at: '201',
+        author: '',
+        flip_link: '',
+        cover: null,
+        code: 'J',
+        isbn: '',
+        view: '0',
+        is_available: !isEbook,
+        pdf_url: null,
+        category_id: '',
+        subcategory_id: '',
+        shelf_id: isEbook ? '' : '',
+        bookcase_id: isEbook ? '' : '',
+        grade_id: '',
+        subject_id: '',
+        downloadable: !isEbook,
+        type,
+        is_continue: true,
+    });
 
   const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
@@ -634,40 +635,46 @@ export default function BooksCreate({
   const [dragActive, setDragActive] = useState(false);
   const defaultLayoutPluginInstance = defaultLayoutPlugin();
 
+  //temp log
+    useEffect(() => {
+        console.log('setErrors:', setErrors); // Debug to confirm setErrors is a function
+    }, [setErrors]);
+
   // Handle flash messages for toast notifications
-  useEffect(() => {
-    if (flash?.message) {
-      toast(t.bookCreated, {
-        description: new Date().toLocaleString('km-KH', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: 'numeric',
-          minute: 'numeric',
-          hour12: true,
-        }),
-        action: {
-          label: t.undo,
-          onClick: () => router.get(route('books.index')),
-        },
-      });
-    }
-    setShowErrorAlert(!!Object.keys(errors).length || !!flash?.error);
-  }, [flash, errors, t]);
+    useEffect(() => {
+        if (flash?.message) {
+            toast(t.bookCreated, {
+                description: new Date().toLocaleString('km-KH', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true,
+                }),
+                action: {
+                    label: t.undo,
+                    onClick: () => router.get(route('books.index')),
+                },
+            });
+        }
+        setShowErrorAlert(!!Object.keys(errors).length || !!flash?.error);
+    }, [flash, errors, t]);
 
-  const generateCode = useCallback(() => {
-    const randomPrefix = generateRandomString(3).toUpperCase();
-    const typePrefix = isEbook ? 'EBK' : 'PHY';
-    const randomSuffix = generateRandomString(4);
-    return `${randomPrefix}-${typePrefix}-${randomSuffix}`.slice(0, 10);
-  }, [isEbook]);
+  // const generateCode = useCallback(() => {
+  //   const randomPrefix = generateRandomString(3).toUpperCase();
+  //   const typePrefix = isEbook ? 'EBK' : 'PHY';
+  //   const randomSuffix = generateRandomString(4);
+  //   return `${randomPrefix}-${typePrefix}-${randomSuffix}`.slice(0, 10);
+  // }, [isEbook]);
 
-  useEffect(() => {
-    if (data.category_id) {
-      setData('code', generateCode());
-    }
-  }, [data.category_id, generateCode]);
+  // auto code generate after category selected
+  // useEffect(() => {
+  //   if (data.category_id) {
+  //     setData('code', generateCode());
+  //   }
+  // }, [data.category_id, generateCode]);
 
   useEffect(() => {
     return () => {
@@ -762,30 +769,32 @@ export default function BooksCreate({
     setPdfPreviewUrl(URL.createObjectURL(file));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isEbook && !data.pdf_url) {
-      setErrors((prev) => ({ ...prev, pdf_url: undefined }));
-      setPdfFileError(null);
-    }
-    post(route('books.store'), {
-      forceFormData: true,
-      onSuccess: () => {
-        setShowErrorAlert(false);
-        reset();
-        setCoverPreviewUrl(null);
-        setPdfPreviewUrl(null);
-        setPdfFileError(null);
-      },
-      onError: (errors) => {
-        setShowErrorAlert(true);
-        if (errors.code?.includes('unique')) {
-          setData('code', generateCode());
-          alert(t.codeError);
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (isEbook && !data.pdf_url) {
+            setErrors((prev) => ({ ...prev, pdf_url: undefined }));
+            setPdfFileError(null);
         }
-      },
-    });
-  };
+        post(route('books.store'), {
+            forceFormData: true,
+            onSuccess: () => {
+                setShowErrorAlert(false);
+                // Delay reset slightly to ensure toast renders
+                setTimeout(() => {
+                    reset();
+                    setCoverPreviewUrl(null);
+                    setPdfPreviewUrl(null);
+                    setPdfFileError(null);
+                }, 100);
+            },
+            onError: (errors) => {
+                setShowErrorAlert(true);
+                if (errors.code?.includes('unique')) {
+                    alert(t.codeError + ' សូមបញ្ចូលកូដថ្មី។');
+                }
+            },
+        });
+    };
 
   const handleTypeChange = (newType: 'physical' | 'ebook') => {
     setType(newType);
@@ -1003,7 +1012,7 @@ export default function BooksCreate({
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Select
-                          value={data.language}
+                            value={data.language || undefined}
                           onValueChange={(value) => setData('language', value)}
                           required
                         >
@@ -1051,22 +1060,19 @@ export default function BooksCreate({
                             }
                           }}
                           onBlur={(e) => {
-                            const value = e.target.value;
-                            if (value !== '' && (parseInt(value) < 1000 || parseInt(value) > 2025)) {
-                              setErrors((prev) => ({
-                                ...prev,
-                                published_at: t.publishedAtError || 'ឆ្នាំត្រូវនៅចន្លោះ ១៦៦៦ និង ២៦២៥',
-                              }));
-                            } else {
-                              setErrors((prev) => ({ ...prev, published_at: undefined }));
-                            }
+                              const value = e.target.value;
+                              if (value !== '' && (parseInt(value) < 1000 || parseInt(value) > 2025)) {
+                                  setData('published_at_error', t.publishedAtError || 'ឆ្នាំត្រូវនៅចន្លោះ ១៦៦៦ និង ២៦២៥');
+                              } else {
+                                  setData('published_at_error', undefined);
+                              }
                           }}
                           min="1901"
                           max="2025"
                           placeholder={t.publishedAtPlaceholder}
                           className={`w-full mt-1 rounded-lg border ${
-    errors.published_at ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+                                        errors.published_at ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+                                    } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                           aria-describedby={errors.published_at ? 'published_at-error' : undefined}
                         />
                       </TooltipTrigger>
@@ -1158,8 +1164,8 @@ export default function BooksCreate({
                           onChange={(e) => setData('code', e.target.value)}
                           maxLength={10}
                           className={`w-full mt-1 rounded-lg border ${
-    errors.code ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+                                        errors.code ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+                                    } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                           placeholder={t.codePlaceholder}
                           required
                           aria-describedby={errors.code ? 'code-error' : undefined}
@@ -1214,7 +1220,7 @@ export default function BooksCreate({
               <div className="space-y-4 col-span-full">
                 <div>
                   <Label htmlFor="program" className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    {t.program} <span className="text-red-500">*</span>
+                    {t.program}
                   </Label>
                   <TooltipProvider>
                     <Tooltip>
@@ -1222,12 +1228,11 @@ export default function BooksCreate({
                         <Select
                           value={data.program || undefined}
                           onValueChange={(value) => setData('program', value as 'Cambodia' | 'American')}
-                          required
                         >
                           <SelectTrigger
                             className={`w-full mt-1 rounded-lg border ${
-    errors.program ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+                                            errors.program ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+                                        } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                             aria-describedby={errors.program ? 'program-error' : undefined}
                           >
                             <SelectValue placeholder={t.programPlaceholder} />
@@ -1375,7 +1380,7 @@ export default function BooksCreate({
                         <Select
                           value={data.grade_id || undefined}
                            value={data.grade_id || undefined}
-                          onValueChange={(value) => setData('grade_id', value === '' ? null : value)}
+                          onValueChange={(value) => setData('grade_id', value || '')}
                         >
                           <SelectTrigger
                             className={`w-full mt-1 rounded-lg border ${
@@ -1417,7 +1422,7 @@ export default function BooksCreate({
                       <TooltipTrigger asChild>
                         <Select
                           value={data.subcategory_id || undefined}
-                          onValueChange={(value) => setData('subcategory_id', value === '' ? null : value)}
+                          onValueChange={(value) => setData('subcategory_id', value || '')}
                         >
                           <SelectTrigger
                             className={`w-full mt-1 rounded-lg border ${
@@ -1516,7 +1521,7 @@ export default function BooksCreate({
                           <TooltipTrigger asChild>
                             <Select
                               value={data.bookcase_id || undefined}
-                              onValueChange={(value) => setData('bookcase_id', value)}
+                              onValueChange={(value) => setData('bookcase_id', value || '')}
                               required
                             >
                               <SelectTrigger
@@ -1567,7 +1572,7 @@ export default function BooksCreate({
                           <TooltipTrigger asChild>
                             <Select
                               value={data.shelf_id || undefined}
-                              onValueChange={(value) => setData('shelf_id', value)}
+                              onValueChange={(value) => setData('shelf_id', value || '')}
                               required
                             >
                               <SelectTrigger

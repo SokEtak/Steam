@@ -1306,19 +1306,25 @@ function BookIndex() {
     const [hoveredRow, setHoveredRow] = useState<Book | null>(null);
 
     useEffect(() => {
-        if (flash.message) {
-            setShowAlert('success');
-        } else if (flash.error) {
-            setShowAlert('error');
-        } else {
-            setShowAlert(null);
+        if (flash?.message) {
+            toast(flash.message, {
+                description: new Date().toLocaleString('km-KH', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true,
+                }),
+                duration: 5000,
+                ariaProps: {
+                    role: 'status',
+                    'aria-live': 'polite',
+                },
+            });
         }
-
-        const timer = setTimeout(() => {
-            setIsTableLoading(false);
-        }, 500);
-        return () => clearTimeout(timer);
-    }, [flash.message, flash.error, books]);
+    }, [flash]);
 
 
     const availableYears = useMemo(() => {
