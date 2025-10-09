@@ -54,7 +54,7 @@ class RegisteredUserController extends Controller
             'campus_id' => 'required|exists:campuses,id',
             'code' => 'required|exists:campuses,code',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Max 2MB
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // Max 2MB
             'role_id' => 'nullable|exists:roles,id'
         ]);
 
