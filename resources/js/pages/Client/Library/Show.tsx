@@ -316,16 +316,6 @@ export default function Show({ book, lang = 'en', authUser, relatedBooks = [] }:
                 )}
                 {book.type === 'physical' && (
                     <>
-                        {book.bookcase?.code && (
-                            <p className="text-base text-gray-600 dark:text-gray-400">
-                                <strong className="font-semibold">{t.bookcase}:</strong> {book.bookcase.code}
-                            </p>
-                        )}
-                        {book.shelf?.code && (
-                            <p className="text-base text-gray-600 dark:text-gray-400">
-                                <strong className="font-semibold">{t.shelf}:</strong> {book.shelf.code}
-                            </p>
-                        )}
                         {book.campus?.name && (
                             <p className="text-base text-gray-600 dark:text-gray-400">
                                 <strong className="font-semibold">{t.campus}:</strong> {book.campus.name}
@@ -334,6 +324,16 @@ export default function Show({ book, lang = 'en', authUser, relatedBooks = [] }:
                         {book.program && (
                             <p className="text-base text-gray-600 dark:text-gray-400">
                                 <strong className="font-semibold">{t.program}:</strong> {book.program}
+                            </p>
+                        )}
+                        {book.bookcase?.code && (
+                            <p className="text-base text-gray-600 dark:text-gray-400">
+                                <strong className="font-semibold">{t.bookcase}:</strong> {book.bookcase.code}
+                            </p>
+                        )}
+                        {book.shelf?.code && (
+                            <p className="text-base text-gray-600 dark:text-gray-400">
+                                <strong className="font-semibold">{t.shelf}:</strong> {book.shelf.code}
                             </p>
                         )}
                         {book.isbn && (
