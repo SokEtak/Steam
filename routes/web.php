@@ -137,7 +137,7 @@ Route::middleware(['auth', 'verified', 'role:librarian','is_account_activated'])
 
 //for global library
 Route::get('/global/library', function (Request $request) {
-    $books = Book::active("physical","global")->get();
+    $books = Book::active("physical","global")->inRandomOrder()->get();
 
     $lang = $request->user()->language ?? session('language', 'kh');
 
@@ -155,7 +155,7 @@ Route::get('/global/library', function (Request $request) {
 
 //for local library
 Route::get('/local/library', function () {
-    $books = Book::active("physical","local")->get();
+    $books = Book::active("physical","local")->inRandomOrder()->get();
     return Inertia::render('Client/Library/Index', [
         'books' => $books,
         'scope' => 'local',
@@ -165,7 +165,7 @@ Route::get('/local/library', function () {
 // For global eBook library
 Route::get('/e-library', function () {
     try {
-        $books = Book::globalEbooks()->get();
+        $books = Book::globalEbooks()->inrandomorder()->get();
 //        dd($books->toArray());
         return Inertia::render('Client/Library/Index', [
             'books' => $books,
@@ -178,17 +178,17 @@ Route::get('/e-library', function () {
 
 //Show Library
 Route::get('/library/{book}', function (Book $book) {
-    // Fetch related books: prioritize same category, supplement with same contributor
+    // Fetch related books
     $relatedBooks = Book::query()
         ->where(function ($query) use ($book) {
             $query->where('category_id', $book->category_id)
                 ->orWhere('user_id', $book->user_id);
         })
-        ->where('id', '!=', $book->id) // Exclude the current book
-        ->where('is_deleted', false) // Ensure books are not deleted
-        ->inRandomOrder() // Randomize results
-        ->take(5) // Limit to 5 books
-        ->with(['user', 'category']) // Load relationships for display
+        ->where('id', '!=', $book->id)
+        ->where('is_deleted', false)
+        ->inRandomOrder()
+        ->take(10)
+        ->with(['user', 'category', 'subcategory', 'shelf', 'subject', 'grade'])
         ->get()
         ->map(function ($relatedBook) {
             return [
@@ -197,20 +197,30 @@ Route::get('/library/{book}', function (Book $book) {
                 'cover' => $relatedBook->cover,
                 'user' => $relatedBook->user ? [
                     'name' => $relatedBook->user->name,
+                    'isVerified' => $relatedBook->user->isVerified ?? false,
                 ] : null,
             ];
         });
-
+        if ($book->user_id !== Auth::user()->id){
+            $book->view += 1;
+            $book->save();
+        }
     return Inertia::render('Client/Library/Show', [
-        'book' => $book->load('user', 'category', 'bookcase', 'campus'), // Load relationships for main book
-        'lang' => app()->getLocale(), // Pass current locale (e.g., 'en' or 'km')
+        'book' => $book->load('user', 'category', 'subcategory', 'shelf', 'subject', 'grade', 'bookcase', 'campus')->toArray(),
+        'lang' => app()->getLocale(),
         'authUser' => auth()->user() ? [
             'name' => auth()->user()->name,
+            'email' => auth()->user()->email, // Added email
             'avatar' => auth()->user()->avatar ?? null,
+            'isVerified' => auth()->user()->isVerified ?? false,
         ] : null,
         'relatedBooks' => $relatedBooks,
     ]);
-})->middleware('auth')->name('library.show');
+})->middleware(['auth', 'throttle:5,2'])->name('library.show');
+
+
+
+
 //old project
 Route::prefix('digital/resource')->group(function () {
 

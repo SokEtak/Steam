@@ -110,8 +110,11 @@ class BookController extends Controller
             }
 
             $book->save();
-
-            return redirect()->route('books.index')->with('flash', ['message' => 'Book created successfully!']);
+            // Redirect based on is_continue
+            $redirectRoute = $request['is_continue'] ?
+                    route('books.create', ['type' => $validated['type']])
+                  : route('books.index');
+            return redirect()->to($redirectRoute)->with('flash', ['message' => 'Book created successfully!']);
         } catch (\Illuminate\Database\QueryException $e) {
             Log::error('Database error during book store', [
                 'error' => $e->getMessage(),

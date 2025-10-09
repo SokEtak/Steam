@@ -338,7 +338,7 @@ const getColumns = (
             },
             cell: ({ row }) => {
                 const language = row.getValue('language');
-                const displayLanguage = language === 'en' ? 'ភាសាអង់គ្លេស' : language === 'kh' ? 'ភាសាខ្មែរ' : 'N/A';
+                const displayLanguage = language === 'en' ? 'អង់គ្លេស' : language === 'kh' ? 'ខ្មែរ' : 'N/A';
                 return <div className="px-0">{displayLanguage}</div>;
             },
             filterFn: (row, columnId, filterValue) => {
@@ -397,7 +397,18 @@ const getColumns = (
                     </div>
                 );
             },
-            cell: ({ row }) => <div className="px-10">{row.getValue('program') || 'N/A'}</div>,
+            cell: ({ row }) => {
+                const value = row.getValue('program');
+                let label = 'N/A';
+
+                if (value === 'Cambodia') {
+                    label = value === 'Cambodia' ? 'កម្មវិធីខ្មែរ' : 'កម្មវិធីអង់គ្លេស';
+                } else if (value) {
+                    label = value;
+                }
+
+                return <div className="px-10">{label}</div>;
+            },
             filterFn: (row, columnId, filterValue) => {
                 if (!filterValue || filterValue === 'All') return true;
                 return String(row.getValue(columnId)).toLowerCase().includes(String(filterValue).toLowerCase());
@@ -1102,40 +1113,41 @@ const getColumns = (
                     <div className="flex items-center space-x-2">
                         <span>កម្រិតថ្នាក់</span>
                         <DropdownMenu open={isGradeDropdownOpen} onOpenChange={setIsGradeDropdownOpen}>
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 data-[state=open]:bg-accent">
-                                                <FilterIcon className={`h-4 w-4 ${filterValue ? 'text-blue-500' : 'text-gray-400'}`} />
-                                                <span className="sr-only">Open filter menu</span>
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Filter by Grade</TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                            <DropdownMenuContent align="start" className="w-[180px] p-2">
-                                <Select
-                                    value={filterValue}
-                                    onValueChange={(value) => {
-                                        column.setFilterValue(value === 'All' ? '' : value);
-                                        setIsGradeDropdownOpen(false);
-                                    }}
-                                >
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="ជ្រើសរើសកម្រិតថ្នាក់" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="All">កម្រិតថ្នាក់ទាំងអស់</SelectItem>
-                                        {grades.map((grade) => (
-                                            <SelectItem key={grade.id} value={grade.name}>
-                                                ថ្នាក់ទី {grade.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </DropdownMenuContent>
+                            {/*<TooltipProvider>*/}
+                            {/*    <Tooltip>*/}
+                            {/*        <TooltipTrigger asChild>*/}
+                            {/*            <DropdownMenuTrigger asChild>*/}
+                            {/*                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 data-[state=open]:bg-accent">*/}
+                            {/*                    <FilterIcon className={`h-4 w-4 ${filterValue ? 'text-blue-500' : 'text-gray-400'}`} />*/}
+                            {/*                    <span className="sr-only">Open filter menu</span>*/}
+                            {/*                </Button>*/}
+                            {/*            </DropdownMenuTrigger>*/}
+                            {/*        </TooltipTrigger>*/}
+                            {/*        <TooltipContent>Filter by Grade</TooltipContent>*/}
+                            {/*    </Tooltip>*/}
+                            {/*</TooltipProvider>*/}
+
+                            {/*<DropdownMenuContent align="start" className="w-[180px] p-2">*/}
+                            {/*    /!*<Select*!/*/}
+                            {/*    /!*    value={filterValue}*!/*/}
+                            {/*    /!*    onValueChange={(value) => {*!/*/}
+                            {/*    /!*        column.setFilterValue(value === 'All' ? '' : value);*!/*/}
+                            {/*    /!*        setIsGradeDropdownOpen(false);*!/*/}
+                            {/*    /!*    }}*!/*/}
+                            {/*    /!*>*!/*/}
+                            {/*    /!*    <SelectTrigger className="w-full">*!/*/}
+                            {/*    /!*        <SelectValue placeholder="ជ្រើសរើសកម្រិតថ្នាក់" />*!/*/}
+                            {/*    /!*    </SelectTrigger>*!/*/}
+                            {/*    /!*    <SelectContent>*!/*/}
+                            {/*    /!*        <SelectItem value="All">កម្រិតថ្នាក់ទាំងអស់</SelectItem>*!/*/}
+                            {/*    /!*        {grades.map((grade) => (*!/*/}
+                            {/*    /!*            <SelectItem key={grade.id} value={grade.name}>*!/*/}
+                            {/*    /!*                ថ្នាក់ទី {grade.name}*!/*/}
+                            {/*    /!*            </SelectItem>*!/*/}
+                            {/*    /!*        ))}*!/*/}
+                            {/*    /!*    </SelectContent>*!/*/}
+                            {/*    /!*</Select>*!/*/}
+                            {/*</DropdownMenuContent>*/}
                         </DropdownMenu>
                     </div>
                 );
@@ -1346,7 +1358,7 @@ function BookIndex() {
         subject: false,
         bookcase: true,
         shelf: false,
-        grade: true,
+        grade: false,
         published_at: false,
         campus: isSuperLibrarian,
         created_at: false,
@@ -1640,7 +1652,7 @@ function BookIndex() {
                     {/* Right: Filtered Books Count */}
                     <div className="flex items-center sm:justify-center">
                         <span className="text-sm font-medium">
-                          ចំនួនសៀវភៅ{`${table.getFilteredRowModel().rows.length} ក្បាលនៃ ${books.length} ត្រូវបានរកឃើញ `}
+                          ចំនួនសៀវភៅ {`${table.getFilteredRowModel().rows.length} ក្បាលនៃ ${books.length} ត្រូវបានរកឃើញ `}
                         </span>
                     </div>
                 </div>
@@ -1832,35 +1844,6 @@ function BookIndex() {
                                     {/* Links Section */}
                                     <div className="space-y-2">
                                         <h3 className="text-lg font-bold text-Orange-600 dark:text-orange-300">ក្របសៀបវភៅ</h3>
-                                        {/*<p>*/}
-                                        {/*    <strong className="text-blue-600 dark:text-blue-300">PDF URL:</strong>{' '}*/}
-                                        {/*    {rowModal.pdf_url ? (*/}
-                                        {/*        <a*/}
-                                        {/*            href={rowModal.pdf_url}*/}
-                                        {/*            target="_blank"*/}
-                                        {/*            rel="noopener noreferrer"*/}
-                                        {/*            className="text-blue-500 underline hover:text-blue-700 dark:text-blue-200 dark:hover:text-blue-100"*/}
-                                        {/*            onClick={(e) => e.stopPropagation()}*/}
-                                        {/*        >*/}
-                                        {/*            Preview PDF*/}
-                                        {/*        </a>*/}
-                                        {/*    ) : (*/}
-                                        {/*        'N/A'*/}
-                                        {/*    )}*/}
-                                        {/*</p>*/}
-                                        {/*{rowModal.flip_link && (*/}
-                                        {/*    <p>*/}
-                                        {/*        <strong className="text-blue-600 dark:text-blue-300">Flip Link:</strong>{' '}*/}
-                                        {/*        <a*/}
-                                        {/*            href={rowModal.flip_link}*/}
-                                        {/*            target="_blank"*/}
-                                        {/*            rel="noopener noreferrer"*/}
-                                        {/*            className="text-blue-500 underline hover:text-blue-700 dark:text-blue-200 dark:hover:text-blue-100"*/}
-                                        {/*        >*/}
-                                        {/*            View Flip*/}
-                                        {/*        </a>*/}
-                                        {/*    </p>*/}
-                                        {/*)}*/}
                                         <p>
                                             {/*<strong className="text-blue-600 dark:text-blue-300">Cover:</strong>{' '}*/}
                                             {rowModal.cover ? (
@@ -1950,15 +1933,6 @@ function BookIndex() {
                                     </div>
                                 </div>
                                 <div className="mt-6 flex justify-end gap-2">
-                                    {/*<Link href={route('books.show', rowModal.id)}>*/}
-                                    {/*    <Button*/}
-                                    {/*        variant="outline"*/}
-                                    {/*        size="sm"*/}
-                                    {/*        className="flex h-8 cursor-pointer items-center gap-1 rounded-lg border-blue-300 bg-white text-blue-700 hover:bg-blue-100 dark:border-blue-500 dark:bg-gray-800 dark:text-blue-200 dark:hover:bg-blue-700"*/}
-                                    {/*    >*/}
-                                    {/*        <EyeIcon className="h-4 w-4" /> View*/}
-                                    {/*    </Button>*/}
-                                    {/*</Link>*/}
                                     {!isSuperLibrarian && (
                                         <>
                                             <a
@@ -2019,7 +1993,7 @@ function BookIndex() {
                                     ))}
                                     {table.getFilteredRowModel().rows.length > 0 && (
                                         <SelectItem key="all" value="All" className="text-sm">
-                                            All
+                                            ទាំងអស់
                                         </SelectItem>
                                     )}
                                 </SelectContent>

@@ -13,6 +13,7 @@ import { useState, useEffect, useCallback, Component, ReactNode } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Viewer, Worker } from '@react-pdf-viewer/core';
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
+import { toast } from 'sonner'; // Import sonner for toast notifications
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -57,11 +58,12 @@ interface BooksCreateProps {
   flash?: {
     message: string | null;
     error: string | null;
+    warning: string | null; // Added warning to match flash structure
   };
   type: 'physical' | 'ebook';
 }
 
-// Translation object for English only
+// Translation object for English and Khmer
 const translations = {
   en: {
     go_back: 'Book List',
@@ -72,6 +74,8 @@ const translations = {
     tryAgain: 'Try Again',
     somethingWentWrong: 'Something went wrong',
     errorDescription: 'An error occurred while creating the book. Please try again or contact support.',
+    bookCreated: 'Book created successfully!',
+    undo: 'Undo',
     basicInformation: 'Basic Information',
     title: 'Title',
     titlePlaceholder: 'Enter the book title',
@@ -93,10 +97,10 @@ const translations = {
     languagePlaceholder: 'Select language',
     languageError: 'Please select a valid language.',
     languageHelper: 'Primary language of the book.',
-      program: 'Program',
-      programPlaceholder: 'Select program',
-      programError: 'Please select a valid program.',
-      programHelper: 'Select the program for the book (Cambodia or American).',
+    program: 'Program',
+    programPlaceholder: 'Select program',
+    programError: 'Please select a valid program.',
+    programHelper: 'Select the program for the book (Cambodia or American).',
     publishedAt: 'Published Year',
     publishedAtPlaceholder: 'Select Year',
     publishedAtError: 'Please select a valid publication year.',
@@ -175,12 +179,129 @@ const translations = {
     ebook: 'E-Book',
     audio: 'Audio',
     comingSoon: '(soon)',
+    isContinue: 'Is Continue',
+  },
+  kh: {
+    go_back: 'បញ្ជីសៀវភៅ',
+    createBook: 'បង្កើតសៀវភៅថ្មី',
+    createEBook: 'បង្កើតសៀវភៅអេឡិចត្រូនិក',
+    createPhysicalBook: 'បង្កើតសៀវភៅផ្ទាល់',
+    error: 'កំហុស',
+    tryAgain: 'ព្យាយាមម្តងទៀត',
+    somethingWentWrong: 'មានអ្វីមួយខុសឆ្គង',
+    errorDescription: 'មានកំហុសកើតឡើងនៅពេលបង្កើតសៀវភៅ។ សូមព្យាយាមម្តងទៀត ឬទាក់ទងផ្នែកជំនួយ។',
+    bookCreated: 'សៀវភៅត្រូវបានបង្កើតដោយជោគជ័យ!',
+    undo: 'មិនធ្វើវិញ',
+    basicInformation: 'ព័ត៌មានមូលដ្ឋាន',
+    title: 'ចំណងជើង',
+    titlePlaceholder: 'បញ្ចូលចំណងជើងសៀវភៅ',
+    titleError: 'សូមផ្តល់ចំណងជើងត្រឹមត្រូវ (អតិបរមា ២៥៥ តួអក្សរ)។',
+    titleHelper: 'អតិបរមា ២៥៥ តួអក្សរ។',
+    description: 'ការពិពណ៌នា',
+    descriptionPlaceholder: 'បញ្ចូលការពិពណ៌នាសៀវភៅ',
+    descriptionError: 'សូមផ្តល់ការពិពណ៌នាត្រឹមត្រូវ។',
+    descriptionHelper: 'ការពិពណ៌នាសង្ខេបនៃសៀវភៅ។',
+    pageCount: 'ចំនួនទំព័រ',
+    pageCountPlaceholder: 'បញ្ចូលចំនួនទំព័រ',
+    pageCountError: 'សូមផ្តល់ចំនួនទំព័រត្រឹមត្រូវ (អប្បបរមា ១)',
+    pageCountHelper: 'ចំនួនទំព័រសរុប។',
+    publisher: 'អ្នកបោះពុម្ព',
+    publisherPlaceholder: 'បញ្ចូលឈ្មោះអ្នកបោះពុម្ព',
+    publisherError: 'សូមផ្តល់ឈ្មោះអ្នកបោះពុម្ពត្រឹមត្រូវ (អតិបរមា ២៥៥ តួអក្សរ)។',
+    publisherHelper: 'អតិបរមា ២៥៥ តួអក្សរ។',
+    language: 'ភាសា',
+    languagePlaceholder: 'ជ្រើសរើសភាសា',
+    languageError: 'សូមជ្រើសរើសភាសាត្រឹមត្រូវ។',
+    languageHelper: 'ភាសាចម្បងនៃសៀវភៅ។',
+    program: 'កម្មវិធី',
+    programPlaceholder: 'ជ្រើសរើសកម្មវិធី',
+    programError: 'សូមជ្រើសរើសកម្មវិធីត្រឹមត្រូវ។',
+    programHelper: 'ជ្រើសរើសកម្មវិធីសម្រាប់សៀវភៅ (កម្ពុជា ឬអាមេរិក)។',
+    publishedAt: 'ឆ្នាំបោះពុម្ព',
+    publishedAtPlaceholder: 'ជ្រើសរើសឆ្នាំ',
+    publishedAtError: 'សូមជ្រើសរើសឆ្នាំបោះពុម្ពត្រឹមត្រូវ។',
+    publishedAtHelper: 'ឆ្នាំបោះពុម្ពជាជម្រើស។',
+    author: 'អ្នកនិពន្ធ',
+    authorPlaceholder: 'បញ្ចូលឈ្មោះអ្នកនិពន្ធ',
+    authorError: 'សូមផ្តល់ឈ្មោះអ្នកនិពន្ធត្រឹមត្រូវ (អតិបរមា ២៥៥ តួអក្សរ)។',
+    authorHelper: 'ជាជម្រើស អតិបរមា ២៥៥ តួអក្សរ។',
+    flipLink: 'តំណភ្ជាប់ឌីជីថល',
+    flipLinkPlaceholder: 'បញ្ចូល URL មើលជាមុនឌីជីថល',
+    flipLinkError: 'សូមផ្តល់ URL ត្រឹមត្រូវសម្រាប់មើលជាមុនឌីជីថល។',
+    flipLinkHelper: 'តំណភ្ជាប់មើលជាមុនឌីជីថលជាជម្រើស។',
+    code: 'កូដ',
+    codePlaceholder: 'បង្កើតដោយស្វ័យប្រវត្តិបន្ទាប់ពីជ្រើសរើសប្រភេទ',
+    codeError: 'សូមផ្តល់កូដសៀវភៅត្រឹមត្រូវ (អតិបរមា ១០ តួអក្សរ)។',
+    codeHelper: 'អតិបរមា ១០ តួអក្សរ។ បង្កើតដោយស្វ័យប្រវត្តិ។',
+    isbn: 'ISBN',
+    isbnPlaceholder: 'បញ្ចូល ISBN',
+    isbnError: 'សូមផ្តល់ ISBN ត្រឹមត្រូវ (អតិបរមា ១៣ តួអក្សរ)។',
+    isbnHelper: 'ជាជម្រើស ១៣ តួអក្សរ។',
+    availability: 'ភាពអាចរកបាន',
+    downloadable: 'អាចទាញយកបាន',
+    availabilityError: 'សូមជ្រើសរើសជម្រើសភាពអាចរកបាន។',
+    availabilityHelper: 'បញ្ជាក់ថាសៀវភៅអាចរកបាន។',
+    downloadableHelper: 'អនុញ្ញាតឱ្យអ្នកប្រើប្រាស់ទាញយកសៀវភៅអេឡិចត្រូនិក។',
+    yes: 'បាន',
+    no: 'ទេ',
+    classification: 'ការចាត់ថ្នាក់',
+    category: 'ប្រភេទ',
+    categoryPlaceholder: 'ជ្រើសរើសប្រភេទ',
+    categoryError: 'សូមជ្រើសរើសប្រភេទត្រឹមត្រូវ។',
+    categoryHelper: 'ជ្រើសរើសប្រភេទសម្រាប់សៀវភៅ។',
+    subcategory: 'ប្រភេទរង',
+    subcategoryPlaceholder: 'ជ្រើសរើសប្រភេទរង',
+    subcategoryError: 'សូមជ្រើសរើសប្រភេទរងត្រឹមត្រូវ។',
+    subcategoryHelper: 'ប្រភេទរងជាជម្រើសសម្រាប់សៀវភៅ។',
+    grade: 'កម្រិត',
+    gradePlaceholder: 'ជ្រើសរើសកម្រិត',
+    gradeError: 'សូមជ្រើសរើសកម្រិតត្រឹមត្រូវ។',
+    gradeHelper: 'កម្រិតជាជម្រើសសម្រាប់សៀវភៅ។',
+    subject: 'មុខវិជ្ជា',
+    subjectPlaceholder: 'ជ្រើសរើសមុខវិជ្ជា',
+    subjectError: 'សូមជ្រើសរើសមុខវិជ្ជាត្រឹមត្រូវ។',
+    subjectHelper: 'មុខវិជ្ជាជាជម្រើសសម្រាប់សៀវភៅ។',
+    location: 'ទីតាំង',
+    bookcase: 'ទូសៀវភៅ',
+    bookcasePlaceholder: 'ជ្រើសរើសទូសៀវភៅ',
+    bookcaseError: 'សូមជ្រើសរើសទូសៀវភៅត្រឹមត្រូវ',
+    bookcaseHelper: 'ជ្រើសរើសទូសៀវភៅសម្រាប់សៀវភៅផ្ទាល់',
+    shelf: 'ធ្នើ',
+    shelfPlaceholder: 'ជ្រើសរើសធ្នើ',
+    shelfError: 'សូមជ្រើសរើសធ្នើត្រឹមត្រូវ។',
+    shelfHelper: 'ជ្រើសរើសធ្នើសម្រាប់សៀវភៅផ្ទាល់',
+    files: 'ឯកសារ',
+    cover: 'គម្រប (ណែនាំទំរង់បញ្ឈរ)',
+    coverPlaceholder: 'ផ្ទុកឡើងរូបភាពគម្រប',
+    coverError: 'សូមផ្ទុកឡើងរូបភាពគម្របត្រឹមត្រូវ (JPEG/PNG, អតិបរមា 5MB)។',
+    coverHelper: 'JPEG ឬ PNG, អតិបរមា 5MB។',
+    pdfFile: 'ឯកសារ PDF (អតិបរមា 30MB)',
+    pdfFilePlaceholder: 'ផ្ទុកឡើងឯកសារ PDF',
+    pdfFileError: 'សូមផ្ទុកឡើងឯកសារ PDF ត្រឹមត្រូវ (អតិបរមា 30MB)',
+    pdfFileHelper: 'ជាជម្រើស: PDF, អតិបរមា 30MB',
+    browse: 'រកមើល',
+    remove: 'លុប',
+    preview: 'មើលជាមុន',
+    createButton: 'បង្កើតសៀវភៅ',
+    creating: 'កំពុងបង្កើត...',
+    cancel: 'បោះបង់ ត្រឡប់ទៅបញ្ជីសៀវភៅ',
+    coverPreview: 'មើលគម្របជាមុន',
+    pdfPreview: 'មើល PDF ជាមុន',
+    noCoverAvailable: 'គ្មានរូបភាពគម្របទេ១',
+    noPdfAvailable: 'គ្មានឯកសារ PDF ទេ។',
+    saveBook: 'រក្សាទុកសៀវភៅថ្មី',
+    returnToBooks: 'ត្រឡប់ទៅបញ្ជីសៀវភៅ',
+    physical: 'សៀវភៅ',
+    ebook: 'សៀវភៅអេឡិចត្រូនិក',
+    audio: 'សំឡេង',
+    comingSoon: '(ឆាប់ៗនេះ)',
+    isContinue: 'បន្ត',
   },
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
-  { title: translations.en.go_back, href: route('books.index') },
-  { title: 'Create', href: '' },
+  { title: translations.kh.go_back, href: route('books.index') },
+  { title: translations.kh.createBook, href: '' },
 ];
 
 const generateRandomString = (length: number): string => {
@@ -213,7 +334,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
   render() {
     if (this.state.hasError) {
-      const t = translations.en;
+      const t = translations.kh;
       return (
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-red-200 dark:border-red-700 p-6">
@@ -253,207 +374,207 @@ interface FileFieldProps {
 }
 
 const FileField: React.FC<FileFieldProps> = ({
-                                                 label,
-                                                 id,
-                                                 accept,
-                                                 onChange,
-                                                 previewUrl,
-                                                 onPreviewClick,
-                                                 error,
-                                                 helperText,
-                                                 isDragDrop = false,
-                                                 dragActive = false,
-                                                 onDrag,
-                                                 onDrop,
-                                                 selectedFileName,
-                                                 onRemove,
-                                                 fileError,
-                                                 required = false,
-                                             }) => {
-    const t = translations.en;
+  label,
+  id,
+  accept,
+  onChange,
+  previewUrl,
+  onPreviewClick,
+  error,
+  helperText,
+  isDragDrop = false,
+  dragActive = false,
+  onDrag,
+  onDrop,
+  selectedFileName,
+  onRemove,
+  fileError,
+  required = false,
+}) => {
+  const t = translations.kh;
 
-    // Handle paste event for cover image field only
-    useEffect(() => {
-        if (id !== 'cover') return; // Restrict to cover field
+  // Handle paste event for cover image field only
+  useEffect(() => {
+    if (id !== 'cover') return; // Restrict to cover field
 
-        const handlePaste = (e: ClipboardEvent) => {
-            const items = e.clipboardData?.items;
-            if (!items) return;
+    const handlePaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
 
-            for (const item of items) {
-                if (item.type.match('image/(jpeg|png)')) {
-                    const file = item.getAsFile();
-                    if (!file) return;
+      for (const item of items) {
+        if (item.type.match('image/(jpeg|png)')) {
+          const file = item.getAsFile();
+          if (!file) return;
 
-                    // Validate file size (2MB limit)
-                    if (file.size > 2 * 1024 * 1024) {
-                        onChange({ target: { files: null } } as any);
-                        return;
-                    }
+          // Validate file size (5MB limit)
+          if (file.size > 5 * 1024 * 1024) {
+            onChange({ target: { files: null } } as any);
+            return;
+          }
 
-                    // Create synthetic event for existing onChange handler
-                    const syntheticEvent = {
-                        target: { files: [file] },
-                    } as React.ChangeEvent<HTMLInputElement>;
-                    onChange(syntheticEvent);
-                    break; // Process only the first valid image
-                }
-            }
-        };
+          // Create synthetic event for existing onChange handler
+          const syntheticEvent = {
+            target: { files: [file] },
+          } as React.ChangeEvent<HTMLInputElement>;
+          onChange(syntheticEvent);
+          break; // Process only the first valid image
+        }
+      }
+    };
 
-        window.addEventListener('paste', handlePaste);
-        return () => window.removeEventListener('paste', handlePaste);
-    }, [id, onChange]);
+    window.addEventListener('paste', handlePaste);
+    return () => window.removeEventListener('paste', handlePaste);
+  }, [id, onChange]);
 
-    return (
-        <div className="space-y-2">
-            <Label htmlFor={id} className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                {label}
-            </Label>
-            {isDragDrop ? (
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <div
-                                className={`border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 w-full max-w-md h-64 mx-auto flex flex-col justify-center items-center ${
-                                    dragActive
-                                        ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
-                                        : 'border-gray-300 dark:border-gray-600'
-                                } ${error || fileError ? 'border-red-500 dark:border-red-400' : ''}`}
-                                onDragEnter={onDrag}
-                                onDragLeave={onDrag}
-                                onDragOver={onDrag}
-                                onDrop={onDrop}
-                                role="region"
-                                aria-label={`Drag and drop ${label.toLowerCase()} file`}
-                            >
-                                <Input
-                                    id={id}
-                                    type="file"
-                                    accept={accept}
-                                    onChange={onChange}
-                                    className="hidden"
-                                    required={required}
-                                    aria-describedby={error || fileError ? `${id}-error` : undefined}
-                                />
-                                <div className="space-y-3">
-                                    {selectedFileName ? (
-                                        <p className="text-sm text-gray-600 dark:text-gray-300">
-                                            Selected: {selectedFileName}{' '}
-                                            {onRemove && (
-                                                <Button
-                                                    variant="link"
-                                                    onClick={onRemove}
-                                                    className="text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300"
-                                                    aria-label={`${t.remove} ${selectedFileName}`}
-                                                >
-                                                    {t.remove}
-                                                </Button>
-                                            )}
-                                            {onPreviewClick && (
-                                                <Button
-                                                    variant="link"
-                                                    onClick={onPreviewClick}
-                                                    className="text-indigo-500 dark:text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300"
-                                                    aria-label={`${t.preview} ${selectedFileName}`}
-                                                >
-                                                    {t.preview}
-                                                </Button>
-                                            )}
-                                        </p>
-                                    ) : (
-                                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                                            {t.pdfFilePlaceholder}
-                                        </p>
-                                    )}
-                                    <Button
-                                        type="button"
-                                        onClick={() => document.getElementById(id)?.click()}
-                                        className="bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 px-4 py-2 rounded-lg"
-                                        aria-label={t.browse}
-                                    >
-                                        {t.browse}
-                                    </Button>
-                                </div>
-                            </div>
-                        </TooltipTrigger>
-                        <TooltipContent className="bg-indigo-600 text-white rounded-lg">
-                            {t.pdfFilePlaceholder}
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-            ) : (
-                <div className="space-y-2">
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <div
-                                    className={`relative w-full max-w-md h-64 mx-auto bg-gray-100 dark:bg-gray-700 border rounded-lg overflow-hidden flex items-center justify-center cursor-pointer transition-all duration-200 ${
-                                        error || fileError ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-                                    } hover:border-indigo-500 dark:hover:border-indigo-400`}
-                                    onClick={() => document.getElementById(id)?.click()}
-                                    role="button"
-                                    tabIndex={0}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' || e.key === ' ') {
-                                            document.getElementById(id)?.click();
-                                        }
-                                    }}
-                                >
-                                    <Input
-                                        id={id}
-                                        type="file"
-                                        accept={accept}
-                                        onChange={onChange}
-                                        className="hidden"
-                                        aria-describedby={error || fileError ? `${id}-error` : undefined}
-                                    />
-                                    {previewUrl ? (
-                                        <div className="relative w-full h-full">
-                                            <img
-                                                src={previewUrl}
-                                                alt={`${t.cover} Preview`}
-                                                className="w-full h-full object-contain"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    onPreviewClick?.();
-                                                }}
-                                            />
-                                            {onRemove && (
-                                                <Button
-                                                    variant="destructive"
-                                                    size="sm"
-                                                    className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        onRemove();
-                                                    }}
-                                                    aria-label={t.remove}
-                                                >
-                                                    <X className="w-4 h-4" />
-                                                </Button>
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <span className="text-gray-500 dark:text-gray-400 sm:text-center" >{t.coverPlaceholder} (or Ctrl+V)</span>
-                                    )}
-                                </div>
-                            </TooltipTrigger>
-                            <TooltipContent className="bg-indigo-600 text-white rounded-lg">
-                                {t.coverPlaceholder} (or paste image with Ctrl+V)
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                    {(error || fileError) && (
-                        <p id={`${id}-error`} className="text-red-500 dark:text-red-400 text-sm text-center">
-                            {error || fileError || t.coverError}
-                        </p>
-                    )}
-                    {helperText && <p className="text-xs text-gray-500 dark:text-gray-400 text-center">{helperText}</p>}
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id} className="text-sm font-medium text-gray-700 dark:text-gray-200">
+        {label}
+      </Label>
+      {isDragDrop ? (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div
+                className={`border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 w-full max-w-md h-64 mx-auto flex flex-col justify-center items-center ${
+    dragActive
+        ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
+        : 'border-gray-300 dark:border-gray-600'
+} ${error || fileError ? 'border-red-500 dark:border-red-400' : ''}`}
+                onDragEnter={onDrag}
+                onDragLeave={onDrag}
+                onDragOver={onDrag}
+                onDrop={onDrop}
+                role="region"
+                aria-label={`Drag and drop ${label.toLowerCase()} file`}
+              >
+                <Input
+                  id={id}
+                  type="file"
+                  accept={accept}
+                  onChange={onChange}
+                  className="hidden"
+                  required={required}
+                  aria-describedby={error || fileError ? `${id}-error` : undefined}
+                />
+                <div className="space-y-3">
+                  {selectedFileName ? (
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      Selected: {selectedFileName}{' '}
+                      {onRemove && (
+                        <Button
+                          variant="link"
+                          onClick={onRemove}
+                          className="text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300"
+                          aria-label={`${t.remove} ${selectedFileName}`}
+                        >
+                          {t.remove}
+                        </Button>
+                      )}
+                      {onPreviewClick && (
+                        <Button
+                          variant="link"
+                          onClick={onPreviewClick}
+                          className="text-indigo-500 dark:text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300"
+                          aria-label={`${t.preview} ${selectedFileName}`}
+                        >
+                          {t.preview}
+                        </Button>
+                      )}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {t.pdfFilePlaceholder}
+                    </p>
+                  )}
+                  <Button
+                    type="button"
+                    onClick={() => document.getElementById(id)?.click()}
+                    className="bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 px-4 py-2 rounded-lg"
+                    aria-label={t.browse}
+                  >
+                    {t.browse}
+                  </Button>
                 </div>
-            )}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent className="bg-indigo-600 text-white rounded-lg">
+              {t.pdfFilePlaceholder}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ) : (
+        <div className="space-y-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  className={`relative w-full max-w-md h-64 mx-auto bg-gray-100 dark:bg-gray-700 border rounded-lg overflow-hidden flex items-center justify-center cursor-pointer transition-all duration-200 ${
+    error || fileError ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+} hover:border-indigo-500 dark:hover:border-indigo-400`}
+                  onClick={() => document.getElementById(id)?.click()}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      document.getElementById(id)?.click();
+                    }
+                  }}
+                >
+                  <Input
+                    id={id}
+                    type="file"
+                    accept={accept}
+                    onChange={onChange}
+                    className="hidden"
+                    aria-describedby={error || fileError ? `${id}-error` : undefined}
+                  />
+                  {previewUrl ? (
+                    <div className="relative w-full h-full">
+                      <img
+                        src={previewUrl}
+                        alt={`${t.cover} Preview`}
+                        className="w-full h-full object-contain"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onPreviewClick?.();
+                        }}
+                      />
+                      {onRemove && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onRemove();
+                          }}
+                          aria-label={t.remove}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-gray-500 dark:text-gray-400 sm:text-center">{t.coverPlaceholder} (or Ctrl+V)</span>
+                  )}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="bg-indigo-600 text-white rounded-lg">
+                {t.coverPlaceholder} (or paste image with Ctrl+V)
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          {(error || fileError) && (
+            <p id={`${id}-error`} className="text-red-500 dark:text-red-400 text-sm text-center">
+              {error || fileError || t.coverError}
+            </p>
+          )}
+          {helperText && <p className="text-xs text-gray-500 dark:text-gray-400 text-center">{helperText}</p>}
         </div>
-    );
+      )}
+    </div>
+  );
 };
 
 export default function BooksCreate({
@@ -466,9 +587,9 @@ export default function BooksCreate({
   flash,
   type: initialType,
 }: BooksCreateProps) {
-  const t = translations.en;
+  const t = translations.kh;
 
-  const [type, setType] = useState<'physical' | 'ebook'>('ebook');
+  const [type, setType] = useState<'physical' | 'ebook'>('physical');
   const isEbook = type === 'ebook';
   const [categories, setCategories] = useState(initialCategories);
   const [subcategories, setSubcategories] = useState(initialSubcategories);
@@ -484,8 +605,8 @@ export default function BooksCreate({
     description: '',
     page_count: '',
     publisher: '',
-    language: 'en',
-      program: '' as 'Cambodia' | 'American' | '',
+    language: 'kh',
+    program: '' as 'Cambodia' | 'American' | '',
     published_at: '',
     author: '',
     flip_link: '',
@@ -503,6 +624,7 @@ export default function BooksCreate({
     subject_id: null as string | null,
     downloadable: !isEbook,
     type,
+    is_continue: true,
   });
 
   const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
@@ -512,16 +634,34 @@ export default function BooksCreate({
   const [dragActive, setDragActive] = useState(false);
   const defaultLayoutPluginInstance = defaultLayoutPlugin();
 
+  // Handle flash messages for toast notifications
   useEffect(() => {
+    if (flash?.message) {
+      toast(t.bookCreated, {
+        description: new Date().toLocaleString('km-KH', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric',
+          hour12: true,
+        }),
+        action: {
+          label: t.undo,
+          onClick: () => router.get(route('books.index')),
+        },
+      });
+    }
     setShowErrorAlert(!!Object.keys(errors).length || !!flash?.error);
-  }, [errors, flash?.error]);
+  }, [flash, errors, t]);
 
-    const generateCode = useCallback(() => {
-        const randomPrefix = generateRandomString(3).toUpperCase();
-        const typePrefix = isEbook ? 'EBK' : 'PHY';
-        const randomSuffix = generateRandomString(4);
-        return `${randomPrefix}-${typePrefix}-${randomSuffix}`.slice(0, 10);
-    }, [isEbook, generateRandomString]);
+  const generateCode = useCallback(() => {
+    const randomPrefix = generateRandomString(3).toUpperCase();
+    const typePrefix = isEbook ? 'EBK' : 'PHY';
+    const randomSuffix = generateRandomString(4);
+    return `${randomPrefix}-${typePrefix}-${randomSuffix}`.slice(0, 10);
+  }, [isEbook]);
 
   useEffect(() => {
     if (data.category_id) {
@@ -536,58 +676,58 @@ export default function BooksCreate({
     };
   }, [coverPreviewUrl, pdfPreviewUrl]);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'cover' | 'pdf_url') => {
-        const file = e.target.files?.[0];
-        if (!file) {
-            setData(field, null);
-            if (field === 'cover') setCoverPreviewUrl(null);
-            else {
-                setPdfPreviewUrl(null);
-                setPdfFileError(null);
-            }
-            return;
-        }
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'cover' | 'pdf_url') => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      setData(field, null);
+      if (field === 'cover') setCoverPreviewUrl(null);
+      else {
+        setPdfPreviewUrl(null);
+        setPdfFileError(null);
+      }
+      return;
+    }
 
-        if (field === 'cover') {
-            if (!file.type.match('image/(jpeg|png)')) {
-                setData(field, null);
-                e.target.value = '';
-                setPdfFileError(t.coverError);
-                return;
-            }
-            if (file.size > 2 * 1024 * 1024) {
-                setData(field, null);
-                e.target.value = '';
-                setPdfFileError('Cover image exceeds 2MB limit. Please upload a smaller file.');
-                return;
-            }
-        }
-        if (field === 'pdf_url') {
-            if (file.type !== 'application/pdf') {
-                setData(field, null);
-                e.target.value = '';
-                setPdfFileError(t.pdfFileError);
-                return;
-            }
-            if (file.size > 30 * 1024 * 1024) { // Changed from 200MB to 30MB
-                setData(field, null);
-                e.target.value = '';
-                setPdfFileError('PDF file exceeds 30MB limit. Please upload a smaller file.');
-                return;
-            }
-            setPdfFileError(null);
-        }
+    if (field === 'cover') {
+      if (!file.type.match('image/(jpeg|png)')) {
+        setData(field, null);
+        e.target.value = '';
+        setPdfFileError(t.coverError);
+        return;
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        setData(field, null);
+        e.target.value = '';
+        setPdfFileError('រូបភាពគម្របលើស 5MB។ សូមផ្ទុកឡើងឯកសារតូចជាង។');
+        return;
+      }
+    }
+    if (field === 'pdf_url') {
+      if (file.type !== 'application/pdf') {
+        setData(field, null);
+        e.target.value = '';
+        setPdfFileError(t.pdfFileError);
+        return;
+      }
+      if (file.size > 30 * 1024 * 1024) {
+        setData(field, null);
+        e.target.value = '';
+        setPdfFileError('ឯកសារ PDF លើស ៣៦MB។ សូមផ្ទុកឡើងឯកសារតូចជាង។');
+        return;
+      }
+      setPdfFileError(null);
+    }
 
-        setData(field, file);
-        const newUrl = URL.createObjectURL(file);
-        if (field === 'cover') {
-            if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl);
-            setCoverPreviewUrl(newUrl);
-        } else {
-            if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl);
-            setPdfPreviewUrl(newUrl);
-        }
-    };
+    setData(field, file);
+    const newUrl = URL.createObjectURL(file);
+    if (field === 'cover') {
+      if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl);
+      setCoverPreviewUrl(newUrl);
+    } else {
+      if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl);
+      setPdfPreviewUrl(newUrl);
+    }
+  };
 
   const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -605,15 +745,15 @@ export default function BooksCreate({
     setDragActive(false);
     const file = e.dataTransfer.files?.[0];
     if (!file) {
-      setPdfFileError('No file was dropped. Please try again.');
+      setPdfFileError('គ្មានឯកសារត្រូវបានទម្លាក់។ សូមព្យាយាមម្តងទៀត។');
       return;
     }
     if (file.type !== 'application/pdf') {
       setPdfFileError(t.pdfFileError);
       return;
     }
-    if (file.size > 30 * 1024 * 1024) { // Changed from 200MB to 30MB
-      setPdfFileError('PDF file exceeds 30MB limit. Please drop a smaller file.');
+    if (file.size > 30 * 1024 * 1024) {
+      setPdfFileError('ឯកសារ PDF លើស ៣៦MB។ សូមទម្លាក់ឯកសារតូចជាង។');
       return;
     }
     setPdfFileError(null);
@@ -622,30 +762,30 @@ export default function BooksCreate({
     setPdfPreviewUrl(URL.createObjectURL(file));
   };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (isEbook && !data.pdf_url) {
-            setErrors((prev) => ({ ...prev, pdf_url: undefined }));
-            setPdfFileError(null);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isEbook && !data.pdf_url) {
+      setErrors((prev) => ({ ...prev, pdf_url: undefined }));
+      setPdfFileError(null);
+    }
+    post(route('books.store'), {
+      forceFormData: true,
+      onSuccess: () => {
+        setShowErrorAlert(false);
+        reset();
+        setCoverPreviewUrl(null);
+        setPdfPreviewUrl(null);
+        setPdfFileError(null);
+      },
+      onError: (errors) => {
+        setShowErrorAlert(true);
+        if (errors.code?.includes('unique')) {
+          setData('code', generateCode());
+          alert(t.codeError);
         }
-        post(route('books.store'), {
-            forceFormData: true,
-            onSuccess: () => {
-                setShowErrorAlert(false);
-                reset();
-                setCoverPreviewUrl(null);
-                setPdfPreviewUrl(null);
-                setPdfFileError(null);
-            },
-            onError: (errors) => {
-                setShowErrorAlert(true);
-                if (errors.code?.includes('unique')) {
-                    setData('code', generateCode()); // Regenerate code
-                    alert(t.codeError);
-                }
-            },
-        });
-    };
+      },
+    });
+  };
 
   const handleTypeChange = (newType: 'physical' | 'ebook') => {
     setType(newType);
@@ -806,8 +946,7 @@ export default function BooksCreate({
                           min="1"
                           className={`w-full mt-1 rounded-lg border ${
     errors.page_count ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-} focus:ring-2 focus:ring-indigo-500 dark:focusმო�
-                          focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-y`}
+} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                           required
                           aria-describedby={errors.page_count ? 'page_count-error' : undefined}
                         />
@@ -870,15 +1009,15 @@ export default function BooksCreate({
                         >
                           <SelectTrigger
                             className={`w-full mt-1 rounded-lg border ${
-                                            errors.language ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-                                       } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+    errors.language ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                             aria-describedby={errors.language ? 'language-error' : undefined}
                           >
                             <SelectValue placeholder={t.languagePlaceholder} />
                           </SelectTrigger>
                           <SelectContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
+                            <SelectItem value="kh">ខ្មែរ</SelectItem>
                             <SelectItem value="en">English</SelectItem>
-                            <SelectItem value="kh">Khmer</SelectItem>
                           </SelectContent>
                         </Select>
                       </TooltipTrigger>
@@ -916,7 +1055,7 @@ export default function BooksCreate({
                             if (value !== '' && (parseInt(value) < 1000 || parseInt(value) > 2025)) {
                               setErrors((prev) => ({
                                 ...prev,
-                                published_at: t.publishedAtError || 'Year must be between 1000 and 2025',
+                                published_at: t.publishedAtError || 'ឆ្នាំត្រូវនៅចន្លោះ ១៦៦៦ និង ២៦២៥',
                               }));
                             } else {
                               setErrors((prev) => ({ ...prev, published_at: undefined }));
@@ -926,8 +1065,8 @@ export default function BooksCreate({
                           max="2025"
                           placeholder={t.publishedAtPlaceholder}
                           className={`w-full mt-1 rounded-lg border ${
-                                        errors.published_at ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-                                    } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+    errors.published_at ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                           aria-describedby={errors.published_at ? 'published_at-error' : undefined}
                         />
                       </TooltipTrigger>
@@ -943,9 +1082,7 @@ export default function BooksCreate({
                   )}
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t.publishedAtHelper}</p>
                 </div>
-
               </div>
-
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="author" className="text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -959,9 +1096,9 @@ export default function BooksCreate({
                           value={data.author}
                           onChange={(e) => setData('author', e.target.value)}
                           className={`w-full mt-1 rounded-lg border ${
-                            errors.author ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-                        } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
-                                                  aria-describedby={errors.author ? 'author-error' : undefined}
+    errors.author ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+                          aria-describedby={errors.author ? 'author-error' : undefined}
                         />
                       </TooltipTrigger>
                       <TooltipContent className="bg-indigo-600 text-white rounded-lg">
@@ -989,8 +1126,8 @@ export default function BooksCreate({
                           onChange={(e) => setData('flip_link', e.target.value)}
                           type="url"
                           className={`w-full mt-1 rounded-lg border ${
-                            errors.flip_link ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-                        } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+    errors.flip_link ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                           aria-describedby={errors.flip_link ? 'flip_link-error' : undefined}
                         />
                       </TooltipTrigger>
@@ -1055,8 +1192,8 @@ export default function BooksCreate({
                           onChange={(e) => setData('isbn', e.target.value)}
                           maxLength={13}
                           className={`w-full mt-1 rounded-lg border ${
-                                        errors.isbn ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-                                    } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+    errors.isbn ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                           aria-describedby={errors.isbn ? 'isbn-error' : undefined}
                         />
                       </TooltipTrigger>
@@ -1075,45 +1212,45 @@ export default function BooksCreate({
               </div>
 
               <div className="space-y-4 col-span-full">
-                  <div>
-                      <Label htmlFor="program" className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                          {t.program} <span className="text-red-500">*</span>
-                      </Label>
-                      <TooltipProvider>
-                          <Tooltip>
-                              <TooltipTrigger asChild>
-                                  <Select
-                                      value={data.program || undefined}
-                                      onValueChange={(value) => setData('program', value as 'Cambodia' | 'American')}
-                                      required
-                                  >
-                                      <SelectTrigger
-                                          className={`w-full mt-1 rounded-lg border ${
-                                              errors.program ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-                                          } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
-                                          aria-describedby={errors.program ? 'program-error' : undefined}
-                                      >
-                                          <SelectValue placeholder={t.programPlaceholder} />
-                                      </SelectTrigger>
-                                      <SelectContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
-                                          <SelectItem value="Cambodia">Cambodia</SelectItem>
-                                          <SelectItem value="American">American</SelectItem>
-                                      </SelectContent>
-                                  </Select>
-                              </TooltipTrigger>
-                              <TooltipContent className="bg-indigo-600 text-white rounded-lg">
-                                  {t.programPlaceholder}
-                              </TooltipContent>
-                          </Tooltip>
-                      </TooltipProvider>
-                      {errors.program && (
-                          <p id="program-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
-                              {errors.program || t.programError}
-                          </p>
-                      )}
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t.programHelper}</p>
-                  </div>
-                  <div>
+                <div>
+                  <Label htmlFor="program" className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    {t.program} <span className="text-red-500">*</span>
+                  </Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Select
+                          value={data.program || undefined}
+                          onValueChange={(value) => setData('program', value as 'Cambodia' | 'American')}
+                          required
+                        >
+                          <SelectTrigger
+                            className={`w-full mt-1 rounded-lg border ${
+    errors.program ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+                            aria-describedby={errors.program ? 'program-error' : undefined}
+                          >
+                            <SelectValue placeholder={t.programPlaceholder} />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
+                            <SelectItem value="Cambodia">កម្ពុជា</SelectItem>
+                            <SelectItem value="American">អាមេរិក</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-indigo-600 text-white rounded-lg">
+                        {t.programPlaceholder}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  {errors.program && (
+                    <p id="program-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
+                      {errors.program || t.programError}
+                    </p>
+                  )}
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t.programHelper}</p>
+                </div>
+                <div>
                   <Label className="text-sm font-medium text-gray-700 dark:text-gray-200">
                     {isEbook ? t.downloadable : t.availability} <span className="text-red-500">*</span>
                   </Label>
@@ -1172,7 +1309,6 @@ export default function BooksCreate({
                     {isEbook ? t.downloadableHelper : t.availabilityHelper}
                   </p>
                 </div>
-
               </div>
 
               {/* Classification */}
@@ -1194,8 +1330,8 @@ export default function BooksCreate({
                         >
                           <SelectTrigger
                             className={`w-full mt-1 rounded-lg border ${
-                                            errors.category_id ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-                                       } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+    errors.category_id ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                             aria-describedby={errors.category_id ? 'category-error' : undefined}
                           >
                             <SelectValue placeholder={t.categoryPlaceholder} />
@@ -1214,14 +1350,14 @@ export default function BooksCreate({
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                    <Link
-                        href={route('categories.create')}
-                        className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 mt-1 inline-block"
-                        preserveState
-                        preserveScroll
-                    >
-                        {t.category} not exist? Click here
-                    </Link>
+                  <Link
+                    href={route('categories.create')}
+                    className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 mt-1 inline-block"
+                    preserveState
+                    preserveScroll
+                  >
+                    {t.category} មិនមានទេ? ចុចទីនេះ
+                  </Link>
                   {errors.category_id && (
                     <p id="category-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
                       {errors.category_id || t.categoryError}
@@ -1238,18 +1374,18 @@ export default function BooksCreate({
                       <TooltipTrigger asChild>
                         <Select
                           value={data.grade_id || undefined}
-                          onValueChange={(value) => setData('grade_id', value === 'none' ? null : value)}
+                           value={data.grade_id || undefined}
+                          onValueChange={(value) => setData('grade_id', value === '' ? null : value)}
                         >
                           <SelectTrigger
                             className={`w-full mt-1 rounded-lg border ${
-                                            errors.grade_id ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-                                        } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+                                        errors.grade_id ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+                                      } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                             aria-describedby={errors.grade_id ? 'grade-error' : undefined}
                           >
                             <SelectValue placeholder={t.gradePlaceholder} />
                           </SelectTrigger>
                           <SelectContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
-                            <SelectItem value="none">{t.no}</SelectItem>
                             {grades.map((grade) => (
                               <SelectItem key={grade.id} value={grade.id.toString()}>
                                 {grade.name}
@@ -1281,23 +1417,24 @@ export default function BooksCreate({
                       <TooltipTrigger asChild>
                         <Select
                           value={data.subcategory_id || undefined}
-                          onValueChange={(value) => setData('subcategory_id', value === 'none' ? null : value)}
+                          onValueChange={(value) => setData('subcategory_id', value === '' ? null : value)}
                         >
                           <SelectTrigger
                             className={`w-full mt-1 rounded-lg border ${
-                                            errors.subcategory_id ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+                                          errors.subcategory_id ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
                                       } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                             aria-describedby={errors.subcategory_id ? 'subcategory-error' : undefined}
                           >
                             <SelectValue placeholder={t.subcategoryPlaceholder} />
                           </SelectTrigger>
                           <SelectContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
-                            <SelectItem value="none">{t.no}</SelectItem>
-                            {subcategories.map((sub) => (
-                              <SelectItem key={sub.id} value={sub.id.toString()}>
-                                {sub.name}
-                              </SelectItem>
-                            ))}
+                            {subcategories
+                              .filter((subcat) => Number(data.category_id) === subcat.category_id)
+                              .map((subcat) => (
+                                <SelectItem key={subcat.id} value={subcat.id.toString()}>
+                                  {subcat.name}
+                                </SelectItem>
+                              ))}
                           </SelectContent>
                         </Select>
                       </TooltipTrigger>
@@ -1306,14 +1443,14 @@ export default function BooksCreate({
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                    <Link
-                        href={route('subcategories.create')}
-                        className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 mt-1 inline-block"
-                        preserveState
-                        preserveScroll
-                    >
-                        {t.subcategory} not exist? Click here
-                    </Link>
+                  <Link
+                    href={route('subcategories.create')}
+                    className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 mt-1 inline-block"
+                    preserveState
+                    preserveScroll
+                  >
+                    {t.subcategory} មិនមានទេ? ចុចទីនេះ
+                  </Link>
                   {errors.subcategory_id && (
                     <p id="subcategory-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
                       {errors.subcategory_id || t.subcategoryError}
@@ -1330,18 +1467,17 @@ export default function BooksCreate({
                       <TooltipTrigger asChild>
                         <Select
                           value={data.subject_id || undefined}
-                          onValueChange={(value) => setData('subject_id', value === 'none' ? null : value)}
+                          onValueChange={(value) => setData('subject_id', value === '' ? null : value)}
                         >
                           <SelectTrigger
                             className={`w-full mt-1 rounded-lg border ${
-    errors.subject_id ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+                                            errors.subject_id ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+                                        } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                             aria-describedby={errors.subject_id ? 'subject-error' : undefined}
                           >
                             <SelectValue placeholder={t.subjectPlaceholder} />
                           </SelectTrigger>
                           <SelectContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
-                            <SelectItem value="none">{t.no}</SelectItem>
                             {subjects.map((subject) => (
                               <SelectItem key={subject.id} value={subject.id.toString()}>
                                 {subject.name}
@@ -1405,14 +1541,14 @@ export default function BooksCreate({
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
-                        <Link
-                            href={route('bookcases.create')}
-                            className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 mt-1 inline-block"
-                            preserveState
-                            preserveScroll
-                        >
-                            {t.bookcase} not exist? Click here
-                        </Link>
+                      <Link
+                        href={route('bookcases.create')}
+                        className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 mt-1 inline-block"
+                        preserveState
+                        preserveScroll
+                      >
+                        {t.bookcase} មិនមានទេ? ចុចទីនេះ
+                      </Link>
                       {errors.bookcase_id && (
                         <p id="bookcase-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
                           {errors.bookcase_id || t.bookcaseError}
@@ -1436,8 +1572,8 @@ export default function BooksCreate({
                             >
                               <SelectTrigger
                                 className={`w-full mt-1 rounded-lg border ${
-                                                errors.shelf_id ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-                                          } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
+    errors.shelf_id ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`}
                                 aria-describedby={errors.shelf_id ? 'shelf-error' : undefined}
                               >
                                 <SelectValue placeholder={t.shelfPlaceholder} />
@@ -1456,14 +1592,14 @@ export default function BooksCreate({
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
-                        <Link
-                            href={route('shelves.create')}
-                            className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 mt-1 inline-block"
-                            preserveState
-                            preserveScroll
-                        >
-                            ({t.shelf} not exist? Click here)
-                        </Link>
+                      <Link
+                        href={route('shelves.create')}
+                        className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 mt-1 inline-block"
+                        preserveState
+                        preserveScroll
+                      >
+                        {t.shelf} មិនមានទេ? ចុចទីនេះ
+                      </Link>
                       {errors.shelf_id && (
                         <p id="shelf-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
                           {errors.shelf_id || t.shelfError}
@@ -1492,8 +1628,9 @@ export default function BooksCreate({
                   onRemove={() => {
                     setData('cover', null);
                     setCoverPreviewUrl(null);
-                    setPdfFileError(null);
                   }}
+                  selectedFileName={data.cover?.name}
+                  fileError={pdfFileError}
                 />
               </div>
               {isEbook && (
@@ -1504,8 +1641,8 @@ export default function BooksCreate({
                     accept="application/pdf"
                     onChange={(e) => handleFileChange(e, 'pdf_url')}
                     previewUrl={pdfPreviewUrl}
+                    onPreviewClick={() => setIsPdfModalOpen(true)}
                     error={errors.pdf_url}
-                    fileError={pdfFileError}
                     helperText={t.pdfFileHelper}
                     isDragDrop
                     dragActive={dragActive}
@@ -1517,69 +1654,90 @@ export default function BooksCreate({
                       setPdfPreviewUrl(null);
                       setPdfFileError(null);
                     }}
-                    onPreviewClick={() => setIsPdfModalOpen(true)}
-                    required={false} // PDF is not required for e-books
+                    fileError={pdfFileError}
+                    required
                   />
                 </div>
               )}
 
-              {/* Form Actions */}
-              <div className="col-span-full flex justify-end space-x-4 mt-6">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.get(route('books.index'))}
-                  className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg px-4 py-2"
-                  disabled={processing}
-                >
-                  {t.cancel}
-                </Button>
-                <Button
-                  type="submit"
-                  className="bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 rounded-lg px-4 py-2"
-                  disabled={processing}
-                >
-                  {processing ? t.creating : t.createButton}
-                </Button>
+              {/* Action Buttons and Checkbox */}
+              <div className="col-span-full flex justify-between items-center space-x-4 mt-6">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="is_continue"
+                    checked={data.is_continue}
+                    onChange={(e) => setData('is_continue', e.target.checked)}
+                    className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 focus:ring-indigo-500 dark:focus:ring-indigo-400 dark:bg-gray-700 dark:border-gray-600"
+                    aria-label={t.isContinue}
+                  />
+                  <Label
+                    htmlFor="is_continue"
+                    className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200"
+                  >
+                    {t.isContinue}
+                  </Label>
+                </div>
+                <div className="flex justify-end space-x-4">
+                  <Button
+                    type="submit"
+                    disabled={processing}
+                    className="bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 px-4 py-2 rounded-lg disabled:opacity-50"
+                    aria-label={t.saveBook}
+                  >
+                    {processing ? t.creating : t.createButton}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => router.get(route('books.index'))}
+                    className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 px-4 py-2 rounded-lg"
+                    aria-label={t.returnToBooks}
+                  >
+                    {t.cancel}
+                  </Button>
+                </div>
               </div>
             </form>
+
+            {/* Cover Preview Modal */}
+            <Dialog open={isCoverModalOpen} onOpenChange={setIsCoverModalOpen}>
+              <DialogContent className="max-w-2xl bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                <DialogHeader>
+                  <DialogTitle className="text-gray-900 dark:text-gray-100">{t.coverPreview}</DialogTitle>
+                </DialogHeader>
+                {coverPreviewUrl ? (
+                  <img
+                    src={coverPreviewUrl}
+                    alt={t.coverPreview}
+                    className="w-full max-h-[70vh] object-contain"
+                  />
+                ) : (
+                  <p className="text-gray-600 dark:text-gray-300">{t.noCoverAvailable}</p>
+                )}
+              </DialogContent>
+            </Dialog>
+
+            {/* PDF Preview Modal */}
+            {isEbook && (
+              <Dialog open={isPdfModalOpen} onOpenChange={setIsPdfModalOpen}>
+                <DialogContent className="max-w-4xl bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                  <DialogHeader>
+                    <DialogTitle className="text-gray-900 dark:text-gray-100">{t.pdfPreview}</DialogTitle>
+                  </DialogHeader>
+                  {pdfPreviewUrl ? (
+                    <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+                      <div className="max-h-[70vh] overflow-auto">
+                        <Viewer fileUrl={pdfPreviewUrl} plugins={[defaultLayoutPluginInstance]} />
+                      </div>
+                    </Worker>
+                  ) : (
+                    <p className="text-gray-600 dark:text-gray-300">{t.noPdfAvailable}</p>
+                  )}
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
-
-          {/* Cover Preview Modal */}
-          <Dialog open={isCoverModalOpen} onOpenChange={setIsCoverModalOpen}>
-            <DialogContent className="max-w-3xl bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-              <DialogHeader>
-                <DialogTitle className="text-gray-900 dark:text-gray-100">{t.coverPreview}</DialogTitle>
-              </DialogHeader>
-              {coverPreviewUrl ? (
-                <img
-                  src={coverPreviewUrl}
-                  alt={t.coverPreview}
-                  className="w-full h-auto max-h-[70vh] object-contain rounded-lg"
-                />
-              ) : (
-                <p className="text-gray-500 dark:text-gray-400">{t.noCoverAvailable}</p>
-              )}
-            </DialogContent>
-          </Dialog>
-
-          {/* PDF Preview Modal */}
-          <Dialog open={isPdfModalOpen} onOpenChange={setIsPdfModalOpen}>
-            <DialogContent className="max-w-4xl bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-              <DialogHeader>
-                <DialogTitle className="text-gray-900 dark:text-gray-100">{t.pdfPreview}</DialogTitle>
-              </DialogHeader>
-              {pdfPreviewUrl ? (
-                <div className="w-full h-[70vh] overflow-auto">
-                  <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-                    <Viewer fileUrl={pdfPreviewUrl} plugins={[defaultLayoutPluginInstance]} />
-                  </Worker>
-                </div>
-              ) : (
-                <p className="text-gray-500 dark:text-gray-400">{t.noPdfAvailable}</p>
-              )}
-            </DialogContent>
-          </Dialog>
         </div>
       </AppLayout>
     </ErrorBoundary>

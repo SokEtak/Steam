@@ -1,31 +1,21 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Head, Link, usePage, router } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import {
     ChevronLeft,
     ChevronRight,
-    BookOpen,
-    Download,
-    Info,
-    Maximize,
-    Minimize,
-    CheckCircle,
-    XCircle,
     Search,
     ArrowDownUp,
     LogIn,
-    Eye,
     BadgeCheck,
     X,
     User,
     LogOut,
-    UserCircle,
     Menu,
     Globe,
 } from "lucide-react";
@@ -75,12 +65,13 @@ interface PageProps {
     auth: { user: AuthUser | null };
     scope?: "local" | "global";
     bookType?: "ebook" | "physical";
-    lang?: "en" | "kh"; // Add lang prop
+    lang?: "en" | "kh";
 }
 
 // --- Translations ---
 const translations = {
     en: {
+        code: "Code",
         programLabel: "Program",
         programPlaceholder: "Select Program",
         programAll: "All Programs",
@@ -97,6 +88,8 @@ const translations = {
         pageCount: "Page Count",
         language: "Language",
         location: "Location",
+        bookcase: "Bookcase",
+        shelf: "Shelf",
         publishedYear: "Published Year",
         read: "Start Reading",
         download: "Download",
@@ -112,6 +105,7 @@ const translations = {
         grade: "Grade",
         subject: "Subject",
         campus: "Campus",
+        defaultSort: "Default",
         sortBy: "Sort By",
         newest: "Newest",
         titleAZ: "Title (A-Z)",
@@ -122,13 +116,18 @@ const translations = {
         unknownContributor: "Unknown",
         switchToKhmer: "Switch to Khmer",
         switchToEnglish: "Switch to English",
+        bookType: {
+            ebook: "eBook",
+            physical: "Physical Book",
+        },
     },
     kh: {
+        code: "លេខកូដសម្គាល់",
         programLabel: "កម្មវិធីសិក្សា",
         programPlaceholder: "ជ្រើសរើសកម្មវិធី",
         programAll: "កម្មវិធីទាំងអស់",
-        programCambodia: "កម្មវិធីខ្មែរ",
-        programAmerican: "កម្មវិធីអាមេរិកកាំង",
+        programCambodia: "ខ្មែរ",
+        programAmerican: "អាមេរិកកាំង",
         author: "អ្នកនិពន្ធ",
         category: "ប្រភេទ",
         subcategory: "ប្រភេទរង",
@@ -140,6 +139,8 @@ const translations = {
         pageCount: "ចំនួនទំព័រ",
         language: "ភាសា",
         location: "ទីតាំង",
+        bookcase: "ទូសៀវភៅ",
+        shelf: "ធ្នើរ",
         publishedYear: "ឆ្នាំបោះពុម្ព",
         read: "ចាប់ផ្តើមអាន",
         download: "ទាញយក",
@@ -155,6 +156,7 @@ const translations = {
         grade: "កម្រិតថ្នាក់",
         subject: "មុខវិជ្ជា",
         campus: "ទីតាំង",
+        defaultSort: "លំនាំដើម",
         sortBy: "តម្រៀបតាម",
         newest: "ថ្មីបំផុត",
         titleAZ: "ចំណងជើង (ក-អ)",
@@ -165,6 +167,10 @@ const translations = {
         unknownContributor: "មិនស្គាល់",
         switchToKhmer: "ប្តូរទៅភាសាខ្មែរ",
         switchToEnglish: "ប្តូរទៅភាសាអង់គ្លេស",
+        bookType: {
+            ebook: "សៀវភៅអេឡិចត្រូនិច",
+            physical: "សៀវភៅ",
+        },
     },
 };
 
@@ -200,18 +206,12 @@ export default function Index() {
     const [filterCampus, setFilterCampus] = useState("All");
     const [filterLanguage, setFilterLanguage] = useState("All");
     const [sortProgram, setSortProgram] = useState("All");
-    const [sortBy, setSortBy] = useState("Newest");
+    const [sortBy, setSortBy] = useState("None");
     const [currentPage, setCurrentPage] = useState(1);
-    const [openBookCard, setOpenBookCard] = useState<number | null>(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isFullScreen, setIsFullScreen] = useState(false);
-    const [selectedBook, setSelectedBook] = useState<Book | null>(null);
     const [language, setLanguage] = useState<"en" | "kh">(() => {
-        // Initialize language from localStorage or fallback to prop
         const savedLanguage = typeof window !== "undefined" ? localStorage.getItem("language") : null;
         return (savedLanguage === "en" || savedLanguage === "kh" ? savedLanguage : lang) as "en" | "kh";
     });
-    const cardRef = useRef<HTMLDivElement>(null);
 
     // Dynamically select translations based on language state
     const t = translations[language];
@@ -245,7 +245,26 @@ export default function Index() {
     const subcategories = useMemo(() => Array.from(new Set(books.map((b) => b.subcategory?.name).filter(Boolean))), [books]);
     const bookcases = useMemo(() => Array.from(new Set(books.map((b) => b.bookcase?.code).filter(Boolean))), [books]);
     const shelves = useMemo(() => Array.from(new Set(books.map((b) => b.shelf?.code).filter(Boolean))), [books]);
-    const grades = useMemo(() => Array.from(new Set(books.map((b) => b.grade?.name).filter(Boolean))), [books]);
+    // Sort grades numerically from 1 to 12
+    const grades = useMemo(() => {
+        const gradeNames = Array.from(
+            new Set(
+                books
+                    .map((b) => b.grade?.name)
+                    .filter((name): name is string => !!name)
+                    .filter((name) => {
+                        const match = name.match(/(\d+)/);
+                        const num = match ? parseInt(match[0], 10) : null;
+                        return num !== null && num >= 1 && num <= 12;
+                    })
+            )
+        );
+        return gradeNames.sort((a, b) => {
+            const numA = parseInt(a.match(/(\d+)/)![0], 10);
+            const numB = parseInt(b.match(/(\d+)/)![0], 10);
+            return numA - numB;
+        });
+    }, [books]);
     const subjects = useMemo(() => Array.from(new Set(books.map((b) => b.subject?.name).filter(Boolean))), [books]);
     const campuses = useMemo(() => Array.from(new Set(books.map((b) => b.campus?.name).filter(Boolean))), [books]);
     const languages = useMemo(() => Array.from(new Set(books.map((b) => b.language).filter(Boolean))), [books]);
@@ -327,6 +346,19 @@ export default function Index() {
     const endIndex = startIndex + ITEMS_PER_PAGE;
     const paginatedBooks = allFilteredBooks.slice(startIndex, endIndex);
 
+    // Pagination Functions
+    const goToPreviousPage = () => {
+        if (currentPage > 1) {
+            setCurrentPage((prev) => prev - 1);
+        }
+    };
+
+    const goToNextPage = () => {
+        if (currentPage < totalPages) {
+            setCurrentPage((prev) => prev + 1);
+        }
+    };
+
     // Reset page on filter/sort change
     useEffect(() => {
         setCurrentPage(1);
@@ -344,46 +376,9 @@ export default function Index() {
         sortBy,
     ]);
 
-    // Pagination handlers
-    const goToPreviousPage = () => {
-        setCurrentPage((prev) => Math.max(prev - 1, 1));
-    };
-
-    const goToNextPage = () => {
-        setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-    };
-
-    // Handle outside click to close card
-    useEffect(() => {
-        const handleOutsideClick = (e: MouseEvent) => {
-            if (cardRef.current && !cardRef.current.contains(e.target as Node)) {
-                setOpenBookCard(null);
-            }
-        };
-        document.addEventListener("mousedown", handleOutsideClick);
-        return () => document.removeEventListener("mousedown", handleOutsideClick);
-    }, []);
-
-    // Handle modal and card keydown events
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (isModalOpen) {
-                if (e.key === "Escape") {
-                    setIsModalOpen(false);
-                } else if (e.key === "f" || e.key === "F") {
-                    setIsFullScreen(!isFullScreen);
-                }
-            } else if (openBookCard !== null && e.key === "Escape") {
-                setOpenBookCard(null);
-            }
-        };
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [isModalOpen, isFullScreen, openBookCard]);
-
     const accentColor = "cyan";
     const isAuthenticated = auth.user !== null;
-    const allText = language === 'en' ? 'All' : 'ទាំងអស់';
+    const allText = language === "en" ? "All" : "ទាំងអស់";
 
     // NavUser with dropdown
     const NavUser = ({ user }: { user: AuthUser }) => (
@@ -425,141 +420,6 @@ export default function Index() {
         </DropdownMenu>
     );
 
-    // Common card content component
-    const BookCardContent = ({ book }: { book: Book }) => (
-        <div className="space-y-4">
-            <h3 className="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white">{book.title}</h3>
-            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
-                <span className="font-semibold">{t.author}:</span> {book.author}
-            </p>
-            {book.category && (
-                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
-                    <span className="font-semibold">{t.category}:</span> {book.category.name}
-                </p>
-            )}
-            {book.subcategory && (
-                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
-                    <span className="font-semibold">{t.subcategory}:</span> {book.subcategory.name}
-                </p>
-            )}
-            {book.program && (
-                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
-                    <span className="font-semibold">{t.programLabel}:</span>{" "}
-                    {book.program.toLowerCase() === "cambodia" ? t.programCambodia : t.programAmerican}
-                </p>
-            )}
-            {book.type === "physical" ? (
-                <div
-                    className={`flex items-center text-sm sm:text-base font-semibold ${
-                        book.is_available ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                    }`}
-                >
-                    {book.is_available ? (
-                        <CheckCircle className="w-4 sm:w-5 h-4 sm:h-5 mr-1 text-green-500" />
-                    ) : (
-                        <XCircle className="w-4 sm:w-5 h-4 sm:h-5 mr-1 text-red-500" />
-                    )}
-                    {t.status}: {book.is_available ? t.available : t.borrowed}
-                </div>
-            ) : book.type === "ebook" ? (
-                <div className="flex items-center text-md sm:text-base font-semibold text-gray-600 dark:text-gray-300">
-                    <Eye className="w-4 sm:w-5 h-4 sm:h-5 mr-1 text-blue-500 dark:text-blue-400" />
-                    {book.view ?? 0}
-                </div>
-            ) : null}
-            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 space-y-1.5 pt-3 border-t border-gray-200 dark:border-gray-600">
-                {book.publisher && (
-                    <p>
-                        <span className="font-medium text-gray-700 dark:text-gray-300">{t.publisher}:</span> {book.publisher}
-                    </p>
-                )}
-                {book.isbn && (
-                    <p className="break-words">
-                        <span className="font-medium text-gray-700 dark:text-gray-300">{t.isbn}:</span> {book.isbn}
-                    </p>
-                )}
-                {book.page_count && (
-                    <p>
-                        <span className="font-medium text-gray-700 dark:text-gray-300">{t.pageCount}:</span> {book.page_count}
-                    </p>
-                )}
-                {book.language && (
-                    <p>
-                        <span className="font-medium text-gray-700 dark:text-gray-300">{t.language}:</span>{" "}
-                        {book.language === "en"
-                            ? t.language === "en" ? "English" : "អង់គ្លេស"
-                            : book.language === "kh"
-                                ? t.language === "en" ? "Khmer" : "ខ្មែរ"
-                                : book.language}
-                    </p>
-                )}
-                {book.bookcase?.code && (
-                    <p>
-                        <span className="font-medium text-gray-700 dark:text-gray-300">{t.location}:</span>{" "}
-                        {book.bookcase.code} / {book.shelf?.code}
-                    </p>
-                )}
-                {book.published_at && (
-                    <p>
-                        <span className="font-medium text-gray-700 dark:text-gray-300">{t.publishedYear}:</span>{" "}
-                        {formatDate(book.published_at)}
-                    </p>
-                )}
-            </div>
-            {book.type === "ebook" && (
-                <div className="flex flex-col items-start w-full space-y-2 pt-3 border-t border-gray-200 dark:border-gray-600">
-                    {book.flip_link && (
-                        <button
-                            onClick={() => {
-                                setIsModalOpen(true);
-                                setSelectedBook(book);
-                                setOpenBookCard(null);
-                            }}
-                            role="link"
-                            className={`group text-xs sm:text-sm flex items-center font-semibold transition-all text-gray-700 dark:text-gray-300 p-2 rounded-md w-full justify-start
-                                    hover:bg-green-50 dark:hover:bg-green-700 hover:text-green-600 dark:hover:text-green-400`}
-                        >
-                            <BookOpen
-                                className={`w-4 sm:w-5 h-4 sm:h-5 mr-3 text-green-500 dark:text-green-400 group-hover:text-green-600 dark:group-hover:text-green-400`}
-                            />
-                            {t.read}
-                        </button>
-                    )}
-                    {/*download button*/}
-                    {/*{book.pdf_url && book.downloadable === 1 && (*/}
-                    {/*    <a*/}
-                    {/*        href={route('download', book.id)}*/}
-                    {/*        rel="noopener noreferrer"*/}
-                    {/*        className={`group text-xs sm:text-sm flex items-center font-semibold transition-all text-gray-700 dark:text-gray-300 p-2 rounded-md w-full justify-start*/}
-                    {/*                  hover:bg-blue-50 dark:hover:bg-blue-700 hover:text-blue-600 dark:hover:text-blue-400`}*/}
-                    {/*        download // Add download attribute to trigger file download*/}
-                    {/*    >*/}
-                    {/*        <Download*/}
-                    {/*            className="w-4 sm:w-5 h-4 sm:h-5 mr-3 text-blue-500 dark:text-blue-400 group-hover:text-blue-600 dark:group-hover:text-blue-400"*/}
-                    {/*        />*/}
-                    {/*        {t.download}*/}
-                    {/*    </a>*/}
-                    {/*)}*/}
-                    <a
-                        href={route("library.show", book.id)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`group text-xs sm:text-sm flex items-center font-semibold transition-all p-2 rounded-md w-full justify-start
-                                  text-gray-700 dark:text-gray-300
-                                  hover:bg-amber-50 dark:hover:bg-amber-800/50 hover:text-amber-700 dark:hover:text-amber-400`}
-                    >
-                        <Info
-                            className="w-4 sm:w-5 h-4 sm:h-5 mr-3 transition-colors
-                                     text-amber-600 dark:text-amber-400
-                                     group-hover:text-amber-700 dark:group-hover:text-amber-400"
-                        />
-                        {t.moreInfo}
-                    </a>
-                </div>
-            )}
-        </div>
-    );
-
     return (
         <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
             <Head
@@ -568,8 +428,7 @@ export default function Index() {
 
             <div className="py-4 space-y-12 w-full max-w-full mx-auto px-4 sm:px-6 lg:px-12 xl:px-16 text-gray-900 dark:text-gray-100">
                 {/* Header */}
-                <header className="flex flex-col border-b border-gray-100 dark:border-gray-800 pb-4 gap-4 px-2
-                   sm:flex-row sm:items-center sm:justify-between sm:pb-4">
+                <header className="flex flex-col border-b border-gray-100 dark:border-gray-800 pb-4 gap-4 px-2 sm:flex-row sm:items-center sm:justify-between sm:pb-4">
                     <div className="flex items-center justify-between w-full sm:w-auto">
                         <div className="flex items-center space-x-4 sm:space-x-6 min-w-max">
                             <Link href="/" className="flex items-center space-x-3">
@@ -698,18 +557,16 @@ export default function Index() {
                     {[
                         { label: t.category, value: filterCategory, onChange: setFilterCategory, options: categories },
                         { label: t.subcategory, value: filterSubCategory, onChange: setFilterSubCategory, options: subcategories },
-                        {
-                            label: t.language,
-                            value: filterLanguage,
-                            onChange: setFilterLanguage,
-                            options: languages,
-                            display: (lang: string) => (lang === "en" ? (t.language === "en" ? "English" : "អង់គ្លេស") : lang === "kh" ? (t.language === "en" ? "Khmer" : "ខ្មែរ") : lang),
-                        },
+                        ...(bookType === "physical" ? [
+                            { label: t.bookcase, value: filterBookcase, onChange: setFilterBookcase, options: bookcases },
+                            { label: t.shelf, value: filterShelf, onChange: setFilterShelf, options: shelves },
+                        ] : []),
+                        { label: t.language, value: filterLanguage, onChange: setFilterLanguage, options: languages, display: (lang: string) => (lang === "en" ? (t.language === "en" ? "English" : "អង់គ្លេស") : lang === "kh" ? (t.language === "en" ? "Khmer" : "ខ្មែរ") : lang) },
                         { label: t.grade, value: filterGrade, onChange: setFilterGrade, options: grades },
                         { label: t.subject, value: filterSubject, onChange: setFilterSubject, options: subjects },
-                        ...(bookType === "physical" && scope !== "local"
-                            ? [{ label: t.campus, value: filterCampus, onChange: setFilterCampus, options: campuses }]
-                            : []),
+                        ...(bookType === "physical" && scope === "local" ? [
+                            { label: t.campus, value: filterCampus, onChange: setFilterCampus, options: campuses },
+                        ] : []),
                     ].map(({ label, value, onChange, options, display }) => (
                         <Select key={label} value={value} onValueChange={onChange}>
                             <SelectTrigger
@@ -734,107 +591,76 @@ export default function Index() {
                     <Select value={sortBy} onValueChange={setSortBy}>
                         <SelectTrigger
                             className={`w-full sm:w-40 md:w-48 bg-white border border-gray-300 text-gray-900 hover:border-gray-400
-                                 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:border-gray-600
-                                 focus:ring-${accentColor}-500 transition font-semibold rounded-full text-sm sm:text-base text-center`}
+                    dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:border-gray-600
+                    focus:ring-${accentColor}-500 transition rounded-full text-sm sm:text-base text-center`}
                         >
                             <ArrowDownUp className="h-4 w-4 mr-2 text-gray-500 dark:text-gray-400" />
                             <SelectValue placeholder={t.sortBy} />
                         </SelectTrigger>
                         <SelectContent className="bg-white border-gray-200 text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-white min-w-[150px] max-w-[90vw]">
+                            <SelectItem value="None" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">
+                                {t.defaultSort}
+                            </SelectItem>
                             <SelectItem value="Newest" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">
                                 {t.newest}
                             </SelectItem>
                             <SelectItem value="Title A-Z" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">
                                 {t.titleAZ}
                             </SelectItem>
-                            {/* <SelectItem value="Most Viewed" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">
+                            <SelectItem value="Most Viewed" className="hover:bg-gray-100 dark:hover:bg-gray-700 text-center whitespace-normal">
                                 {t.mostViewed}
-                            </SelectItem> */}
+                            </SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
 
                 {/* Book Grid */}
-                <TooltipProvider>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 sm:gap-6 lg:gap-8 relative">
-                        {paginatedBooks.length > 0 ? (
-                            paginatedBooks.map((book) => {
-                                const contributorId = book.posted_by_user_id || book.user?.id;
-                                const contributorName =
-                                    book.user?.name || (contributorId ? `អ្នកប្រើ #${contributorId}` : t.unknownContributor);
-                                const isContributorVerified = !!book.user?.isVerified;
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 sm:gap-6 lg:gap-8">
+                    {paginatedBooks.length > 0 ? (
+                        paginatedBooks.map((book) => {
+                            const contributorId = book.posted_by_user_id || book.user?.id;
+                            const contributorName =
+                                book.user?.name || (contributorId ? `អ្នកប្រើ #${contributorId}` : t.unknownContributor);
+                            const isContributorVerified = !!book.user?.isVerified;
 
-                                return (
-                                    <div key={book.id} className="relative">
-                                        <Tooltip>
-                                            <TooltipTrigger asChild className="lg:cursor-pointer">
-                                                <div
-                                                    onClick={() => setOpenBookCard(book.id)}
-                                                    className={`group flex flex-col items-start space-y-3 cursor-pointer p-3 rounded-xl bg-white border border-gray-200 shadow-lg
-                                                                dark:bg-gray-800 dark:border-gray-700 dark:shadow-2xl dark:shadow-gray-900/50
-                                                                transition-all duration-300 transform relative overflow-hidden
-                                                                hover:scale-[1.03] sm:hover:scale-[1.05] hover:shadow-2xl hover:border-${accentColor}-500 focus:outline-none focus:ring-2 focus:ring-${accentColor}-500 w-full`}
-                                                >
-                                                    <div className="relative w-full pb-[155%]">
-                                                        <img
-                                                            src={book.cover || "/images/placeholder-book.png"}
-                                                            alt={book.title}
-                                                            className="absolute inset-0 w-full h-full object-fill rounded-lg shadow-xl transition-transform duration-300 group-hover:scale-105"
-                                                        />
-                                                    </div>
-                                                    <div className="flex items-center justify-center space-x-2 pt-1 border-t border-gray-100 dark:border-gray-700 w-full">
-                                                        <img
-                                                            src={"https://fls-9fd96a88-703c-423b-a3c6-5b74b203b091.laravel.cloud/" + book.user?.avatar}
-                                                            alt={t.language === "en" ? "Contributor's avatar" : "រូបភាពអ្នកបរិច្ចាគ"}
-                                                            className="w-5 sm:w-6 h-5 sm:h-6 rounded-full object-cover border border-gray-300 dark:border-gray-600 flex-shrink-0"
-                                                        />
-                                                        <span className="text-xs text-gray-400 dark:text-gray-500 truncate font-medium flex items-center min-w-0">
-                                                            <span className="truncate flex-grow">{contributorName}</span>
-                                                            {isContributorVerified && (
-                                                                <BadgeCheck className="w-3 sm:w-4 h-3 sm:h-4 ml-1 text-blue-500 dark:text-blue-400 fill-white dark:fill-gray-900 flex-shrink-0" />
-                                                            )}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </TooltipTrigger>
-                                            <TooltipContent
-                                                side="right"
-                                                className={`hidden lg:block max-w-md w-full p-5 rounded-xl shadow-2xl border-l-4 border-gray-200 bg-white text-gray-900
-                                                            dark:border-gray-700 dark:bg-gray-800 dark:text-white z-50
-                                                            ${book.type === "ebook" ? `border-${accentColor}-500` : "border-amber-500"}`}
-                                            >
-                                                <BookCardContent book={book} />
-                                            </TooltipContent>
-                                        </Tooltip>
-                                        {openBookCard === book.id && (
-                                            <div
-                                                ref={cardRef}
-                                                className={`lg:hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[90]
-                                                            max-w-[90vw] w-full sm:max-w-md p-4 sm:p-5 rounded-xl shadow-2xl border-l-4 border-gray-200 bg-white text-gray-900
-                                                            dark:border-gray-700 dark:bg-gray-800 dark:text-white
-                                                            ${book.type === "ebook" ? `border-${accentColor}-500` : "border-amber-500"}`}
-                                            >
-                                                <div className="flex justify-between items-center mb-4">
-                                                    <button
-                                                        onClick={() => setOpenBookCard(null)}
-                                                        className="text-gray-400 hover:text-red-600 transition-colors text-xl sm:text-2xl leading-none font-light"
-                                                    >
-                                                        <X className="w-5 sm:w-6 h-5 sm:h-6" />
-                                                    </button>
-                                                </div>
-                                                <BookCardContent book={book} />
-                                            </div>
-                                        )}
+                            return (
+                                <div
+                                    key={book.id}
+                                    onClick={() => router.get(route("library.show", book.id))}
+                                    className={`group flex flex-col items-start space-y-3 cursor-pointer p-3 rounded-xl bg-white border border-gray-200 shadow-lg
+                                        dark:bg-gray-800 dark:border-gray-700 dark:shadow-2xl dark:shadow-gray-900/50
+                                        transition-all duration-300 transform
+                                        hover:scale-[1.03] sm:hover:scale-[1.05] hover:shadow-2xl hover:border-${accentColor}-500 focus:outline-none focus:ring-2 focus:ring-${accentColor}-500 w-full`}
+                                >
+                                    <div className="relative w-full pb-[155%]">
+                                        <img
+                                            src={book.cover || "/images/placeholder-book.png"}
+                                            alt={book.title}
+                                            className="absolute inset-0 w-full h-full object-fill rounded-lg shadow-xl transition-transform duration-300 group-hover:scale-105"
+                                        />
                                     </div>
-                                );
-                            })
-                        ) : (
-                            <p className="text-center text-gray-500 dark:text-gray-400 col-span-full py-12 sm:py-20 text-base sm:text-xl font-light">
-                                {t.noBooksFound.replace("{type}", bookType === "ebook" ? (t.language === "en" ? "eBooks" : "សៀវភៅអេឡិចត្រូនិក") : (t.language === "en" ? "physical books" : "សៀវភៅជាក់ស្តែង"))}
-                            </p>
-                        )}
-                    </div>
-                </TooltipProvider>
+                                    <div className="flex items-center justify-center space-x-2 pt-1 border-t border-gray-100 dark:border-gray-700 w-full">
+                                        <img
+                                            src={"https://fls-9fd96a88-703c-423b-a3c6-5b74b203b091.laravel.cloud/" + book.user?.avatar}
+                                            alt={t.language === "en" ? "Contributor's avatar" : "រូបភាពអ្នកបរិច្ចាគ"}
+                                            className="w-5 sm:w-6 h-5 sm:h-6 rounded-full object-cover border border-gray-300 dark:border-gray-600 flex-shrink-0"
+                                        />
+                                        <span className="text-xs text-gray-400 dark:text-gray-500 truncate font-medium flex items-center min-w-0">
+                                            <span className="truncate flex-grow">{contributorName}</span>
+                                            {isContributorVerified && (
+                                                <BadgeCheck className="w-3 sm:w-4 h-3 sm:h-4 ml-1 text-blue-500 dark:text-blue-400 fill-white dark:fill-gray-900 flex-shrink-0" />
+                                            )}
+                                        </span>
+                                    </div>
+                                </div>
+                            );
+                        })
+                    ) : (
+                        <p className="text-center text-gray-500 dark:text-gray-400 col-span-full py-12 sm:py-20 text-base sm:text-xl font-light">
+                            {t.noBooksFound.replace("{type}", bookType === "ebook" ? t.bookType.ebook : t.bookType.physical)}
+                        </p>
+                    )}
+                </div>
 
                 {totalPages > 1 && (
                     <div className="flex justify-center items-center space-x-4 pt-8 pb-4">
@@ -859,60 +685,6 @@ export default function Index() {
                             {t.next}
                             <ChevronRight className="w-4 sm:w-5 h-4 sm:h-5 ml-1" />
                         </Button>
-                    </div>
-                )}
-
-                {isModalOpen && selectedBook && (
-                    <div className="fixed inset-0 flex items-center justify-center z-[100] bg-gray-800 bg-opacity-30 dark:bg-opacity-40">
-                        <div
-                            className={`bg-white dark:bg-gray-850 rounded-lg shadow-2xl flex flex-col transition-all duration-300 ${
-                                isFullScreen ? "w-full h-full max-w-none max-h-none" : "w-[90vw] max-w-[95vw] h-[80vh] sm:h-[90vh] md:h-[85vh]"
-                            } relative z-[110]`}
-                        >
-                            <div className="flex justify-between items-center p-3 sm:p-4 border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
-                                <h2 className="pt-2 text-lg sm:text-2xl font-bold text-gray-900 dark:text-white truncate">
-                                    {selectedBook.title}
-                                </h2>
-                                <div className="flex space-x-2 sm:space-x-4 items-center">
-                                    <button
-                                        onClick={() => setIsFullScreen(!isFullScreen)}
-                                        className={`text-${accentColor}-600 dark:text-${accentColor}-400 hover:text-${accentColor}-800 dark:hover:text-${accentColor}-300 transition-colors p-1 rounded-md`}
-                                        aria-label={isFullScreen ? t.language === "en" ? "Exit Fullscreen" : "ចាកចេញពីអេក្រង់ពេញ" : t.language === "en" ? "Enter Fullscreen" : "បើកអេក្រង់ពេញ"}
-                                    >
-                                        {isFullScreen ? <Minimize className="h-6 sm:h-7 w-6 sm:w-7" /> : <Maximize className="h-6 sm:h-7 w-6 sm:w-7" />}
-                                    </button>
-                                    <button
-                                        onClick={() => setIsModalOpen(false)}
-                                        className="text-gray-400 hover:text-red-600 transition-colors text-2xl sm:text-4xl leading-none font-light p-1 rounded-md"
-                                        aria-label={t.language === "en" ? "Close Modal" : "បិទផ្ទាំង"}
-                                    >
-                                        &times;
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="flex-1 overflow-hidden p-3 sm:p-4 bg-gray-50 dark:bg-gray-800 relative">
-                                {selectedBook.flip_link || selectedBook.pdf_url ? (
-                                    <iframe
-                                        src={selectedBook.flip_link || selectedBook.pdf_url}
-                                        title={selectedBook.title}
-                                        className="w-full h-full border-0 bg-white dark:bg-gray-900"
-                                        sandbox="allow-same-origin allow-scripts"
-                                        style={{ background: "inherit" }}
-                                        onError={() => setIsModalOpen(false)}
-                                        loading="lazy"
-                                    />
-                                ) : (
-                                    <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
-                                        {t.language === "en" ? "No content available for this book." : "មិនមានខ្លឹមសារសម្រាប់សៀវភៅនេះទេ។"}
-                                    </div>
-                                )}
-                                {!selectedBook.flip_link && !selectedBook.pdf_url && (
-                                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-700 opacity-90">
-                                        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">{t.language === "en" ? "Loading..." : "កំពុងផ្ទុក..."}</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
                     </div>
                 )}
             </div>
