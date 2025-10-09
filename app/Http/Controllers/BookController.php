@@ -20,8 +20,8 @@ class BookController extends Controller
         if (!in_array($book_type, ['physical', 'ebook', 'miss', 'delBook']) && $book_type !== null) {
             $book_type = null; // Default to null to fetch all non-deleted books
         }
-
-        $books = Book::active($book_type)->get();
+        //sort desc to see the newest created book
+        $books = Book::active($book_type)->orderByDesc('created_at')->get();
 
         return Inertia::render('Books/Index', [
             'books' => $books,
@@ -118,7 +118,6 @@ class BookController extends Controller
             $locale = app()->getLocale();
             $message = $locale === 'kh' ? 'សៀវភៅត្រូវបានបង្កើតដោយជោគជ័យ!' : 'Book created successfully!';
             return redirect()->to($redirectRoute)->with('flash', ['message' => $message]);
-            return redirect()->to($redirectRoute)->with('flash', ['message' => 'Book created successfully!']);
         } catch (\Illuminate\Database\QueryException $e) {
             Log::error('Database error during book store', [
                 'error' => $e->getMessage(),
