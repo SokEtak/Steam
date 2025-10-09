@@ -392,7 +392,7 @@ export default function Show({ book, lang = 'en', authUser, relatedBooks = [] }:
                                         aria-label={`${authUser.name}'s profile`}
                                     >
                                         <img
-                                            src={authUser.avatar || 'https://via.placeholder.com/40'}
+                                            src={"https://fls-9fd96a88-703c-423b-a3c6-5b74b203b091.laravel.cloud/"+authUser.avatar || 'https://via.placeholder.com/40'}
                                             alt={authUser.name}
                                             className="h-12 w-12 rounded-full border-2 border-amber-500 hover:scale-105 transition-transform"
                                         />
@@ -431,7 +431,7 @@ export default function Show({ book, lang = 'en', authUser, relatedBooks = [] }:
                                     <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-8 transform transition-all hover:shadow-3xl">
                                         <div className="flex items-center space-x-5">
                                             <img
-                                                src={book.user.avatar || 'https://via.placeholder.com/40'}
+                                                src={"https://fls-9fd96a88-703c-423b-a3c6-5b74b203b091.laravel.cloud/"+ book.user.avatar || 'https://via.placeholder.com/40'}
                                                 alt={book.user.name}
                                                 className="h-14 w-14 rounded-full border-2 border-amber-500 hover:scale-105 transition-transform"
                                             />
