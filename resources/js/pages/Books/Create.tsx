@@ -612,7 +612,7 @@ export default function BooksCreate({
         author: 'ក្រសួងអប់រំយុវជននិងកីឡា',
         flip_link: '',
         cover: null,
-        code: 'J',
+        code: 'J2-0',
         isbn: '978999500',
         view: '0',
         is_available: !isEbook,
