@@ -62,6 +62,7 @@ class BookController extends Controller
 
         try {
             // Handle cover upload
+            // Handle cover upload
             if ($request->hasFile('cover') && $request->file('cover')->isValid()) {
                 $coverFile = $request->file('cover');
                 $allowedMimes = ['image/jpeg', 'image/png'];
@@ -75,13 +76,16 @@ class BookController extends Controller
                 }
 
                 $coverExtension = $coverFile->getClientOriginalExtension();
-                $originalTitle = $validated['title'];
-                $sanitizedTitle = preg_replace('/[^A-Za-z0-9\-_]/', '', $originalTitle);
-                $coverFilename = 'covers/' . $sanitizedTitle . '.' . $coverExtension;
+
+                // ✅ Use book code instead of title
+                $bookCode = $validated['code'];
+                $sanitizedCode = preg_replace('/[^A-Za-z0-9\-_]/', '', $bookCode);
+
+                $coverFilename = 'covers/' . $sanitizedCode . '.' . $coverExtension;
                 $counter = 1;
 
                 while (Storage::disk('public')->exists($coverFilename)) {
-                    $coverFilename = 'covers/' . $sanitizedTitle . '(' . $counter . ').' . $coverExtension;
+                    $coverFilename = 'covers/' . $sanitizedCode . '(' . $counter . ').' . $coverExtension;
                     $counter++;
                 }
 
