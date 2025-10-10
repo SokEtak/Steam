@@ -20,8 +20,8 @@ class BookController extends Controller
         if (!in_array($book_type, ['physical', 'ebook', 'miss', 'delBook']) && $book_type !== null) {
             $book_type = null; // Default to null to fetch all non-deleted books
         }
-        //sort desc to see the newest created book
-        $books = Book::active($book_type)->orderByDesc('created_at')->get();
+        //sort desc to see the newest created book & take last created 15 books
+        $books = Book::active($book_type)->orderByDesc('created_at')->take(15)->get();
 
         return Inertia::render('Books/Index', [
             'books' => $books,
