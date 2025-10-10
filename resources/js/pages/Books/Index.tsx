@@ -442,42 +442,6 @@ const getColumns = (
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                             )}
                         </Button>
-                        <DropdownMenu open={isPublishedAtDropdownOpen} onOpenChange={setIsPublishedAtDropdownOpen}>
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 data-[state=open]:bg-accent">
-                                                <FilterIcon className={`h-4 w-4 ${filterValue ? 'text-blue-500' : 'text-gray-400'}`} />
-                                                <span className="sr-only">Open filter menu</span>
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Filter by Published Year</TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                            <DropdownMenuContent align="start" className="w-[180px] p-2">
-                                <Select
-                                    value={filterValue}
-                                    onValueChange={(value) => {
-                                        column.setFilterValue(value === 'All' ? '' : value);
-                                        setIsPublishedAtDropdownOpen(false);
-                                    }}
-                                >
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select Year" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem Distance learning value="All">All Years</SelectItem>
-                                        {availableYears.map((year) => (
-                                            <SelectItem key={year} value={year}>
-                                                {year}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
                     </div>
                 );
             },
@@ -1047,7 +1011,7 @@ const getColumns = (
 
                 return (
                     <div className="flex items-center space-x-2">
-                        <span>Subcategory</span>
+                        <span>ប្រភេទរង</span>
                         <DropdownMenu open={isSubcategoryDropdownOpen} onOpenChange={setIsSubcategoryDropdownOpen}>
                             <TooltipProvider>
                                 <Tooltip>
@@ -1348,24 +1312,24 @@ function BookIndex() {
         page_count: false,
         publisher: false,
         language: true,
-        program: true,
+        program: false,
         pdf_url: false,
         flip_link: false,
         view: false,
         code: true,
-        isbn: true,
+        isbn: false,
         cover: true,
         type: true,
         downloadable: false,
         'Posted By': isSuperLibrarian,
         is_available: true,
-        category: false,
+        category: true,
         subcategory: false,
         subject: false,
         bookcase: true,
-        shelf: false,
+        shelf: true,
         grade: false,
-        published_at: false,
+        published_at: true,
         campus: isSuperLibrarian,
         created_at: false,
         updated_at: false,
