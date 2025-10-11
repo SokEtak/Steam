@@ -53,7 +53,7 @@
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
-            title: 'សៀវភៅទាំងអស់',
+            title: 'សៀវភៅ',
             href: '/books',
         },
     ];

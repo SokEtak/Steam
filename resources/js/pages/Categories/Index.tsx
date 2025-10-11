@@ -44,7 +44,7 @@ interface PageProps {
 }
 
 const breadcrumbs = [
-    { title: "Categories", href: route("categories.index") },
+    { title: "ប្រភេទ", href: route("categories.index") },
 ];
 
 const getColumns = (
@@ -96,21 +96,6 @@ const getColumns = (
                                             Edit
                                         </TooltipContent>
                                     </Tooltip>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                variant="ghost"
-                                                className="h-4 w-4 p-0 text-red-600 dark:text-red-300"
-                                                onClick={() => setCategoryToDelete(category)}
-                                                disabled={processing}
-                                            >
-                                                <TrashIcon className="h-4 w-4" />
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent side="right" className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
-                                            Delete
-                                        </TooltipContent>
-                                    </Tooltip>
                                 </div>
                             </DropdownMenuContent>
                         </DropdownMenu>
@@ -129,7 +114,7 @@ const getColumns = (
                     }}
                     className="text-indigo-600 dark:text-indigo-300 text-sm"
                 >
-                    ID
+                    លេខរៀង
                     {{
                         asc: <ArrowUp className="ml-2 h-4 w-4" />,
                         desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -161,7 +146,7 @@ const getColumns = (
                     }}
                     className="text-indigo-600 dark:text-indigo-300 text-sm"
                 >
-                    Name
+                    ឈ្មោះប្រភេទ
                     {{
                         asc: <ArrowUp className="ml-2 h-4 w-4" />,
                         desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -193,7 +178,7 @@ const getColumns = (
                     }}
                     className="text-indigo-600 dark:text-indigo-300 text-sm"
                 >
-                    Created At
+                    ធ្វើឡើងនៅ
                     {{
                         asc: <ArrowUp className="ml-2 h-4 w-4" />,
                         desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -226,7 +211,7 @@ const getColumns = (
                     }}
                     className="text-indigo-600 dark:text-indigo-300 text-sm"
                 >
-                    Last Modified
+                    កែប្រែចុងក្រោយ
                     {{
                         asc: <ArrowUp className="ml-2 h-4 w-4" />,
                         desc: <ArrowDown className="ml-2 h-4 w-4" />,

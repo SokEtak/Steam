@@ -65,7 +65,7 @@ const commonStyles = {
 };
 
 const breadcrumbs = [
-    { title: "Bookcases", href: route("bookcases.index") },
+    { title: "ទូសៀវភៅ", href: route("bookcases.index") },
 ];
 
 const getColumns = (processing: boolean): ColumnDef<Bookcase>[] => [
@@ -129,14 +129,14 @@ const getColumns = (processing: boolean): ColumnDef<Bookcase>[] => [
         },
     },
     {
-        accessorKey: "code",
+        accessorKey: "id",
         header: ({ column }) => (
             <Button
                 variant="ghost"
                 onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                 className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
             >
-                Code
+                លេខរៀង
                 {{
                     asc: <ArrowUp className="ml-2 h-4 w-4" />,
                     desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -146,7 +146,33 @@ const getColumns = (processing: boolean): ColumnDef<Bookcase>[] => [
         cell: ({ row }) => (
             <Link
                 href={route("bookcases.show", { bookcase: row.original.id })}
-                className={`${commonStyles.text} px-2 hover:underline`}
+                className={`${commonStyles.text} px-10 hover:underline`}
+            >
+                {row.getValue("id")}
+            </Link>
+        ),
+        filterFn: (row, id, value) =>
+            String(row.getValue(id)).toLowerCase().includes(String(value).toLowerCase()),
+    },
+    {
+        accessorKey: "code",
+        header: ({ column }) => (
+            <Button
+                variant="ghost"
+                onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
+            >
+                លេខកូដសម្គាល់
+                {{
+                    asc: <ArrowUp className="ml-2 h-4 w-4" />,
+                    desc: <ArrowDown className="ml-2 h-4 w-4" />,
+                }[column.getIsSorted() as string] ?? <ArrowUpDown className="ml-2 h-4 w-4" />}
+            </Button>
+        ),
+        cell: ({ row }) => (
+            <Link
+                href={route("bookcases.show", { bookcase: row.original.id })}
+                className={`${commonStyles.text} px-10 hover:underline`}
             >
                 {row.getValue("code")}
             </Link>
@@ -162,7 +188,7 @@ const getColumns = (processing: boolean): ColumnDef<Bookcase>[] => [
                 onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                 className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
             >
-                Books Count
+                ចំនួនសៀវភៅសរុប
                 {{
                     asc: <ArrowUp className="ml-2 h-4 w-4" />,
                     desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -176,7 +202,7 @@ const getColumns = (processing: boolean): ColumnDef<Bookcase>[] => [
                     <TooltipTrigger asChild>
                         <Link
                             href={route("bookcases.show", { bookcase: bookcase.id })}
-                            className={`${commonStyles.text} px-2 hover:underline`}
+                            className={`${commonStyles.text} px-13 hover:underline`}
                         >
                             {bookcase.active_books_count ?? 0}
                         </Link>
@@ -232,11 +258,7 @@ export default function BookcasesIndex({ bookcases = [], flash, isSuperLibrarian
     const modalFields = (item: Bookcase) => (
         <>
             <p>
-                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">Books Count:</strong>{" "}
-                {item.active_books_count ?? 0}
-            </p>
-            <p>
-                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">Books:</strong>{" "}
+                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">Books({item.active_books_count ?? 0}):</strong>{" "}
                 {item.books && item.books.length > 0 ? (
                     <ul className="list-disc list-inside space-y-1 text-sm">
                         {item.books.map((book) => (
@@ -254,7 +276,7 @@ export default function BookcasesIndex({ bookcases = [], flash, isSuperLibrarian
                                             : "text-red-600 dark:text-red-400"
                                     }`}
                                 >
-                                    (Code: {book.code})
+                                    (លេខកូដសម្គាល់: {book.code})
                                 </span>
                             </li>
                         ))}
@@ -265,53 +287,6 @@ export default function BookcasesIndex({ bookcases = [], flash, isSuperLibrarian
             </p>
         </>
     );
-
-    const tooltipFields = (item: Bookcase) => (
-        <>
-            <p>
-                <strong className="text-indigo-200">Code:</strong> {item.code}
-            </p>
-            <p>
-                <strong className="text-indigo-200">Books Count:</strong> {item.active_books_count ?? 0}
-            </p>
-            <Card className="border-indigo-200 dark:border-indigo-600 bg-white dark:bg-gray-800">
-                <CardContent className="p-0">
-                    <h3 className="text-sm font-semibold text-indigo-600 dark:text-indigo-300 p-2">
-                        Books in {item.code}
-                    </h3>
-                    {item.books && item.books.length > 0 ? (
-                        <ul className="list-disc list-inside space-y-2 text-base text-gray-700 dark:text-gray-200 p-2">
-                            {item.books.map((book) => (
-                                <li key={book.id} className="whitespace-nowrap">
-                                    <Link
-                                        href={route("books.show", { book: book.id })}
-                                        className="text-indigo-600 dark:text-indigo-300 hover:underline"
-                                    >
-                                        {book.title}
-                                    </Link>
-                                    <span
-                                        className={`ml-2 ${
-                                            book.is_available
-                                                ? "text-green-600 dark:text-green-400"
-                                                : "text-red-600 dark:text-red-400"
-                                        }`}
-                                    >
-                                        {" "}
-                                        ({book.code})
-                                    </span>
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p className="text-sm text-gray-600 dark:text-gray-300 p-2">
-                            No books in this bookcase.
-                        </p>
-                    )}
-                </CardContent>
-            </Card>
-        </>
-    );
-
     return (
         <DataTable
             data={bookcases}
@@ -327,7 +302,6 @@ export default function BookcasesIndex({ bookcases = [], flash, isSuperLibrarian
             }}
             flash={flash}
             modalFields={modalFields}
-            tooltipFields={tooltipFields}
             isSuperLibrarian={isSuperLibrarian}
         />
     );

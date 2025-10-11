@@ -66,7 +66,7 @@ const commonStyles = {
 // const route = (name: string, params?: any) => `/${name.replace(/\./g, '/')}/${params?.id || ''}`;
 
 const breadcrumbs = [
-    { title: "Subcategories", href: route("subcategories.index") },
+    { title: "ប្រភេទរង", href: route("subcategories.index") },
 ];
 
 const getColumns = (
@@ -170,6 +170,35 @@ const getColumns = (
         },
     },
     {
+        accessorKey: "id",
+        header: ({ column }) => (
+            <Button
+                variant="ghost"
+                onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
+            >
+                លេខរៀង
+                {{
+                    asc: <ArrowUp className="ml-2 h-4 w-4" />,
+                    desc: <ArrowDown className="ml-2 h-4 w-4" />,
+                }[column.getIsSorted() as string] ?? <ArrowUpDown className="ml-2 h-4 w-4" />}
+            </Button>
+        ),
+        cell: ({ row }) => (
+            <button
+                className={`${commonStyles.text} px-3 cursor-pointer`}
+                onClick={() => {
+                    setRowModalOpen(true);
+                    setSelectedRow(row.original);
+                }}
+                role="button"
+                aria-label={`View details for subcategory ${row.getValue("id") || "N/A"}`}
+            >
+                {row.getValue("id") || "N/A"}
+            </button>
+        ),
+        filterFn: (row, id, value) => String(row.getValue(id) || "").toLowerCase().includes(String(value).toLowerCase()),
+    },{
         accessorKey: "name",
         header: ({ column }) => (
             <Button
@@ -177,7 +206,7 @@ const getColumns = (
                 onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                 className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
             >
-                Name
+                ឈ្មោះប្រភេទរង
                 {{
                     asc: <ArrowUp className="ml-2 h-4 w-4" />,
                     desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -207,7 +236,7 @@ const getColumns = (
                 onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                 className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
             >
-                Category
+                ឈ្មោះប្រភេទ
                 {{
                     asc: <ArrowUp className="ml-2 h-4 w-4" />,
                     desc: <ArrowDown className="ml-2 h-4 w-4" />,

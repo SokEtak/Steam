@@ -48,7 +48,7 @@ import {
     ArrowLeft,
     ArrowRight,
     ChevronDown,
-    X,
+    X, Grid, Table2, Columns2
 } from 'lucide-react';
 import {
     ColumnDef,
@@ -212,7 +212,7 @@ function DataTable<T extends DataItem>({
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <Input
-                                        placeholder="Search"
+                                        placeholder="ស្វែងរក"
                                         value={globalFilter ?? ""}
                                         onChange={(event) => setGlobalFilter(event.target.value)}
                                         className={`${commonStyles.text} max-w-sm flex-grow sm:flex-grow-0 ${commonStyles.outlineButton} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400`}
@@ -261,7 +261,8 @@ function DataTable<T extends DataItem>({
                                                 disabled={isTableLoading || processing}
                                                 aria-label="Toggle column visibility"
                                             >
-                                                Columns <ChevronDown className="ml-2 h-4 w-4" />
+                                                {/*<ChevronDown className="ml-2 h-4 w-4" />*/}
+                                                <Columns2 className="h-4 w-4" />
                                             </Button>
                                         </DropdownMenuTrigger>
                                     </TooltipTrigger>
@@ -403,19 +404,8 @@ function DataTable<T extends DataItem>({
                                                     className={`${commonStyles.tooltipBg} max-w-md p-4 shadow-xl`}
                                                 >
                                                     <div className="space-y-2">
-                                                        {tooltipFields ? (
+                                                        {tooltipFields && (
                                                             tooltipFields(row.original)
-                                                        ) : (
-                                                            <>
-                                                                <p>
-                                                                    <strong className="text-indigo-200">ID:</strong>{" "}
-                                                                    {row.original.id}
-                                                                </p>
-                                                                <p>
-                                                                    <strong className="text-indigo-200">Code:</strong>{" "}
-                                                                    {row.original.code}
-                                                                </p>
-                                                            </>
                                                         )}
                                                     </div>
                                                 </TooltipContent>
@@ -441,7 +431,7 @@ function DataTable<T extends DataItem>({
                 <div className="flex justify-center gap-2 py-4">
                     <div className="flex items-center gap-2 flex-wrap">
                         <div className="flex items-center space-x-2">
-                            <span className={`${commonStyles.text} whitespace-nowrap`}>Rows per page:</span>
+                            <span className={`${commonStyles.text} whitespace-nowrap`}>ចំនួនសៀវភៅក្នុងមួយទំព័រ:</span>
                             <Select
                                 value={String(table.getState().pagination.pageSize)}
                                 onValueChange={(value) => {
@@ -466,7 +456,7 @@ function DataTable<T extends DataItem>({
                                     ))}
                                     {table.getFilteredRowModel().rows.length > 0 && (
                                         <SelectItem key="all" value="All" className="text-sm">
-                                            All
+                                            ទាំងអស់
                                         </SelectItem>
                                     )}
                                 </SelectContent>
@@ -488,7 +478,7 @@ function DataTable<T extends DataItem>({
                                         </Button>
                                     </TooltipTrigger>
                                     <TooltipContent side="left" className={commonStyles.tooltipBg}>
-                                        Previous Page
+                                        ទំព័រមុន
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
@@ -507,7 +497,7 @@ function DataTable<T extends DataItem>({
                                         </Button>
                                     </TooltipTrigger>
                                     <TooltipContent side="left" className={commonStyles.tooltipBg}>
-                                        Next Page
+                                        ទំព័របន្ទាប់
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
@@ -516,7 +506,7 @@ function DataTable<T extends DataItem>({
                             {isTableLoading ? (
                                 <Skeleton className="h-4 w-24" />
                             ) : (
-                                `Page ${table.getState().pagination.pageIndex + 1} of ${table.getPageCount() || 1}`
+                                `ទំព័រ ${table.getState().pagination.pageIndex + 1} នៃ ${table.getPageCount() || 1}`
                             )}
                         </div>
                     </div>

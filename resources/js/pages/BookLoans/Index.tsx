@@ -28,6 +28,16 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import DataTable from '@/components/DataTable';
 
 interface User {
@@ -72,16 +82,16 @@ const commonStyles = {
     tooltipBg: "bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl",
 };
 
-// NOTE: Assumes 'route' function is available (e.g., from Ziggy/Inertia)
 const breadcrumbs = [
-    { title: "Book Loans", href: route("bookloans.index") },
+    { title: "កម្ចីសៀវភៅ", href: route("bookloans.index") },
 ];
 
 const getColumns = (
     processing: boolean,
     setBookLoanToDelete: React.Dispatch<React.SetStateAction<BookLoan | null>>,
     setRowModalOpen: React.Dispatch<React.SetStateAction<boolean>>,
-    setSelectedRow: React.Dispatch<React.SetStateAction<BookLoan | null>>
+    setSelectedRow: React.Dispatch<React.SetStateAction<BookLoan | null>>,
+    setDeleteDialogOpen: React.Dispatch<React.SetStateAction<boolean>> // Added for dialog control
 ): ColumnDef<BookLoan>[] => [
     {
         id: "actions",
@@ -98,6 +108,7 @@ const getColumns = (
                             className={`${commonStyles.button} h-8 w-8 p-0 text-indigo-600 dark:text-indigo-300`}
                             disabled={processing}
                             aria-label={`Open menu for book loan ${bookLoan.id}`}
+                            onClick={(e) => e.stopPropagation()}
                         >
                             <span className="sr-only">Open menu</span>
                             <MoreHorizontal className="h-4 w-4" />
@@ -108,6 +119,7 @@ const getColumns = (
                         className={`${commonStyles.gradientBg} w-auto min-w-0 dark:border-indigo-600 rounded-xl p-1`}
                     >
                         <div className="flex flex-col items-center gap-1 px-1 py-1">
+                            {/* View Action */}
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
@@ -128,6 +140,7 @@ const getColumns = (
                                 </Tooltip>
                             </TooltipProvider>
 
+                            {/* Edit Action */}
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
@@ -144,29 +157,35 @@ const getColumns = (
                                                     <PencilIcon className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />
                                                 </Button>
                                             </Link>
-                                        </DropdownMenuItem> {/* <-- CORRECTED: Added missing closing tag */}
+                                        </DropdownMenuItem>
                                     </TooltipTrigger>
                                     <TooltipContent side="right" align="center" className={commonStyles.tooltipBg}>
                                         Edit Book Loan
                                     </TooltipContent>
-                                </Tooltip> {/* <-- CORRECTED: Added missing closing tag */}
+                                </Tooltip>
                             </TooltipProvider>
 
+                            {/* Delete Action */}
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <DropdownMenuItem asChild> {/* Added DropdownMenuItem for consistency with other actions */}
+                                        <DropdownMenuItem
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setBookLoanToDelete(bookLoan);
+                                                setDeleteDialogOpen(true); // Open the dialog
+                                            }}
+                                        >
                                             <Button
                                                 variant="ghost"
-                                                className="h-4 w-4 p-0 text-red-600 dark:text-red-300"
-                                                onClick={() => setBookLoanToDelete(bookLoan)}
+                                                className="h-4 w-4 p-0"
                                                 disabled={processing}
                                             >
-                                                <TrashIcon className="h-4 w-4" />
+                                                <TrashIcon className="h-4 w-4 text-red-600 dark:text-red-300" />
                                             </Button>
                                         </DropdownMenuItem>
                                     </TooltipTrigger>
-                                    <TooltipContent side="right" className={commonStyles.tooltipBg}>
+                                    <TooltipContent side="right" align="center" className={commonStyles.tooltipBg}>
                                         Delete Book Loan
                                     </TooltipContent>
                                 </Tooltip>
@@ -185,7 +204,7 @@ const getColumns = (
                 onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                 className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
             >
-                ID
+                លេខរៀង
                 {{
                     asc: <ArrowUp className="ml-2 h-4 w-4" />,
                     desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -215,7 +234,7 @@ const getColumns = (
                 onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                 className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
             >
-                Return Date
+                ថ្ងៃសងសៀវភៅ
                 {{
                     asc: <ArrowUp className="ml-2 h-4 w-4" />,
                     desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -224,7 +243,7 @@ const getColumns = (
         ),
         cell: ({ row }) => (
             <button
-                className={`${commonStyles.text} px-3 cursor-pointer`}
+                className={`${commonStyles.text} px-5 cursor-pointer`}
                 onClick={() => {
                     setRowModalOpen(true);
                     setSelectedRow(row.original);
@@ -246,7 +265,7 @@ const getColumns = (
                 onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                 className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
             >
-                Book
+                ចំណងជើងសៀវភៅ
                 {{
                     asc: <ArrowUp className="ml-2 h-4 w-4" />,
                     desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -306,7 +325,7 @@ const getColumns = (
                 onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                 className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
             >
-                User
+                អ្នកខ្ចី
                 {{
                     asc: <ArrowUp className="ml-2 h-4 w-4" />,
                     desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -317,7 +336,7 @@ const getColumns = (
             const user = row.original.user;
             return (
                 <button
-                    className={`${commonStyles.text} px-3 cursor-pointer`}
+                    className={`${commonStyles.text} px-0 cursor-pointer`}
                     onClick={() => {
                         setRowModalOpen(true);
                         setSelectedRow(row.original);
@@ -366,7 +385,7 @@ const getColumns = (
                 onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                 className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
             >
-                Created At
+                ធ្វើឡើងនៅ
                 {{
                     asc: <ArrowUp className="ml-2 h-4 w-4" />,
                     desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -375,7 +394,7 @@ const getColumns = (
         ),
         cell: ({ row }) => (
             <button
-                className={`${commonStyles.text} px-3 cursor-pointer`}
+                className={`${commonStyles.text} px-0 cursor-pointer`}
                 onClick={() => {
                     setRowModalOpen(true);
                     setSelectedRow(row.original);
@@ -399,7 +418,7 @@ const getColumns = (
                 onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                 className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
             >
-                Last Modified
+                កែប្រែលើកចុងក្រោយ
                 {{
                     asc: <ArrowUp className="ml-2 h-4 w-4" />,
                     desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -408,7 +427,7 @@ const getColumns = (
         ),
         cell: ({ row }) => (
             <button
-                className={`${commonStyles.text} px-3 cursor-pointer`}
+                className={`${commonStyles.text} px-1 cursor-pointer`}
                 onClick={() => {
                     setRowModalOpen(true);
                     setSelectedRow(row.original);
@@ -427,13 +446,14 @@ const getColumns = (
 ];
 
 export default function BookLoans({ bookloans = [], flash, books, users }: BookLoansProps) {
-    const { processing } = useForm();
+    const { processing, delete: destroy } = useForm();
     const [bookLoanToDelete, setBookLoanToDelete] = useState<BookLoan | null>(null);
     const [rowModalOpen, setRowModalOpen] = useState(false);
     const [selectedRow, setSelectedRow] = useState<BookLoan | null>(null);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false); // State for dialog
 
     const columns = useMemo(
-        () => getColumns(processing, setBookLoanToDelete, setRowModalOpen, setSelectedRow),
+        () => getColumns(processing, setBookLoanToDelete, setRowModalOpen, setSelectedRow, setDeleteDialogOpen),
         [processing]
     );
 
@@ -468,7 +488,7 @@ export default function BookLoans({ bookloans = [], flash, books, users }: BookL
                 )}
             </p>
             <p>
-                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">User:</strong>{" "}
+                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">Loaner:</strong>{" "}
                 {item.user ? (
                     <Link
                         href={route("users.show", item.user.id)}
@@ -521,25 +541,68 @@ export default function BookLoans({ bookloans = [], flash, books, users }: BookL
         </>
     );
 
+    const handleDelete = () => {
+        if (bookLoanToDelete) {
+            destroy(route("bookloans.destroy", bookLoanToDelete.id), {
+                onFinish: () => {
+                    setDeleteDialogOpen(false);
+                    setBookLoanToDelete(null);
+                },
+            });
+        }
+    };
+
     return (
-        <DataTable
-            data={bookloans || []}
-            columns={columns}
-            breadcrumbs={breadcrumbs}
-            title="Book Loans"
-            resourceName="book loans"
-            routes={{
-                index: route("bookloans.index"),
-                create: route("bookloans.create"),
-                show: (id) => route("bookloans.show", id),
-                edit: (id) => route("bookloans.edit", id),
-                destroy: (id) => route("bookloans.destroy", id),
-            }}
-            flash={flash}
-            modalFields={modalFields}
-            tooltipFields={tooltipFields}
-            isSuperLibrarian={false}
-            globalFilterFn={globalFilterFn}
-        />
+        <>
+            <DataTable
+                data={bookloans || []}
+                columns={columns}
+                breadcrumbs={breadcrumbs}
+                title="Book Loans"
+                resourceName="book loans"
+                routes={{
+                    index: route("bookloans.index"),
+                    create: route("bookloans.create"),
+                    show: (id) => route("bookloans.show", id),
+                    edit: (id) => route("bookloans.edit", id),
+                    destroy: (id) => route("bookloans.destroy", id),
+                }}
+                flash={flash}
+                modalFields={modalFields}
+                tooltipFields={tooltipFields}
+                isSuperLibrarian={false}
+                globalFilterFn={globalFilterFn}
+            />
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent className={commonStyles.gradientBg}>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure you want to delete this book loan?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the book loan
+                            {bookLoanToDelete?.book ? ` for "${bookLoanToDelete.book.title}"` : ""}{" "}
+                            {bookLoanToDelete?.user ? `borrowed by ${bookLoanToDelete.user.name}` : ""}.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel
+                            className={`${commonStyles.outlineButton} border`}
+                            onClick={() => {
+                                setBookLoanToDelete(null);
+                                setDeleteDialogOpen(false);
+                            }}
+                        >
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            className={commonStyles.indigoButton}
+                            onClick={handleDelete}
+                            disabled={processing}
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
     );
 }

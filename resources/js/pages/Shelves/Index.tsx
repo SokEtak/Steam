@@ -74,7 +74,7 @@ const commonStyles = {
 };
 
 const breadcrumbs = [
-    { title: "Shelves", href: route("shelves.index") },
+    { title: "ធ្នើរសៀវភៅ", href: route("shelves.index") },
 ];
 
 const getColumns = (
@@ -99,7 +99,6 @@ const getColumns = (
                             disabled={processing}
                             aria-label={`Open menu for shelf ${shelf.code}`}
                         >
-                            <span className="sr-only">Open menu</span>
                             <MoreHorizontal className="h-4 w-4" />
                         </Button>
                     </DropdownMenuTrigger>
@@ -108,54 +107,91 @@ const getColumns = (
                         className={`${commonStyles.gradientBg} w-auto min-w-0 dark:border-indigo-600 rounded-xl p-1`}
                     >
                         <div className="flex flex-col items-center gap-1 px-1 py-1">
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <DropdownMenuItem asChild>
-                                        <Link href={route("shelves.show", shelf.id)}>
-                                            <Button variant="ghost" className="h-4 w-4 p-0">
-                                                <Eye className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <DropdownMenuItem asChild>
+                                            <Link href={route("shelves.show", shelf.id)}>
+                                                <Button variant="ghost" className="h-4 w-4 p-0">
+                                                    <Eye className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />
+                                                </Button>
+                                            </Link>
+                                        </DropdownMenuItem>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="right" align="center" className={commonStyles.tooltipBg}>
+                                        View Shelf
+                                    </TooltipContent>
+                                </Tooltip>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <DropdownMenuItem asChild>
+                                            <Link href={route("shelves.edit", shelf.id)}>
+                                                <Button variant="ghost" className="h-4 w-4 p-0">
+                                                    <Pencil className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />
+                                                </Button>
+                                            </Link>
+                                        </DropdownMenuItem>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="right" align="center" className={commonStyles.tooltipBg}>
+                                        Edit
+                                    </TooltipContent>
+                                </Tooltip>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <DropdownMenuItem asChild>
+                                            <Button
+                                                variant="ghost"
+                                                className="h-4 w-4 p-0 text-red-600 dark:text-red-300"
+                                                onClick={() => setShelfToDelete(shelf)}
+                                                disabled={processing}
+                                            >
+                                                <Trash className="h-4 w-4" />
                                             </Button>
-                                        </Link>
-                                    </DropdownMenuItem>
-                                </TooltipTrigger>
-                                <TooltipContent side="right" align="center" className={commonStyles.tooltipBg}>
-                                    View Shelf
-                                </TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <DropdownMenuItem asChild>
-                                        <Link href={route("shelves.edit", shelf.id)}>
-                                            <Button variant="ghost" className="h-4 w-4 p-0">
-                                                <Pencil className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />
-                                            </Button>
-                                        </Link>
-                                    </DropdownMenuItem>
-                                </TooltipTrigger>
-                                <TooltipContent side="right" align="center" className={commonStyles.tooltipBg}>
-                                    Edit
-                                </TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        variant="ghost"
-                                        className="h-4 w-4 p-0 text-red-600 dark:text-red-300"
-                                        onClick={() => setShelfToDelete(shelf)}
-                                        disabled={processing}
-                                    >
-                                        <Trash className="h-4 w-4" />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent side="right" className={commonStyles.tooltipBg}>
-                                    Delete
-                                </TooltipContent>
-                            </Tooltip>
+                                        </DropdownMenuItem>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="right" className={commonStyles.tooltipBg}>
+                                        Delete
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
                         </div>
                     </DropdownMenuContent>
                 </DropdownMenu>
             );
         },
+    },
+    {
+        accessorKey: "id",
+        header: ({ column }) => (
+            <Button
+                variant="ghost"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    column.toggleSorting(column.getIsSorted() === "asc");
+                }}
+                className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
+            >
+                លេខរៀង
+                {{
+                    asc: <ArrowUp className="ml-2 h-4 w-4" />,
+                    desc: <ArrowDown className="ml-2 h-4 w-4" />,
+                }[column.getIsSorted() as string] ?? <ArrowUpDown className="ml-2 h-4 w-4" />}
+            </Button>
+        ),
+        cell: ({ row }) => (
+            <button
+                className={`${commonStyles.text} px-7 cursor-pointer`}
+                onClick={() => {
+                    setRowModalOpen(true);
+                    setSelectedRow(row.original);
+                }}
+                role="button"
+                aria-label={`View details for shelf ${row.getValue("id")}`}
+            >
+                {row.getValue("id")}
+            </button>
+        ),
+        filterFn: (row, id, value) => String(row.getValue(id)).toLowerCase().includes(String(value).toLowerCase()),
     },
     {
         accessorKey: "code",
@@ -168,7 +204,7 @@ const getColumns = (
                 }}
                 className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
             >
-                Code
+                លេខកូដសម្គាល់
                 {{
                     asc: <ArrowUp className="ml-2 h-4 w-4" />,
                     desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -177,7 +213,7 @@ const getColumns = (
         ),
         cell: ({ row }) => (
             <button
-                className={`${commonStyles.text} px-3 cursor-pointer`}
+                className={`${commonStyles.text} px-13 cursor-pointer`}
                 onClick={() => {
                     setRowModalOpen(true);
                     setSelectedRow(row.original);
@@ -201,7 +237,7 @@ const getColumns = (
                 }}
                 className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
             >
-                Bookcase
+                ទូសៀវភៅ
                 {{
                     asc: <ArrowUp className="ml-2 h-4 w-4" />,
                     desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -212,7 +248,7 @@ const getColumns = (
             const bookcase = row.original.bookcase;
             return (
                 <button
-                    className={`${commonStyles.text} px-3 cursor-pointer`}
+                    className={`${commonStyles.text} px-9 cursor-pointer`}
                     onClick={() => {
                         setRowModalOpen(true);
                         setSelectedRow(row.original);
@@ -224,10 +260,10 @@ const getColumns = (
                             : "View details for shelf with no bookcase"
                     }
                 >
-                    {bookcase ? (
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                {bookcase ? (
                                     <Link
                                         href={route("bookcases.show", { bookcase: bookcase.id })}
                                         className="text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:hover:text-indigo-400 underline text-sm"
@@ -236,15 +272,15 @@ const getColumns = (
                                     >
                                         {bookcase.code}
                                     </Link>
-                                </TooltipTrigger>
-                                <TooltipContent className={commonStyles.tooltipBg}>
-                                    Navigate to /bookcases/{bookcase.id}
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    ) : (
-                        <span className="text-red-500 dark:text-red-400 text-sm">N/A</span>
-                    )}
+                                ) : (
+                                    <span className="text-red-500 dark:text-red-400 text-sm">N/A</span>
+                                )}
+                            </TooltipTrigger>
+                            <TooltipContent className={commonStyles.tooltipBg}>
+                                {bookcase ? `Navigate to /bookcases/${bookcase.id}` : "No bookcase assigned"}
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
                 </button>
             );
         },
@@ -269,7 +305,7 @@ const getColumns = (
                 }}
                 className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
             >
-                Books Count
+                ចំនួនសៀវភៅសរុប
                 {{
                     asc: <ArrowUp className="ml-2 h-4 w-4" />,
                     desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -279,58 +315,60 @@ const getColumns = (
         cell: ({ row }) => {
             const shelf = row.original;
             return (
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <button
-                            className={`${commonStyles.text} px-3 cursor-pointer`}
-                            onClick={() => {
-                                setRowModalOpen(true);
-                                setSelectedRow(row.original);
-                            }}
-                            role="button"
-                            aria-label={`View details for shelf with ${row.getValue("books_count") || 0} books`}
-                        >
-                            {row.getValue("books_count") || 0}
-                        </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="right" className={`${commonStyles.tooltipBg} max-w-sm shadow-xl`}>
-                        <Card className="border-indigo-200 dark:border-indigo-600 bg-white dark:bg-gray-800">
-                            <CardContent className="p-0">
-                                <h3 className="text-sm font-semibold text-indigo-600 dark:text-indigo-300 p-2">
-                                    Books in {shelf.code}
-                                </h3>
-                                {shelf.books && shelf.books.length > 0 ? (
-                                    <ul className="list-disc list-inside space-y-2 text-base text-gray-700 dark:text-gray-200 p-2">
-                                        {shelf.books.map((book) => (
-                                            <li key={book.id} className="whitespace-nowrap">
-                                                <Link
-                                                    href={route("books.show", { book: book.id })}
-                                                    className="text-indigo-600 dark:text-indigo-300 hover:underline"
-                                                >
-                                                    {book.title}
-                                                </Link>
-                                                <span
-                                                    className={`ml-2 ${
-                                                        book.is_available
-                                                            ? "text-green-600 dark:text-green-400"
-                                                            : "text-red-600 dark:text-red-400"
-                                                    }`}
-                                                >
-                                                    {" "}
-                                                    ({book.code})
-                                                </span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                ) : (
-                                    <p className="text-sm text-gray-600 dark:text-gray-300 p-2">
-                                        No books in this shelf.
-                                    </p>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </TooltipContent>
-                </Tooltip>
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <button
+                                className={`${commonStyles.text} px-13 cursor-pointer`}
+                                onClick={() => {
+                                    setRowModalOpen(true);
+                                    setSelectedRow(row.original);
+                                }}
+                                role="button"
+                                aria-label={`View details for shelf with ${row.getValue("books_count") || 0} books`}
+                            >
+                                {row.getValue("books_count") || 0}
+                            </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className={`${commonStyles.tooltipBg} max-w-sm shadow-xl`}>
+                            <Card className="border-indigo-200 dark:border-indigo-600 bg-white dark:bg-gray-800">
+                                <CardContent className="p-0">
+                                    <h3 className="text-sm font-semibold text-indigo-600 dark:text-indigo-300 p-2">
+                                        Books in {shelf.code}
+                                    </h3>
+                                    {shelf.books && shelf.books.length > 0 ? (
+                                        <ul className="list-disc list-inside space-y-2 text-base text-gray-700 dark:text-gray-200 p-2">
+                                            {shelf.books.map((book) => (
+                                                <li key={book.id} className="whitespace-nowrap">
+                                                    <Link
+                                                        href={route("books.show", { book: book.id })}
+                                                        className="text-indigo-600 dark:text-indigo-300 hover:underline"
+                                                    >
+                                                        {book.title}
+                                                    </Link>
+                                                    <span
+                                                        className={`ml-2 ${
+                                                            book.is_available
+                                                                ? "text-green-600 dark:text-green-400"
+                                                                : "text-red-600 dark:text-red-400"
+                                                        }`}
+                                                    >
+                                                        {" "}
+                                                        ({book.code})
+                                                    </span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : (
+                                        <p className="text-sm text-gray-600 dark:text-gray-300 p-2">
+                                            No books in this shelf.
+                                        </p>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
             );
         },
         filterFn: (row, id, value) => String(row.getValue(id)).includes(String(value)),
@@ -361,15 +399,11 @@ export default function ShelvesIndex({ shelves = [], flash, isSuperLibrarian = f
                         {item.bookcase.code}
                     </Link>
                 ) : (
-                    "N/A"
+                    <span className="text-red-500 dark:text-red-400">N/A</span>
                 )}
             </p>
             <p>
-                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">Books Count:</strong>{" "}
-                {item.books_count || 0}
-            </p>
-            <p>
-                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">Books:</strong>{" "}
+                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">Books({item.books_count || 0}):</strong>{" "}
                 {item.books && item.books.length > 0 ? (
                     <ul className="list-disc list-inside space-y-1 text-sm">
                         {item.books.map((book) => (
@@ -393,58 +427,9 @@ export default function ShelvesIndex({ shelves = [], flash, isSuperLibrarian = f
                         ))}
                     </ul>
                 ) : (
-                    "No books in this shelf."
+                    <span className="text-gray-600 dark:text-gray-300">No books in this shelf.</span>
                 )}
             </p>
-        </>
-    );
-
-    const tooltipFields = (item: Shelf) => (
-        <>
-            <p>
-                <strong className="text-indigo-200">Code:</strong> {item.code}
-            </p>
-            <p>
-                <strong className="text-indigo-200">Bookcase:</strong> {item.bookcase?.code || "N/A"}
-            </p>
-            <p>
-                <strong className="text-indigo-200">Books Count:</strong> {item.books_count || 0}
-            </p>
-            <Card className="border-indigo-200 dark:border-indigo-600 bg-white dark:bg-gray-800">
-                <CardContent className="p-0">
-                    <h3 className="text-sm font-semibold text-indigo-600 dark:text-indigo-300 p-2">
-                        Books in {item.code}
-                    </h3>
-                    {item.books && item.books.length > 0 ? (
-                        <ul className="list-disc list-inside space-y-2 text-base text-gray-700 dark:text-gray-200 p-2">
-                            {item.books.map((book) => (
-                                <li key={book.id} className="whitespace-nowrap">
-                                    <Link
-                                        href={route("books.show", { book: book.id })}
-                                        className="text-indigo-600 dark:text-indigo-300 hover:underline"
-                                    >
-                                        {book.title}
-                                    </Link>
-                                    <span
-                                        className={`ml-2 ${
-                                            book.is_available
-                                                ? "text-green-600 dark:text-green-400"
-                                                : "text-red-600 dark:text-red-400"
-                                        }`}
-                                    >
-                                        {" "}
-                                        ({book.code})
-                                    </span>
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p className="text-sm text-gray-600 dark:text-gray-300 p-2">
-                            No books in this shelf.
-                        </p>
-                    )}
-                </CardContent>
-            </Card>
         </>
     );
 
@@ -464,7 +449,6 @@ export default function ShelvesIndex({ shelves = [], flash, isSuperLibrarian = f
             }}
             flash={flash}
             modalFields={modalFields}
-            tooltipFields={tooltipFields}
             isSuperLibrarian={isSuperLibrarian}
         />
     );

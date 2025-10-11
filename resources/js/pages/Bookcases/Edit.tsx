@@ -1,13 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AppLayout from "@/layouts/app-layout";
 import { type BreadcrumbItem } from "@/types";
 import { Head, useForm, Link } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { CheckCircle2Icon, X } from "lucide-react";
 
 interface Bookcase {
@@ -20,30 +25,66 @@ interface BookcasesEditProps {
     flash?: {
         message?: string;
     };
+    lang?: "kh" | "en";
 }
+
+const translations = {
+    kh: {
+        title: "កែសម្រួលទូសៀវភៅ",
+        bookcaseCode: "លេខកូដទូសៀវភៅ",
+        bookcaseCodeTooltip: "កែសម្រួលលេខកូដសម្រាប់ទូសៀវភៅ",
+        bookcaseCodePlaceholder: "បញ្ចូលលេខកូដទូសៀវភៅ",
+        update: "ធ្វើបច្ចុប្បន្នភាព",
+        updating: "កំពុងធ្វើបច្ចុប្បន្នភាព...",
+        updateTooltip: "រក្សាទុកការផ្លាស់ប្តូរទៅទូសៀវភៅ",
+        cancel: "បោះបង់",
+        cancelTooltip: "ត្រឡប់ទៅបញ្ជីទូសៀវភៅ",
+        error: "កំហុស",
+        notification: "ការជូនដំណឹង",
+    },
+    en: {
+        title: "Edit Bookcase",
+        bookcaseCode: "Bookcase Code",
+        bookcaseCodeTooltip: "Edit the code for the bookcase",
+        bookcaseCodePlaceholder: "Enter bookcase code",
+        update: "Update",
+        updating: "Updating...",
+        updateTooltip: "Save changes to the bookcase",
+        cancel: "Cancel",
+        cancelTooltip: "Return to the bookcases list",
+        error: "Error",
+        notification: "Notification",
+    },
+};
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: "Bookcases",
+        title: "ទូសៀវភៅ",
         href: route("bookcases.index"),
     },
     {
-        title: "Edit",
+        title: "កែប្រែ",
         href: "",
     },
 ];
 
-export default function BookcasesEdit({ bookcase, flash }: BookcasesEditProps) {
+export default function BookcasesEdit({ bookcase, flash, lang = "kh" }: BookcasesEditProps) {
+    const t = translations[lang];
     const { data, setData, put, processing, errors } = useForm({
         code: bookcase.code ?? "",
     });
     const [showErrorAlert, setShowErrorAlert] = useState(!!Object.keys(errors).length);
+    const [showSuccessAlert, setShowSuccessAlert] = useState(!!flash?.message);
+
+    useEffect(() => {
+        setShowErrorAlert(!!Object.keys(errors).length);
+        if (flash?.message) setShowSuccessAlert(true);
+    }, [errors, flash?.message]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         put(route("bookcases.update", bookcase.id), {
             onSuccess: () => {
-                setData({ code: bookcase.code ?? "" });
                 setShowErrorAlert(false);
             },
             onError: () => {
@@ -52,34 +93,63 @@ export default function BookcasesEdit({ bookcase, flash }: BookcasesEditProps) {
         });
     };
 
-    const handleCloseAlert = () => setShowErrorAlert(false);
+    const handleCloseErrorAlert = () => setShowErrorAlert(false);
+    const handleCloseSuccessAlert = () => setShowSuccessAlert(false);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Edit Bookcase" />
-            <div className="p-4 sm:p-6 lg:p-5 xl:p-2">
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-indigo-900 rounded-2xl shadow-2xl border border-indigo-200 dark:border-indigo-700 p-6">
-                    <h1 className="text-2xl font-bold text-indigo-600 dark:text-indigo-300 mb-6">
-                        Edit Bookcase
+            <Head title={t.title} />
+            <div className="min-h-screen p-6 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+                <div className="max-w-1xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-8">
+                    <h1 className="text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-8">
+                        {t.title}
                     </h1>
-                    {showErrorAlert && Object.keys(errors).length > 0 && (
-                        <Alert className="mb-4 flex items-start justify-between bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900 dark:to-red-800 text-gray-800 dark:text-gray-100 border border-red-200 dark:border-red-700 rounded-xl">
-                            <div className="flex gap-2">
-                                <CheckCircle2Icon className="h-4 w-4 text-red-600 dark:text-red-300" />
-                                <div>
-                                    <AlertTitle className="text-red-600 dark:text-red-300">Error</AlertTitle>
-                                    <AlertDescription className="text-gray-600 dark:text-gray-300">
-                                        {Object.values(errors).join(", ")}
-                                    </AlertDescription>
+                    {showSuccessAlert && flash?.message && (
+                        <Alert className="mb-6 bg-blue-50 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-700 rounded-lg">
+                            <div className="flex items-start justify-between">
+                                <div className="flex gap-3">
+                                    <CheckCircle2Icon className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                                    <div>
+                                        <AlertTitle className="text-blue-600 dark:text-blue-400 font-semibold">
+                                            {t.notification}
+                                        </AlertTitle>
+                                        <AlertDescription className="text-blue-600 dark:text-blue-400">
+                                            {flash.message}
+                                        </AlertDescription>
+                                    </div>
                                 </div>
+                                <Button
+                                    onClick={handleCloseSuccessAlert}
+                                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 bg-transparent hover:bg-blue-100 dark:hover:bg-blue-800/50 p-1 rounded-full"
+                                    disabled={processing}
+                                >
+                                    <X className="h-5 w-5" />
+                                </Button>
                             </div>
-                            <Button
-                                onClick={handleCloseAlert}
-                                className="text-sm font-medium cursor-pointer text-red-600 dark:text-red-300 hover:text-red-800 dark:hover:text-red-100"
-                                disabled={processing}
-                            >
-                                <X className="h-4 w-4" />
-                            </Button>
+                        </Alert>
+                    )}
+                    {showErrorAlert && Object.keys(errors).length > 0 && (
+                        <Alert className="mb-6 bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-700 rounded-lg">
+                            <div className="flex items-start justify-between">
+                                <div className="flex gap-3">
+                                    <CheckCircle2Icon className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
+                                    <div>
+                                        <AlertTitle className="text-red-600 dark:text-red-400 font-semibold">
+                                            {t.error}
+                                        </AlertTitle>
+                                        <AlertDescription className="text-red-600 dark:text-red-400">
+                                            {Object.values(errors).join(", ")}
+                                        </AlertDescription>
+                                    </div>
+                                </div>
+                                <Button
+                                    onClick={handleCloseErrorAlert}
+                                    className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 bg-transparent hover:bg-red-100 dark:hover:bg-red-800/50 p-1 rounded-full"
+                                    disabled={processing}
+                                >
+                                    <X className="h-5 w-5" />
+                                </Button>
+                            </div>
                         </Alert>
                     )}
                     <form onSubmit={handleSubmit} className="space-y-6">
@@ -88,27 +158,37 @@ export default function BookcasesEdit({ bookcase, flash }: BookcasesEditProps) {
                                 htmlFor="code"
                                 className="text-sm font-medium text-gray-700 dark:text-gray-300"
                             >
-                                Bookcase Code
+                                {t.bookcaseCode}
                             </label>
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
                                         <Input
                                             id="code"
+                                            maxLength={10}
                                             value={data.code}
                                             onChange={(e) => setData("code", e.target.value)}
-                                            placeholder="Enter bookcase code"
-                                            className={`w-full px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border ${errors.code ? "border-red-500 dark:border-red-400" : "border-indigo-200 dark:border-indigo-600"} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all duration-200`}
+                                            placeholder={t.bookcaseCodePlaceholder}
+                                            className={`w-full px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border ${
+                                                errors.code
+                                                    ? "border-red-500 dark:border-red-400"
+                                                    : "border-gray-300 dark:border-gray-600"
+                                            } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all duration-300 ease-in-out`}
                                             disabled={processing}
                                             aria-invalid={!!errors.code}
                                             aria-describedby={errors.code ? "code-error" : undefined}
                                         />
                                     </TooltipTrigger>
-                                    <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
-                                        Edit the code for the bookcase
+                                    <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
+                                        {t.bookcaseCodeTooltip}
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
+                            {errors.code && (
+                                <p id="code-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
+                                    {errors.code}
+                                </p>
+                            )}
                         </div>
                         <div className="flex gap-4">
                             <TooltipProvider>
@@ -117,13 +197,13 @@ export default function BookcasesEdit({ bookcase, flash }: BookcasesEditProps) {
                                         <Button
                                             type="submit"
                                             disabled={processing}
-                                            className="bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 px-4 py-2 rounded-lg transition-colors duration-200"
+                                            className="bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 px-6 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105"
                                         >
-                                            {processing ? "Updating..." : "Update"}
+                                            {processing ? t.updating : t.update}
                                         </Button>
                                     </TooltipTrigger>
-                                    <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
-                                        Save changes to the bookcase
+                                    <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
+                                        {t.updateTooltip}
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
@@ -133,15 +213,15 @@ export default function BookcasesEdit({ bookcase, flash }: BookcasesEditProps) {
                                         <Link href={route("bookcases.index")}>
                                             <Button
                                                 variant="outline"
-                                                className="bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-300 border-indigo-200 dark:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-800 px-4 py-2 rounded-lg transition-colors duration-200"
+                                                className="bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-300 border-gray-300 dark:border-gray-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 px-6 py-2 rounded-lg transition-all duration-300 ease-in-out"
                                                 disabled={processing}
                                             >
-                                                Cancel
+                                                {t.cancel}
                                             </Button>
                                         </Link>
                                     </TooltipTrigger>
-                                    <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
-                                        Return to the bookcases list
+                                    <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
+                                        {t.cancelTooltip}
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>

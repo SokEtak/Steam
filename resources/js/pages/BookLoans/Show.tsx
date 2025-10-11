@@ -6,7 +6,12 @@ import { type BreadcrumbItem } from "@/types";
 import { Head, Link, router, useForm } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -45,20 +50,69 @@ interface BookLoanShowProps {
     flash: {
         message: string | null;
     };
+    lang?: "kh" | "en";
 }
+
+const translations = {
+    kh: {
+        title: "ព័ត៌មានលម្អិតនៃការខ្ចីសៀវភៅ",
+        notification: "ការជូនដំណឹង",
+        id: "លេខសម្គាល់",
+        returnDate: "កាលបរិច្ឆេទត្រឡប់",
+        book: "សៀវភៅ",
+        bookTooltip: "មើលព័ត៌មានលម្អិតនៃសៀវភៅ",
+        loaner: "អ្នកខ្ចី",
+        loanerTooltip: "មើលព័ត៌មានលម្អិតនៃអ្នកប្រើប្រាស់",
+        createdAt: "បានបង្កើតនៅ",
+        lastModified: "កែប្រែចុងក្រោយ",
+        edit: "កែសម្រួល",
+        editTooltip: "កែសម្រួលការខ្ចីសៀវភៅនេះ",
+        delete: "លុប",
+        deleteTooltip: "លុបការខ្ចីសៀវភៅនេះ",
+        back: "ត្រឡប់",
+        backTooltip: "ត្រឡប់ទៅបញ្ជីការខ្ចីសៀវភៅ",
+        confirmDeleteTitle: "តើអ្នកប្រាកដទេ?",
+        confirmDeleteDescription: "សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។ វានឹងលុបការខ្ចីសៀវភៅសម្រាប់ ",
+        cancel: "បោះបង់",
+        na: "គ្មាន",
+    },
+    en: {
+        title: "Book Loan Details",
+        notification: "Notification",
+        id: "ID",
+        returnDate: "Return Date",
+        book: "Book",
+        bookTooltip: "View book details",
+        loaner: "Loaner",
+        loanerTooltip: "View user details",
+        createdAt: "Created At",
+        lastModified: "Last Modified",
+        edit: "Edit",
+        editTooltip: "Edit this book loan",
+        delete: "Delete",
+        deleteTooltip: "Delete this book loan",
+        back: "Back",
+        backTooltip: "Return to the book loans list",
+        confirmDeleteTitle: "Are you sure?",
+        confirmDeleteDescription: "This action cannot be undone. This will permanently delete the book loan for ",
+        cancel: "Cancel",
+        na: "N/A",
+    },
+};
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: "Book Loans",
+        title: "បញ្ជីកម្ចីសៀវភៅ",
         href: route("bookloans.index"),
     },
     {
-        title: "Show",
+        title: "ពត៌មានលំអិត",
         href: "",
     },
 ];
 
-export default function BookLoanShow({ loan, flash }: BookLoanShowProps) {
+export default function BookLoanShow({ loan, flash, lang = "kh" }: BookLoanShowProps) {
+    const t = translations[lang];
     const { processing } = useForm();
     const [showAlert, setShowAlert] = useState(!!flash.message);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -83,56 +137,66 @@ export default function BookLoanShow({ loan, flash }: BookLoanShowProps) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Book Loan: ${loan.book?.title || "Details"}`} />
-            <div className="p-4 sm:p-6 lg:p-5 xl:p-2">
-                {showAlert && flash.message && (
-                    <Alert className="mb-4 flex items-start justify-between bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-indigo-900 text-gray-800 dark:text-gray-100 border border-indigo-200 dark:border-indigo-700 rounded-xl">
-                        <div className="flex gap-2">
-                            <CheckCircle2Icon className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />
-                            <div>
-                                <AlertTitle className="text-indigo-600 dark:text-indigo-300">Notification</AlertTitle>
-                                <AlertDescription className="text-gray-600 dark:text-gray-300">
-                                    {flash.message}
-                                </AlertDescription>
-                            </div>
-                        </div>
-                        <Button
-                            onClick={handleCloseAlert}
-                            className="text-sm font-medium cursor-pointer text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-100"
-                            disabled={processing}
-                        >
-                            <X className="h-4 w-4" />
-                        </Button>
-                    </Alert>
-                )}
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-indigo-900 rounded-2xl shadow-2xl border border-indigo-200 dark:border-indigo-700 p-6">
-                    <h1 className="text-2xl font-bold text-indigo-600 dark:text-indigo-300 mb-6">
-                        Book Loan Details
+            <Head title={`${t.title}: ${loan.book?.title || t.na}`} />
+            <div className="min-h-screen p-6 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+                <div className="max-w-1xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-8">
+                    <h1 className="text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-8">
+                        {t.title}
                     </h1>
-                    <div className="space-y-4">
+                    {showAlert && flash.message && (
+                        <Alert className="mb-6 bg-blue-50 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-700 rounded-lg">
+                            <div className="flex items-start justify-between">
+                                <div className="flex gap-3">
+                                    <CheckCircle2Icon className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                                    <div>
+                                        <AlertTitle className="text-blue-600 dark:text-blue-400 font-semibold">
+                                            {t.notification}
+                                        </AlertTitle>
+                                        <AlertDescription className="text-blue-600 dark:text-blue-400">
+                                            {flash.message}
+                                        </AlertDescription>
+                                    </div>
+                                </div>
+                                <Button
+                                    onClick={handleCloseAlert}
+                                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 bg-transparent hover:bg-blue-100 dark:hover:bg-blue-800/50 p-1 rounded-full"
+                                    disabled={processing}
+                                >
+                                    <X className="h-5 w-5" />
+                                </Button>
+                            </div>
+                        </Alert>
+                    )}
+                    <div className="space-y-6">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">ID</label>
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {t.id}
+                            </label>
                             <p
-                                className="px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border border-indigo-200 dark:border-indigo-600"
-                                aria-label={`Book Loan ID: ${loan.id}`}
+                                className="px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border border-gray-300 dark:border-gray-600 transition-all duration-300"
+                                aria-label={`${t.id}: ${loan.id}`}
                             >
                                 {loan.id}
                             </p>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Return Date</label>
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {t.returnDate}
+                            </label>
                             <p
-                                className="px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border border-indigo-200 dark:border-indigo-600"
-                                aria-label={`Return Date: ${loan.return_date || "N/A"}`}
+                                className="px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border border-gray-300 dark:border-gray-600 transition-all duration-300"
+                                aria-label={`${t.returnDate}: ${loan.return_date || t.na}`}
                             >
-                                {loan.return_date || "N/A"}
+                                {loan.return_date || t.na}
                             </p>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Book</label>
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {t.book}
+                            </label>
                             <p
-                                className="px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border border-indigo-200 dark:border-indigo-600"
-                                aria-label={loan.book ? `Book: ${loan.book.title}` : "Book: N/A"}
+                                className="px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border border-gray-300 dark:border-gray-600 transition-all duration-300"
+                                aria-label={loan.book ? `${t.book}: ${loan.book.title}` : `${t.book}: ${t.na}`}
                             >
                                 {loan.book_id ? (
                                     <TooltipProvider>
@@ -140,26 +204,28 @@ export default function BookLoanShow({ loan, flash }: BookLoanShowProps) {
                                             <TooltipTrigger asChild>
                                                 <Link
                                                     href={route("books.show", loan.book_id)}
-                                                    className="text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:hover:text-indigo-400 underline"
+                                                    className="text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:hover:text-indigo-400 underline transition-colors duration-200"
                                                 >
-                                                    {loan.book?.title || "N/A"}
+                                                    {loan.book?.title || t.na}
                                                 </Link>
                                             </TooltipTrigger>
-                                            <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
-                                                View book details
+                                            <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
+                                                {t.bookTooltip}
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
                                 ) : (
-                                    <span className="text-gray-500 dark:text-gray-400">N/A</span>
+                                    <span className="text-gray-500 dark:text-gray-400">{t.na}</span>
                                 )}
                             </p>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Loaner</label>
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {t.loaner}
+                            </label>
                             <p
-                                className="px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border border-indigo-200 dark:border-indigo-600"
-                                aria-label={loan.user ? `User: ${loan.user.name}` : "User: N/A"}
+                                className="px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border border-gray-300 dark:border-gray-600 transition-all duration-300"
+                                aria-label={loan.user ? `${t.loaner}: ${loan.user.name}` : `${t.loaner}: ${t.na}`}
                             >
                                 {loan.user_id ? (
                                     <TooltipProvider>
@@ -167,56 +233,60 @@ export default function BookLoanShow({ loan, flash }: BookLoanShowProps) {
                                             <TooltipTrigger asChild>
                                                 <Link
                                                     href={route("users.show", loan.user_id)}
-                                                    className="text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:hover:text-indigo-400 underline"
+                                                    className="text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:hover:text-indigo-400 underline transition-colors duration-200"
                                                 >
-                                                    {loan.user?.name || "N/A"}
+                                                    {loan.user?.name || t.na}
                                                 </Link>
                                             </TooltipTrigger>
-                                            <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
-                                                View user details
+                                            <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
+                                                {t.loanerTooltip}
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
                                 ) : (
-                                    <span className="text-gray-500 dark:text-gray-400">N/A</span>
+                                    <span className="text-gray-500 dark:text-gray-400">{t.na}</span>
                                 )}
                             </p>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Created At</label>
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {t.createdAt}
+                            </label>
                             <p
-                                className="px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border border-indigo-200 dark:border-indigo-600"
-                                aria-label={`Created At: ${new Date(loan.created_at).toLocaleString()}`}
+                                className="px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border border-gray-300 dark:border-gray-600 transition-all duration-300"
+                                aria-label={`${t.createdAt}: ${new Date(loan.created_at).toLocaleString()}`}
                             >
                                 {new Date(loan.created_at).toLocaleString()}
                             </p>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Last Modified</label>
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {t.lastModified}
+                            </label>
                             <p
-                                className="px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border border-indigo-200 dark:border-indigo-600"
-                                aria-label={`Last Modified: ${new Date(loan.updated_at).toLocaleString()}`}
+                                className="px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border border-gray-300 dark:border-gray-600 transition-all duration-300"
+                                aria-label={`${t.lastModified}: ${new Date(loan.updated_at).toLocaleString()}`}
                             >
                                 {new Date(loan.updated_at).toLocaleString()}
                             </p>
                         </div>
                     </div>
-                    <div className="flex gap-4 mt-6">
+                    <div className="flex gap-4 mt-8">
                         <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <Link href={route("bookloans.edit", loan.id)}>
                                         <Button
-                                            className="bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 px-4 py-2 rounded-lg transition-colors duration-200"
+                                            className="bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 px-6 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105"
                                             disabled={processing}
                                         >
                                             <Pencil className="h-4 w-4 mr-2" />
-                                            Edit
+                                            {t.edit}
                                         </Button>
                                     </Link>
                                 </TooltipTrigger>
-                                <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
-                                    Edit this book loan
+                                <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
+                                    {t.editTooltip}
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
@@ -224,16 +294,16 @@ export default function BookLoanShow({ loan, flash }: BookLoanShowProps) {
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <Button
-                                        className="bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 px-4 py-2 rounded-lg transition-colors duration-200"
+                                        className="bg-red-600 text-white hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 px-6 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105"
                                         onClick={() => setShowDeleteDialog(true)}
                                         disabled={processing}
                                     >
                                         <Trash className="h-4 w-4 mr-2" />
-                                        Delete
+                                        {t.delete}
                                     </Button>
                                 </TooltipTrigger>
-                                <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
-                                    Delete this book loan
+                                <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
+                                    {t.deleteTooltip}
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
@@ -243,42 +313,42 @@ export default function BookLoanShow({ loan, flash }: BookLoanShowProps) {
                                     <Link href={route("bookloans.index")}>
                                         <Button
                                             variant="outline"
-                                            className="bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-300 border-indigo-200 dark:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-800 px-4 py-2 rounded-lg transition-colors duration-200"
+                                            className="bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-300 border-gray-300 dark:border-gray-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 px-6 py-2 rounded-lg transition-all duration-300 ease-in-out"
                                             disabled={processing}
                                         >
                                             <ArrowLeft className="h-4 w-4 mr-2" />
-                                            Back
+                                            {t.back}
                                         </Button>
                                     </Link>
                                 </TooltipTrigger>
-                                <TooltipContent className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
-                                    Return to the book loans list
+                                <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
+                                    {t.backTooltip}
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
                     </div>
                 </div>
                 <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                    <AlertDialogContent className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-indigo-900 text-gray-800 dark:text-gray-100 border border-indigo-200 dark:border-indigo-700 rounded-2xl shadow-2xl">
+                    <AlertDialogContent className="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl">
                         <AlertDialogHeader>
                             <AlertDialogTitle className="text-indigo-600 dark:text-indigo-300">
-                                Are you sure?
+                                {t.confirmDeleteTitle}
                             </AlertDialogTitle>
                             <AlertDialogDescription className="text-gray-600 dark:text-gray-300">
-                                This action cannot be undone. This will permanently delete the book loan for{" "}
-                                <strong>{loan.book?.title || "this book"}</strong>.
+                                {t.confirmDeleteDescription}
+                                <strong>{loan.book?.title || t.na}</strong>.
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                            <AlertDialogCancel className="bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-300 border-indigo-200 dark:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-800 rounded-lg">
-                                Cancel
+                            <AlertDialogCancel className="bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-300 border-gray-300 dark:border-gray-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 rounded-lg transition-all duration-300">
+                                {t.cancel}
                             </AlertDialogCancel>
                             <AlertDialogAction
                                 onClick={confirmDelete}
-                                className="bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 rounded-lg"
+                                className="bg-red-600 text-white hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 rounded-lg transition-all duration-300"
                                 disabled={processing}
                             >
-                                Delete
+                                {t.delete}
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>

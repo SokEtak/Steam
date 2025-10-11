@@ -13,12 +13,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-    CheckCircle2Icon,
-    Pencil,
-    ArrowLeft,
-    X,
-} from "lucide-react";
+import { CheckCircle2Icon, Pencil, ArrowLeft, X } from "lucide-react";
 
 interface Book {
     id: number;
@@ -35,10 +30,8 @@ interface Bookcase {
 interface Shelf {
     id: number;
     code: string;
-    bookcase_id: number;
     bookcase: Bookcase | null;
-    books_count: number;
-    books: Book[] | null;
+    books: Book[];
 }
 
 interface ShelvesShowProps {
@@ -46,31 +39,61 @@ interface ShelvesShowProps {
     flash: {
         message: string | null;
     };
+    lang?: "kh" | "en";
 }
 
-const commonStyles = {
-    button: "rounded-lg text-sm transition-colors",
-    text: "text-gray-800 dark:text-gray-100 text-sm",
-    indigoButton:
-        "bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700",
-    outlineButton:
-        "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-300 border-indigo-200 dark:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-800",
-    gradientBg: "bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-indigo-900",
-    tooltipBg: "bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl",
+const translations = {
+    kh: {
+        title: "ព័ត៌មានលម្អិតនៃធ្នើរសៀវភៅ",
+        notification: "ការជូនដំណឹង",
+        id: "លេខសម្គាល់",
+        code: "លេខកូដ",
+        bookcase: "ទូសៀវភៅ",
+        bookcaseTooltip: "មើលព័ត៌មានលម្អិតនៃទូសៀវភៅ",
+        none: "គ្មាន",
+        booksInShelf: "សៀវភៅនៅក្នុងធ្នើរសៀវភៅ",
+        bookCount: (count: number) => `${count} សៀវភៅ${count === 1 ? "" : ""}`,
+        noBooks: "គ្មានសៀវភៅនៅក្នុងធ្នើរសៀវភៅនេះទេ។",
+        bookTooltip: "មើលព័ត៌មានសៀវភៅនេះ",
+        edit: "កែសម្រួល",
+        editTooltip: "កែសម្រួលធ្នើរសៀវភៅនេះ",
+        back: "ត្រឡប់",
+        backTooltip: "ត្រឡប់ទៅបញ្ជីធ្នើរសៀវភៅ",
+        na: "គ្មាន",
+    },
+    en: {
+        title: "Shelf Details",
+        notification: "Notification",
+        id: "ID",
+        code: "Code",
+        bookcase: "Bookcase",
+        bookcaseTooltip: "View bookcase details",
+        none: "None",
+        booksInShelf: "Books in This Shelf",
+        bookCount: (count: number) => `${count} Book${count === 1 ? "" : "s"}`,
+        noBooks: "No books in this shelf.",
+        bookTooltip: "View this book information",
+        edit: "Edit",
+        editTooltip: "Edit this shelf",
+        back: "Back",
+        backTooltip: "Return to the shelves list",
+        na: "N/A",
+    },
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: "Shelves",
+        title: "ធ្នើរសៀវភៅ",
         href: route("shelves.index"),
     },
     {
-        title: "Show",
+        title: "ព័ត៌មានលម្អិត",
         href: "",
     },
 ];
 
-export default function ShelvesShow({ shelf, flash }: ShelvesShowProps) {
+export default function ShelvesShow({ shelf, flash, lang = "kh" }: ShelvesShowProps) {
+    const t = translations[lang];
     const { processing } = useForm();
     const [showAlert, setShowAlert] = useState(!!flash.message);
 
@@ -86,170 +109,186 @@ export default function ShelvesShow({ shelf, flash }: ShelvesShowProps) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Shelf: ${shelf.code || "Details"}`} />
-            <TooltipProvider>
-                <div className="p-4 sm:p-6 lg:p-5 xl:p-2">
+            <Head title={`${t.title}: ${shelf.code || t.na}`} />
+            <div className="min-h-screen p-6 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+                <div className="max-w-1xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-8">
+                    <h1 className="text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-8">
+                        {t.title}
+                    </h1>
                     {showAlert && flash.message && (
-                        <Alert
-                            className={`mb-4 flex items-start justify-between ${commonStyles.gradientBg} border-indigo-200 dark:border-indigo-700 rounded-xl`}
-                        >
-                            <div className="flex gap-2">
-                                <CheckCircle2Icon className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />
-                                <div>
-                                    <AlertTitle className="text-indigo-600 dark:text-indigo-300 text-sm">
-                                        Notification
-                                    </AlertTitle>
-                                    <AlertDescription className="text-gray-600 dark:text-gray-300 text-sm">
-                                        {flash.message}
-                                    </AlertDescription>
+                        <Alert className="mb-6 bg-blue-50 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-700 rounded-lg">
+                            <div className="flex items-start justify-between">
+                                <div className="flex gap-3">
+                                    <CheckCircle2Icon className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                                    <div>
+                                        <AlertTitle className="text-blue-600 dark:text-blue-400 font-semibold">
+                                            {t.notification}
+                                        </AlertTitle>
+                                        <AlertDescription className="text-blue-600 dark:text-blue-400">
+                                            {flash.message}
+                                        </AlertDescription>
+                                    </div>
                                 </div>
+                                <Button
+                                    onClick={handleCloseAlert}
+                                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 bg-transparent hover:bg-blue-100 dark:hover:bg-blue-800/50 p-1 rounded-full"
+                                    disabled={processing}
+                                    aria-label="Close notification"
+                                >
+                                    <X className="h-5 w-5" />
+                                </Button>
                             </div>
-                            <Button
-                                onClick={handleCloseAlert}
-                                className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-100`}
-                                disabled={processing}
-                                aria-label="Close notification"
-                            >
-                                <X className="h-4 w-4" />
-                            </Button>
                         </Alert>
                     )}
-                    <div className={`${commonStyles.gradientBg} rounded-2xl shadow-2xl border border-indigo-200 dark:border-indigo-700 p-6`}>
-                        <h1 className="text-2xl font-bold text-indigo-600 dark:text-indigo-300 mb-6">
-                            Shelf Details
-                        </h1>
-                        <div className="space-y-4">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    ID
-                                </label>
-                                <p
-                                    className={`${commonStyles.text} px-4 py-2 rounded-lg bg-white dark:bg-gray-700 border border-indigo-200 dark:border-indigo-600`}
-                                    aria-label={`Shelf ID: ${shelf.id}`}
-                                >
-                                    {shelf.id}
-                                </p>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Code
-                                </label>
-                                <p
-                                    className={`${commonStyles.text} px-4 py-2 rounded-lg bg-white dark:bg-gray-700 border border-indigo-200 dark:border-indigo-600`}
-                                    aria-label={`Shelf Code: ${shelf.code || "N/A"}`}
-                                >
-                                    {shelf.code || "N/A"}
-                                </p>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Bookcase
-                                </label>
-                                <p
-                                    className={`${commonStyles.text} px-4 py-2 rounded-lg bg-white dark:bg-gray-700 border border-indigo-200 dark:border-indigo-600`}
-                                    aria-label={`Bookcase: ${shelf.bookcase?.code || "N/A"}`}
-                                >
-                                    {shelf.bookcase_id ? (
-                                        <Link
-                                            href={route("bookcases.show", shelf.bookcase_id)}
-                                            className="text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:hover:text-indigo-400 underline"
-                                            aria-label={`Navigate to bookcase ${shelf.bookcase?.code}`}
-                                        >
-                                            {shelf.bookcase?.code || "N/A"}
-                                        </Link>
-                                    ) : (
-                                        <span className="text-red-500 dark:text-red-400">N/A</span>
-                                    )}
-                                </p>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Books in This Shelf
-                                </label>
-                                <Card className="border-indigo-200 dark:border-indigo-600 bg-white dark:bg-gray-800">
-                                    <CardContent className="max-h-64 overflow-y-auto px-2">
-                                        <h3 className="text-sm font-semibold text-indigo-600 dark:text-indigo-300">
-                                            {shelf.books?.length || 0} Book{shelf.books?.length === 1 ? "" : "s"}
-                                        </h3>
-                                        {shelf.books && shelf.books.length > 0 ? (
-                                            <ol className="list-decimal list-inside text-base text-gray-700 dark:text-gray-200">
-                                                {shelf.books.map((book) => (
-                                                    <li key={book.id} className="whitespace-nowrap">
+                    <div className="space-y-6">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {t.id}
+                            </label>
+                            <p
+                                className="px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border border-gray-300 dark:border-gray-600 transition-all duration-300"
+                                aria-label={`${t.id}: ${shelf.id}`}
+                            >
+                                {shelf.id}
+                            </p>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {t.code}
+                            </label>
+                            <p
+                                className="px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border border-gray-300 dark:border-gray-600 transition-all duration-300"
+                                aria-label={`${t.code}: ${shelf.code || t.na}`}
+                            >
+                                {shelf.code || t.na}
+                            </p>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {t.bookcase}
+                            </label>
+                            <p
+                                className="px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border border-gray-300 dark:border-gray-600 transition-all duration-300"
+                                aria-label={
+                                    shelf.bookcase
+                                        ? `${t.bookcase}: ${shelf.bookcase.code}`
+                                        : `${t.bookcase}: ${t.none}`
+                                }
+                            >
+                                {shelf.bookcase ? (
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Link
+                                                    href={route("bookcases.show", { id: shelf.bookcase.id })}
+                                                    className="text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:hover:text-indigo-400 underline transition-colors duration-200"
+                                                >
+                                                    {shelf.bookcase.code}
+                                                </Link>
+                                            </TooltipTrigger>
+                                            <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
+                                                {t.bookcaseTooltip}
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                ) : (
+                                    <span className="text-gray-500 dark:text-gray-400">{t.none}</span>
+                                )}
+                            </p>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {t.booksInShelf}
+                            </label>
+                            <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                                <CardContent className="max-h-64 overflow-y-auto p-4">
+                                    <h3 className="text-sm font-semibold text-indigo-600 dark:text-indigo-300 mb-2">
+                                        {t.bookCount(shelf.books?.length || 0)}
+                                    </h3>
+                                    {shelf.books && shelf.books.length > 0 ? (
+                                        <ol className="list-decimal list-inside text-sm text-gray-700 dark:text-gray-200 space-y-1">
+                                            {shelf.books.map((book) => (
+                                                <li key={book.id} className="whitespace-nowrap">
+                                                    <TooltipProvider>
                                                         <Tooltip>
                                                             <TooltipTrigger asChild>
                                                                 <Link
                                                                     href={route("books.show", { book: book.id })}
-                                                                    className="text-indigo-600 dark:text-indigo-300 hover:underline"
+                                                                    className="text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:hover:text-indigo-400 underline transition-colors duration-200"
                                                                     aria-label={`View book ${book.title}`}
                                                                 >
                                                                     {book.title}
                                                                 </Link>
                                                             </TooltipTrigger>
-                                                            <TooltipContent className={commonStyles.tooltipBg}>
-                                                                View this book information
+                                                            <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
+                                                                {t.bookTooltip}
                                                             </TooltipContent>
                                                         </Tooltip>
-                                                        <span
-                                                            className={`ml-2 ${
-                                                                book.is_available
-                                                                    ? "text-green-600 dark:text-green-400"
-                                                                    : "text-red-600 dark:text-red-400"
-                                                            }`}
-                                                        >
-                                                            (Code: {book.code})
-                                                        </span>
-                                                    </li>
-                                                ))}
-                                            </ol>
-                                        ) : (
-                                            <p className="text-sm text-gray-600 dark:text-gray-300 p-4">
-                                                No books in this shelf.
-                                            </p>
-                                        )}
-                                    </CardContent>
-                                </Card>
-                            </div>
+                                                    </TooltipProvider>
+                                                    <span
+                                                        className={`ml-2 ${
+                                                            book.is_available
+                                                                ? "text-green-600 dark:text-green-400"
+                                                                : "text-red-600 dark:text-red-400"
+                                                        }`}
+                                                    >
+                                                        (Code: {book.code})
+                                                    </span>
+                                                </li>
+                                            ))}
+                                        </ol>
+                                    ) : (
+                                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                                            {t.noBooks}
+                                        </p>
+                                    )}
+                                </CardContent>
+                            </Card>
                         </div>
-                        <div className="flex gap-4 mt-6">
+                    </div>
+                    <div className="flex gap-4 mt-8">
+                        <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <Link href={route("shelves.edit", { id: shelf.id })}>
+                                    <Link href={route("shelves.edit", shelf.id)}>
                                         <Button
-                                            className={`${commonStyles.button} ${commonStyles.indigoButton} px-4 py-2`}
+                                            className="bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 px-6 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105"
                                             disabled={processing}
                                             aria-label="Edit shelf"
                                         >
                                             <Pencil className="h-4 w-4 mr-2" />
-                                            Edit
+                                            {t.edit}
                                         </Button>
                                     </Link>
                                 </TooltipTrigger>
-                                <TooltipContent className={commonStyles.tooltipBg}>
-                                    Edit this shelf
+                                <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
+                                    {t.editTooltip}
                                 </TooltipContent>
                             </Tooltip>
+                        </TooltipProvider>
+                        <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <Link href={route("shelves.index")}>
                                         <Button
                                             variant="outline"
-                                            className={`${commonStyles.button} ${commonStyles.outlineButton} px-4 py-2`}
+                                            className="bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-300 border-gray-300 dark:border-gray-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 px-6 py-2 rounded-lg transition-all duration-300 ease-in-out"
                                             disabled={processing}
                                             aria-label="Return to shelves list"
                                         >
                                             <ArrowLeft className="h-4 w-4 mr-2" />
-                                            Back
+                                            {t.back}
                                         </Button>
                                     </Link>
                                 </TooltipTrigger>
-                                <TooltipContent className={commonStyles.tooltipBg}>
-                                    Return to the shelves list
+                                <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
+                                    {t.backTooltip}
                                 </TooltipContent>
                             </Tooltip>
-                        </div>
+                        </TooltipProvider>
                     </div>
                 </div>
-            </TooltipProvider>
+            </div>
         </AppLayout>
     );
 }

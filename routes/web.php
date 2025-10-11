@@ -210,7 +210,7 @@ Route::get('/library/{book}', function (Book $book) {
         'lang' => app()->getLocale(),
         'authUser' => auth()->user() ? [
             'name' => auth()->user()->name,
-            'email' => auth()->user()->email, // Added email
+            'email' => auth()->user()->email,
             'avatar' => auth()->user()->avatar ?? null,
             'isVerified' => auth()->user()->isVerified ?? false,
         ] : null,

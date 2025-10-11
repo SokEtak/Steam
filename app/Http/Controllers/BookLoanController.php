@@ -20,6 +20,7 @@ class BookLoanController extends Controller
 
         return Inertia::render('BookLoans/Index', [
             'bookloans' => $bookloans,
+
         ]);
     }
 
