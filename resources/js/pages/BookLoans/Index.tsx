@@ -1,17 +1,21 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Input } from "@/components/ui/input";
+import { Link, useForm } from "@inertiajs/react";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
+    EyeIcon,
+    PencilIcon,
+    TrashIcon,
+    MoreHorizontal,
+    ArrowUpDown,
+    ArrowUp,
+    ArrowDown,
+} from "lucide-react";
+import {
+    ColumnDef,
+    Row,
+} from "@tanstack/react-table";
 import {
     Tooltip,
     TooltipContent,
@@ -20,60 +24,11 @@ import {
 } from "@/components/ui/tooltip";
 import {
     DropdownMenu,
-    DropdownMenuCheckboxItem,
     DropdownMenuContent,
+    DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Skeleton } from "@/components/ui/skeleton";
-import AppLayout from "@/layouts/app-layout";
-import { type BreadcrumbItem } from "@/types";
-import { Head, Link, router } from "@inertiajs/react";
-import {
-    CheckCircle2Icon,
-    Plus,
-    ArrowUpDown,
-    ArrowUp,
-    ArrowDown,
-    MoreHorizontal,
-    ArrowLeft,
-    ArrowRight,
-    ChevronDown,
-    X,
-    EyeIcon,
-    PencilIcon,
-    TrashIcon,
-} from 'lucide-react';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import {
-    ColumnDef,
-    ColumnFiltersState,
-    flexRender,
-    getCoreRowModel,
-    getFilteredRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    useReactTable,
-    VisibilityState,
-    PaginationState,
-    SortingState,
-} from "@tanstack/react-table";
-
-const commonStyles = {
-    button: "rounded-lg text-sm transition-colors",
-    text: "text-gray-800 dark:text-gray-100 text-sm",
-    indigoButton:
-        "bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700",
-    outlineButton:
-        "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-300 border-indigo-200 dark:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-800",
-    gradientBg: "bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-indigo-900",
-    tooltipBg: "bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl",
-};
+import DataTable from '@/components/DataTable';
 
 interface User {
     id: number;
@@ -87,7 +42,7 @@ interface Book {
 
 interface BookLoan {
     id: number;
-    return_date: string;
+    return_date: string | null;
     book_id: number;
     user_id: number;
     created_at: string;
@@ -97,20 +52,37 @@ interface BookLoan {
 }
 
 interface BookLoansProps {
-    bookloans: BookLoan[] | null;
+    bookloans?: BookLoan[] | null;
     books: Book[];
     users: User[];
-    flash: {
-        message: string | null;
+    flash?: {
+        message?: string | null;
         type?: "success" | "error";
     };
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
+const commonStyles = {
+    button: "rounded-lg text-sm transition-colors",
+    text: "text-gray-800 dark:text-gray-100 text-sm",
+    indigoButton:
+        "bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700",
+    outlineButton:
+        "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-300 border-indigo-200 dark:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-800",
+    gradientBg: "bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-indigo-900",
+    tooltipBg: "bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl",
+};
+
+// NOTE: Assumes 'route' function is available (e.g., from Ziggy/Inertia)
+const breadcrumbs = [
     { title: "Book Loans", href: route("bookloans.index") },
 ];
 
-const getColumns = (): ColumnDef<BookLoan>[] => [
+const getColumns = (
+    processing: boolean,
+    setBookLoanToDelete: React.Dispatch<React.SetStateAction<BookLoan | null>>,
+    setRowModalOpen: React.Dispatch<React.SetStateAction<boolean>>,
+    setSelectedRow: React.Dispatch<React.SetStateAction<BookLoan | null>>
+): ColumnDef<BookLoan>[] => [
     {
         id: "actions",
         enableHiding: false,
@@ -119,83 +91,89 @@ const getColumns = (): ColumnDef<BookLoan>[] => [
         cell: ({ row }) => {
             const bookLoan = row.original;
             return (
-                <TooltipProvider>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                className={`${commonStyles.button} h-8 w-8 p-0`}
-                                aria-label="Open actions menu"
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                <span className="sr-only">Open menu</span>
-                                <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                            align="center"
-                            className={`${commonStyles.gradientBg} w-auto min-w-0 dark:border-indigo-600 rounded-xl p-1`}
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            className={`${commonStyles.button} h-8 w-8 p-0 text-indigo-600 dark:text-indigo-300`}
+                            disabled={processing}
+                            aria-label={`Open menu for book loan ${bookLoan.id}`}
                         >
-                            <div className="flex flex-col items-center gap-1 px-1 py-1">
-                                {/* View Button */}
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                        align="center"
+                        className={`${commonStyles.gradientBg} w-auto min-w-0 dark:border-indigo-600 rounded-xl p-1`}
+                    >
+                        <div className="flex flex-col items-center gap-1 px-1 py-1">
+                            <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <Link
-                                            href={route("bookloans.show", bookLoan.id)}
-                                            onClick={(e) => e.stopPropagation()}
-                                        >
-                                            <Button
-                                                variant="ghost"
-                                                className="h-4 w-4 p-0"
+                                        <DropdownMenuItem asChild>
+                                            <Link
+                                                href={route("bookloans.show", bookLoan.id)}
+                                                onClick={(e) => e.stopPropagation()}
                                             >
-                                                <EyeIcon className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />
-                                            </Button>
-                                        </Link>
+                                                <Button variant="ghost" className="h-4 w-4 p-0">
+                                                    <EyeIcon className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />
+                                                </Button>
+                                            </Link>
+                                        </DropdownMenuItem>
                                     </TooltipTrigger>
                                     <TooltipContent side="right" align="center" className={commonStyles.tooltipBg}>
                                         View Book Loan
                                     </TooltipContent>
                                 </Tooltip>
-                                {/* Edit Button */}
+                            </TooltipProvider>
+
+                            <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <Link
-                                            href={route("bookloans.edit", bookLoan.id)}
-                                            onClick={(e) => e.stopPropagation()}
-                                        >
-                                            <Button
-                                                variant="ghost"
-                                                className="h-4 w-4 p-0"
+                                        <DropdownMenuItem asChild>
+                                            <Link
+                                                href={route("bookloans.edit", bookLoan.id)}
+                                                onClick={(e) => e.stopPropagation()}
                                             >
-                                                <PencilIcon className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />
-                                            </Button>
-                                        </Link>
+                                                <Button
+                                                    variant="ghost"
+                                                    className="h-4 w-4 p-0"
+                                                    disabled={processing}
+                                                >
+                                                    <PencilIcon className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />
+                                                </Button>
+                                            </Link>
+                                        </DropdownMenuItem> {/* <-- CORRECTED: Added missing closing tag */}
                                     </TooltipTrigger>
                                     <TooltipContent side="right" align="center" className={commonStyles.tooltipBg}>
                                         Edit Book Loan
                                     </TooltipContent>
-                                </Tooltip>
-                                {/* Delete Button */}
+                                </Tooltip> {/* <-- CORRECTED: Added missing closing tag */}
+                            </TooltipProvider>
+
+                            <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <Link
-                                            href={route("bookloans.destroy", bookLoan.id)}
-                                            method="delete"
-                                            as="button"
-                                            className="h-4 w-4 p-0 text-red-600 dark:text-red-400 flex items-center justify-center"
-                                            onClick={(e) => e.stopPropagation()}
-                                        >
-                                            <TrashIcon className="h-4 w-4" />
-                                        </Link>
+                                        <DropdownMenuItem asChild> {/* Added DropdownMenuItem for consistency with other actions */}
+                                            <Button
+                                                variant="ghost"
+                                                className="h-4 w-4 p-0 text-red-600 dark:text-red-300"
+                                                onClick={() => setBookLoanToDelete(bookLoan)}
+                                                disabled={processing}
+                                            >
+                                                <TrashIcon className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuItem>
                                     </TooltipTrigger>
-                                    <TooltipContent side="right" align="center" className={commonStyles.tooltipBg}>
+                                    <TooltipContent side="right" className={commonStyles.tooltipBg}>
                                         Delete Book Loan
                                     </TooltipContent>
                                 </Tooltip>
-                            </div>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </TooltipProvider>
+                            </TooltipProvider>
+                        </div>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             );
         },
     },
@@ -215,7 +193,17 @@ const getColumns = (): ColumnDef<BookLoan>[] => [
             </Button>
         ),
         cell: ({ row }) => (
-            <span className={`${commonStyles.text} px-2`}>{row.getValue("id")}</span>
+            <button
+                className={`${commonStyles.text} px-3 cursor-pointer`}
+                onClick={() => {
+                    setRowModalOpen(true);
+                    setSelectedRow(row.original);
+                }}
+                role="button"
+                aria-label={`View details for book loan ${row.getValue("id")}`}
+            >
+                {row.getValue("id")}
+            </button>
         ),
         filterFn: (row, id, value) => String(row.getValue(id)).includes(String(value)),
     },
@@ -235,7 +223,17 @@ const getColumns = (): ColumnDef<BookLoan>[] => [
             </Button>
         ),
         cell: ({ row }) => (
-            <span className={`${commonStyles.text} px-2`}>{row.getValue("return_date") || "N/A"}</span>
+            <button
+                className={`${commonStyles.text} px-3 cursor-pointer`}
+                onClick={() => {
+                    setRowModalOpen(true);
+                    setSelectedRow(row.original);
+                }}
+                role="button"
+                aria-label={`View details for book loan with return date ${row.getValue("return_date") || "N/A"}`}
+            >
+                {row.getValue("return_date") || "N/A"}
+            </button>
         ),
         filterFn: (row, id, value) =>
             String(row.getValue(id) || "N/A").toLowerCase().includes(String(value).toLowerCase()),
@@ -258,15 +256,28 @@ const getColumns = (): ColumnDef<BookLoan>[] => [
         cell: ({ row }) => {
             const book = row.original.book;
             return (
-                <span className="px-2">
+                <button
+                    className={`${commonStyles.text} px-3 cursor-pointer`}
+                    onClick={() => {
+                        setRowModalOpen(true);
+                        setSelectedRow(row.original);
+                    }}
+                    role="button"
+                    aria-label={
+                        book
+                            ? `View details for book loan with book ${book.title}`
+                            : "View details for book loan with no book"
+                    }
+                >
                     {book ? (
                         <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <Link
-                                        href={route("books.show", { id: book.id })}
-                                        className={`${commonStyles.text} text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:hover:text-indigo-400 underline`}
-                                        aria-label={`Navigate to book ${book.title}`}
+                                        href={route("books.show", book.id)}
+                                        className="text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:hover:text-indigo-400 underline text-sm"
+                                        onClick={(e) => e.stopPropagation()}
+                                        aria-label={`Maps to book ${book.title} at route /books/${book.id}`}
                                     >
                                         {book.title}
                                     </Link>
@@ -279,7 +290,7 @@ const getColumns = (): ColumnDef<BookLoan>[] => [
                     ) : (
                         <span className="text-red-500 dark:text-red-400 text-sm">N/A</span>
                     )}
-                </span>
+                </button>
             );
         },
         filterFn: (row, _id, value) =>
@@ -305,15 +316,28 @@ const getColumns = (): ColumnDef<BookLoan>[] => [
         cell: ({ row }) => {
             const user = row.original.user;
             return (
-                <span className="px-2">
+                <button
+                    className={`${commonStyles.text} px-3 cursor-pointer`}
+                    onClick={() => {
+                        setRowModalOpen(true);
+                        setSelectedRow(row.original);
+                    }}
+                    role="button"
+                    aria-label={
+                        user
+                            ? `View details for book loan with user ${user.name}`
+                            : "View details for book loan with no user"
+                    }
+                >
                     {user ? (
                         <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <Link
-                                        href={route("users.show", { id: user.id })}
-                                        className={`${commonStyles.text} text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:hover:text-indigo-400 underline`}
-                                        aria-label={`Navigate to user ${user.name}`}
+                                        href={route("users.show", user.id)}
+                                        className="text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:hover:text-indigo-400 underline text-sm"
+                                        onClick={(e) => e.stopPropagation()}
+                                        aria-label={`Maps to user ${user.name} at route /users/${user.id}`}
                                     >
                                         {user.name}
                                     </Link>
@@ -326,7 +350,7 @@ const getColumns = (): ColumnDef<BookLoan>[] => [
                     ) : (
                         <span className="text-red-500 dark:text-red-400 text-sm">N/A</span>
                     )}
-                </span>
+                </button>
             );
         },
         filterFn: (row, _id, value) =>
@@ -350,7 +374,17 @@ const getColumns = (): ColumnDef<BookLoan>[] => [
             </Button>
         ),
         cell: ({ row }) => (
-            <span className={`${commonStyles.text} px-2`}>{new Date(row.getValue("created_at")).toLocaleString()}</span>
+            <button
+                className={`${commonStyles.text} px-3 cursor-pointer`}
+                onClick={() => {
+                    setRowModalOpen(true);
+                    setSelectedRow(row.original);
+                }}
+                role="button"
+                aria-label={`View details for book loan created at ${new Date(row.getValue("created_at")).toLocaleString()}`}
+            >
+                {new Date(row.getValue("created_at")).toLocaleString()}
+            </button>
         ),
         filterFn: (row, id, value) =>
             new Date(row.getValue(id)).toLocaleString().toLowerCase().includes(String(value).toLowerCase()),
@@ -373,7 +407,17 @@ const getColumns = (): ColumnDef<BookLoan>[] => [
             </Button>
         ),
         cell: ({ row }) => (
-            <span className={`${commonStyles.text} px-2`}>{new Date(row.getValue("updated_at")).toLocaleString()}</span>
+            <button
+                className={`${commonStyles.text} px-3 cursor-pointer`}
+                onClick={() => {
+                    setRowModalOpen(true);
+                    setSelectedRow(row.original);
+                }}
+                role="button"
+                aria-label={`View details for book loan updated at ${new Date(row.getValue("updated_at")).toLocaleString()}`}
+            >
+                {new Date(row.getValue("updated_at")).toLocaleString()}
+            </button>
         ),
         filterFn: (row, id, value) =>
             new Date(row.getValue(id)).toLocaleString().toLowerCase().includes(String(value).toLowerCase()),
@@ -382,370 +426,120 @@ const getColumns = (): ColumnDef<BookLoan>[] => [
     },
 ];
 
-export default function BookLoans({ bookloans, flash }: BookLoansProps) {
-    const [showFlashAlert, setShowFlashAlert] = useState(!!flash.message);
-    const [isTableLoading, setIsTableLoading] = useState(bookloans === null || bookloans === undefined);
-    const [sorting, setSorting] = useState<SortingState>([]);
-    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() => {
-        const saved = localStorage.getItem("bookLoansColumnVisibility");
-        return saved
-            ? JSON.parse(saved)
-            : { id: true, return_date: true, book: true, user: true, created_at: true, updated_at: true };
-    });
-    const [pagination, setPagination] = useState<PaginationState>({
-        pageIndex: 0,
-        pageSize: 10,
-    });
-    const [globalFilter, setGlobalFilter] = useState("");
+export default function BookLoans({ bookloans = [], flash, books, users }: BookLoansProps) {
+    const { processing } = useForm();
+    const [bookLoanToDelete, setBookLoanToDelete] = useState<BookLoan | null>(null);
+    const [rowModalOpen, setRowModalOpen] = useState(false);
+    const [selectedRow, setSelectedRow] = useState<BookLoan | null>(null);
 
-    const columns = useMemo(() => getColumns(), []);
+    const columns = useMemo(
+        () => getColumns(processing, setBookLoanToDelete, setRowModalOpen, setSelectedRow),
+        [processing]
+    );
 
-    const table = useReactTable({
-        data: bookloans || [],
-        columns,
-        onSortingChange: setSorting,
-        onColumnFiltersChange: setColumnFilters,
-        getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
-        getSortedRowModel: getSortedRowModel(),
-        getFilteredRowModel: getFilteredRowModel(),
-        onColumnVisibilityChange: (updater) => {
-            setColumnVisibility((prev) => {
-                const newState = typeof updater === "function" ? updater(prev) : updater;
-                localStorage.setItem("bookLoansColumnVisibility", JSON.stringify(newState));
-                return newState;
-            });
-        },
-        onPaginationChange: setPagination,
-        onGlobalFilterChange: setGlobalFilter,
-        globalFilterFn: (row, _columnId, filterValue) => {
-            const search = String(filterValue).toLowerCase().trim();
-            if (!search) return true;
-            return (
-                String(row.original.id).includes(search) ||
-                (row.original.return_date || "N/A").toLowerCase().includes(search) ||
-                (row.original.book?.title || "N/A").toLowerCase().includes(search) ||
-                (row.original.user?.name || "N/A").toLowerCase().includes(search) ||
-                new Date(row.original.created_at).toLocaleString().toLowerCase().includes(search) ||
-                new Date(row.original.updated_at).toLocaleString().toLowerCase().includes(search)
-            );
-        },
-        state: {
-            sorting,
-            columnFilters,
-            columnVisibility,
-            pagination,
-            globalFilter,
-        },
-        initialState: {
-            pagination: { pageSize: 10 },
-        },
-    });
+    const globalFilterFn = (row: Row<BookLoan>, columnId: string, filterValue: string) => {
+        const search = String(filterValue).toLowerCase().trim();
+        if (!search) return true;
+        const bookLoan = row.original;
+        return (
+            String(bookLoan.id).includes(search) ||
+            (bookLoan.return_date || "N/A").toLowerCase().includes(search) ||
+            (bookLoan.book?.title || "N/A").toLowerCase().includes(search) ||
+            (bookLoan.user?.name || "N/A").toLowerCase().includes(search) ||
+            new Date(bookLoan.created_at).toLocaleString().toLowerCase().includes(search) ||
+            new Date(bookLoan.updated_at).toLocaleString().toLowerCase().includes(search)
+        );
+    };
 
-    useEffect(() => {
-        if (flash.message) setShowFlashAlert(true);
-        setIsTableLoading(bookloans === null || bookloans === undefined);
-    }, [flash.message, bookloans]);
+    const modalFields = (item: BookLoan) => (
+        <>
+            <p>
+                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">Book:</strong>{" "}
+                {item.book ? (
+                    <Link
+                        href={route("books.show", item.book.id)}
+                        className="text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:hover:text-indigo-400 underline text-sm"
+                        aria-label={`Maps to book ${item.book.title} at route /books/${item.book.id}`}
+                    >
+                        {item.book.title}
+                    </Link>
+                ) : (
+                    "N/A"
+                )}
+            </p>
+            <p>
+                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">User:</strong>{" "}
+                {item.user ? (
+                    <Link
+                        href={route("users.show", item.user.id)}
+                        className="text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:hover:text-indigo-400 underline text-sm"
+                        aria-label={`Maps to user ${item.user.name} at route /users/${item.user.id}`}
+                    >
+                        {item.user.name}
+                    </Link>
+                ) : (
+                    "N/A"
+                )}
+            </p>
+            <p>
+                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">Return Date:</strong>{" "}
+                {item.return_date || "N/A"}
+            </p>
+            <p>
+                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">Created At:</strong>{" "}
+                {new Date(item.created_at).toLocaleString()}
+            </p>
+            <p>
+                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">Last Modified:</strong>{" "}
+                {new Date(item.updated_at).toLocaleString()}
+            </p>
+        </>
+    );
 
-    const handleCloseFlashAlert = () => setShowFlashAlert(false);
+    const tooltipFields = (item: BookLoan) => (
+        <>
+            <p>
+                <strong className="text-indigo-200">ID:</strong> {item.id}
+            </p>
+            <p>
+                <strong className="text-indigo-200">Book:</strong> {item.book?.title || "N/A"}
+            </p>
+            <p>
+                <strong className="text-indigo-200">User:</strong> {item.user?.name || "N/A"}
+            </p>
+            <p>
+                <strong className="text-indigo-200">Return Date:</strong> {item.return_date || "N/A"}
+            </p>
+            <p>
+                <strong className="text-indigo-200">Created At:</strong>{" "}
+                {new Date(item.created_at).toLocaleString()}
+            </p>
+            <p>
+                <strong className="text-indigo-200">Last Modified:</strong>{" "}
+                {new Date(item.updated_at).toLocaleString()}
+            </p>
+        </>
+    );
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Book Loans" />
-            <div className="p-4 sm:p-6 lg:p-5 xl:p-2">
-                {/* Table Controls Section */}
-                <div className="flex flex-wrap items-center justify-center gap-4 py-4">
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Input
-                                    placeholder="Search"
-                                    value={globalFilter ?? ""}
-                                    onChange={(event) => setGlobalFilter(event.target.value)}
-                                    className={`${commonStyles.text} max-w-sm ${commonStyles.outlineButton} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400`}
-                                    disabled={isTableLoading}
-                                    aria-label="Search book loans"
-                                />
-                            </TooltipTrigger>
-                            <TooltipContent className={commonStyles.tooltipBg}>
-                                Enter keywords to filter book loans
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Link href={route("bookloans.create")}>
-                                    <Button
-                                        className={`${commonStyles.button} ${commonStyles.indigoButton}`}
-                                        disabled={isTableLoading}
-                                        aria-label="Add a new book loan"
-                                    >
-                                        <Plus className="h-4 w-4" />
-                                    </Button>
-                                </Link>
-                            </TooltipTrigger>
-                            <TooltipContent className={commonStyles.tooltipBg}>
-                                Go to create a new book loan
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                    <DropdownMenu>
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            className={`${commonStyles.button} ${commonStyles.outlineButton}`}
-                                            disabled={isTableLoading}
-                                            aria-label="Toggle column visibility"
-                                        >
-                                            Columns <ChevronDown className="ml-2 h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                </TooltipTrigger>
-                                <TooltipContent className={commonStyles.tooltipBg}>
-                                    Show or hide columns
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                        <DropdownMenuContent
-                            align="end"
-                            className={`${commonStyles.gradientBg} border-indigo-200 dark:border-indigo-600 rounded-xl`}
-                        >
-                            {table
-                                .getAllColumns()
-                                .filter((column) => column.getCanHide())
-                                .map((column) => (
-                                    <DropdownMenuCheckboxItem
-                                        key={column.id}
-                                        className={`${commonStyles.text} capitalize`}
-                                        checked={column.getIsVisible()}
-                                        onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                                        disabled={isTableLoading}
-                                    >
-                                        {column.id.replace(/_/g, " ")}
-                                    </DropdownMenuCheckboxItem>
-                                ))}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                    {isTableLoading ? (
-                        <Skeleton className="h-4 w-32" />
-                    ) : (
-                        <span className={commonStyles.text}>
-                            {`${table.getFilteredRowModel().rows.length} filtered out of ${(bookloans || []).length} book loans`}
-                        </span>
-                    )}
-                </div>
-
-                {/* Flash Message Alert */}
-                {showFlashAlert && flash.message && (
-                    <Alert
-                        className={`mb-4 flex items-start justify-between ${commonStyles.gradientBg} border-indigo-200 dark:border-indigo-700 rounded-xl`}
-                        variant={flash.type === "error" ? "destructive" : "default"}
-                    >
-                        <div className="flex gap-2">
-                            <CheckCircle2Icon
-                                className={`h-4 w-4 ${
-                                    flash.type === "error"
-                                        ? "text-red-600 dark:text-red-300"
-                                        : "text-indigo-600 dark:text-indigo-300"
-                                }`}
-                            />
-                            <div>
-                                <AlertTitle
-                                    className={`${
-                                        flash.type === "error"
-                                            ? "text-red-600 dark:text-red-300"
-                                            : "text-indigo-600 dark:text-indigo-300"
-                                    } text-sm`}
-                                >
-                                    {flash.type === "error" ? "Error" : "Notification"}
-                                </AlertTitle>
-                                <AlertDescription className="text-gray-600 dark:text-gray-300 text-sm">
-                                    {flash.message}
-                                </AlertDescription>
-                            </div>
-                        </div>
-                        <Button
-                            onClick={handleCloseFlashAlert}
-                            className={`${commonStyles.button} ${
-                                flash.type === "error"
-                                    ? "text-red-600 dark:text-red-300 hover:text-red-800 dark:hover:text-red-100"
-                                    : "text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-100"
-                            }`}
-                            aria-label="Close alert"
-                        >
-                            <X className="h-4 w-4" />
-                        </Button>
-                    </Alert>
-                )}
-
-                {/* Table Section */}
-                <div className="overflow-x-auto rounded-2xl border border-indigo-200 dark:border-indigo-700">
-                    <Table>
-                        <TableHeader>
-                            {table.getHeaderGroups().map((headerGroup) => (
-                                <TableRow key={headerGroup.id} className="bg-indigo-50 dark:bg-indigo-900">
-                                    {headerGroup.headers.map((header) => (
-                                        <TableHead
-                                            key={header.id}
-                                            className="text-indigo-600 dark:text-indigo-300 text-sm"
-                                        >
-                                            {header.isPlaceholder
-                                                ? null
-                                                : flexRender(header.column.columnDef.header, header.getContext())}
-                                        </TableHead>
-                                    ))}
-                                </TableRow>
-                            ))}
-                        </TableHeader>
-                        <TableBody>
-                            {isTableLoading ? (
-                                Array.from({ length: table.getState().pagination.pageSize }).map((_, index) => (
-                                    <TableRow key={index}>
-                                        {columns.map((_, colIndex) => (
-                                            <TableCell key={colIndex}>
-                                                <Skeleton className="h-4 w-full" />
-                                            </TableCell>
-                                        ))}
-                                    </TableRow>
-                                ))
-                            ) : (bookloans || []).length ? (
-                                table.getRowModel().rows.map((row) => (
-                                    <TooltipProvider key={row.id}>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <TableRow
-                                                    className="hover:bg-indigo-50 dark:hover:bg-indigo-800 transition-colors cursor-pointer"
-                                                    onClick={() => router.visit(route("bookloans.show", row.original.id))}
-                                                    role="link"
-                                                    tabIndex={0}
-                                                    onKeyDown={(e) => {
-                                                        if (e.key === "Enter") router.visit(route("bookloans.show", row.original.id));
-                                                    }}
-                                                >
-                                                    {row.getVisibleCells().map((cell) => (
-                                                        <TableCell key={cell.id} className={`${commonStyles.text} py-2`}>
-                                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                                        </TableCell>
-                                                    ))}
-                                                </TableRow>
-                                            </TooltipTrigger>
-                                            <TooltipContent className={`${commonStyles.tooltipBg} p-4 max-w-xs`}>
-                                                <div className="text-sm">
-                                                    <p><strong>ID:</strong> {row.original.id}</p>
-                                                    <p><strong>Book:</strong> {row.original.book?.title || "N/A"}</p>
-                                                    <p><strong>User:</strong> {row.original.user?.name || "N/A"}</p>
-                                                    <p><strong>Return Date:</strong> {row.original.return_date || "N/A"}</p>
-                                                    <p><strong>Created At:</strong> {new Date(row.original.created_at).toLocaleString()}</p>
-                                                    <p><strong>Last Modified:</strong> {new Date(row.original.updated_at).toLocaleString()}</p>
-                                                </div>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell
-                                        colSpan={columns.length}
-                                        className="h-24 text-center text-gray-600 dark:text-gray-300 text-sm"
-                                    >
-                                        No book loans found.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
-
-                {/* Pagination Controls */}
-                <div className="flex justify-center gap-2 py-4">
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <div className="flex items-center space-x-2">
-                            <span className={commonStyles.text}>Rows per page:</span>
-                            <Select
-                                value={String(table.getState().pagination.pageSize)}
-                                onValueChange={(value) => {
-                                    if (value === "All") {
-                                        table.setPageSize(Math.min(table.getFilteredRowModel().rows.length, 1000));
-                                    } else {
-                                        table.setPageSize(Number(value));
-                                    }
-                                }}
-                                disabled={isTableLoading}
-                            >
-                                <SelectTrigger
-                                    className={`${commonStyles.text} h-8 w-[120px] ${commonStyles.outlineButton}`}
-                                >
-                                    <SelectValue placeholder={String(table.getState().pagination.pageSize)} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {[10, 20, 50, 100].map((pageSize) => (
-                                        <SelectItem key={pageSize} value={`${pageSize}`}>
-                                            {pageSize}
-                                        </SelectItem>
-                                    ))}
-                                    {table.getFilteredRowModel().rows.length > 0 && (
-                                        <SelectItem key="all" value="All">
-                                            All
-                                        </SelectItem>
-                                    )}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => table.previousPage()}
-                                            disabled={!table.getCanPreviousPage() || isTableLoading}
-                                            className={`${commonStyles.button} ${commonStyles.outlineButton}`}
-                                            aria-label="Previous page"
-                                        >
-                                            <ArrowLeft className="h-4 w-4" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent className={commonStyles.tooltipBg}>
-                                        Previous Page
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => table.nextPage()}
-                                            disabled={!table.getCanNextPage() || isTableLoading}
-                                            className={`${commonStyles.button} ${commonStyles.outlineButton}`}
-                                            aria-label="Next page"
-                                        >
-                                            <ArrowRight className="h-4 w-4" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent className={commonStyles.tooltipBg}>
-                                        Next Page
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                        </div>
-                        <div className={commonStyles.text}>
-                            {isTableLoading ? (
-                                <Skeleton className="h-4 w-24" />
-                            ) : (
-                                `Page ${table.getState().pagination.pageIndex + 1} of ${table.getPageCount() || 1}`
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </AppLayout>
+        <DataTable
+            data={bookloans || []}
+            columns={columns}
+            breadcrumbs={breadcrumbs}
+            title="Book Loans"
+            resourceName="book loans"
+            routes={{
+                index: route("bookloans.index"),
+                create: route("bookloans.create"),
+                show: (id) => route("bookloans.show", id),
+                edit: (id) => route("bookloans.edit", id),
+                destroy: (id) => route("bookloans.destroy", id),
+            }}
+            flash={flash}
+            modalFields={modalFields}
+            tooltipFields={tooltipFields}
+            isSuperLibrarian={false}
+            globalFilterFn={globalFilterFn}
+        />
     );
 }
