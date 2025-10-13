@@ -612,7 +612,7 @@ export default function BooksCreate({
         author: 'បណ្ណាគារ បន្ទាយស្រី',
         flip_link: '',
         cover: null,
-        code: 'J2-0',
+        code: 'J3-0',
         isbn: '978',
         view: '0',
         is_available: !isEbook,
