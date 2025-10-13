@@ -613,7 +613,7 @@ export default function BooksCreate({
         flip_link: '',
         cover: null,
         code: 'J2-0',
-        isbn: '97',
+        isbn: '',
         view: '0',
         is_available: !isEbook,
         pdf_url: null,
