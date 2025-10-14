@@ -13,7 +13,7 @@ import { useState, useEffect, useCallback, Component, ReactNode } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Viewer, Worker } from '@react-pdf-viewer/core';
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
-import { toast } from 'sonner'; // Import sonner for toast notifications
+import { toast } from 'sonner';
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -779,13 +779,21 @@ export default function BooksCreate({
             forceFormData: true,
             onSuccess: () => {
                 setShowErrorAlert(false);
-                // Delay reset slightly to ensure toast renders
-                setTimeout(() => {
-                    reset();
-                    setCoverPreviewUrl(null);
-                    setPdfPreviewUrl(null);
-                    setPdfFileError(null);
-                }, 100);
+                // Reset only fields without default values or those that should be cleared
+                reset(
+                    'title',
+                    'description',
+                    'program',
+                    'flip_link',
+                    'subcategory_id',
+                    'grade_id',
+                    'subject_id',
+                    'cover',
+                    'pdf_url'
+                );
+                setCoverPreviewUrl(null);
+                setPdfPreviewUrl(null);
+                setPdfFileError(null);
             },
             onError: (errors) => {
                 setShowErrorAlert(true);

@@ -22,10 +22,10 @@ class BookController extends Controller
     {
         // Retrieve and paginate the books using your custom scope.
         // The paginate method automatically handles the `limit` query parameter.
-        $books = Book::active('physical')->paginate();
+        $books = Book::all();
 
         // Return a new instance of the BookCollection, which will handle the
         // transformation of the paginated books into a JSON response.
-        return new BookCollection($books);
+        return response()->json($books);
     }
 }
