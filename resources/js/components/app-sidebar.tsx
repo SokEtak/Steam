@@ -75,18 +75,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             icon: Book,
             isActive: false,
             items: [
-                {
-                    title: "E-Book",
-                    url: "/admin/library/books?type=ebook",
-                },
-                {
-                    title: "Physical Book",
-                    url: "/admin/library/books?type=physical",
-                },
-                {
-                    title: "Missing Book",
-                    url: "/admin/library/books?type=miss",
-                },
+                // {
+                //     title: "E-Book",
+                //     url: "/admin/library/books?type=ebook",
+                // },
+                // {
+                //     title: "Physical Book",
+                //     url: "/admin/library/books?type=physical",
+                // },
+                // {
+                //     title: "Missing Book",
+                //     url: "/admin/library/books?type=miss",
+                // },
                 // {
                 //     title: "Deleted Book",
                 //     url: "/admin/library/books?type=delBook",
@@ -94,7 +94,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             ],
         },
         {
-            title: "Book loan",
+            title: "Book-loan",
             url: "/admin/library/bookloans",
             icon: BookUp2,
             isActive: false,
@@ -106,7 +106,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             isActive: false,
         },
         {
-            title: "Sub Category",
+            title: "Subcategory",
             url: "/admin/library/subcategories",
             icon: Library,
             isActive: false,
@@ -156,7 +156,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                 </div>
                                 <div className="grid flex-1 text-left text-sm leading-tight">
                                     <span className="truncate font-semibold text-green-600 dark:text-green-400">Dewey Steam</span>
-                                    <span className="truncate text-xs text-orange-500 dark:text-orange-400 mx-4">{user?.role}</span>
+                                    <span className="truncate text-md text-orange-500 dark:text-orange-400 mx-4">{user?.role}</span>
                                 </div>
                             </a>
                         </SidebarMenuButton>

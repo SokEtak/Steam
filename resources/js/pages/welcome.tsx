@@ -170,18 +170,18 @@ export default function Welcome() {
                                     {/*</NavigationMenuItem>*/}
 
                                     {/* About Us Dropdown */}
-                                    <NavigationMenuItem>
-                                        {/* This is the trigger */}
-                                        <NavigationMenuTrigger className="text-sm font-medium p-2">About Us</NavigationMenuTrigger>
-                                        {/* Removed redundant className="absolute" from NavigationMenuContent */}
-                                        <NavigationMenuContent>
-                                            <ul className="grid w-[200px] gap-2 p-3 bg-white dark:bg-gray-800 rounded-lg shadow-xl border dark:border-gray-700">
-                                                <li><NavigationMenuLink asChild><Link href="/about/mission" className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition duration-150">Our Mission</Link></NavigationMenuLink></li>
-                                                <li><NavigationMenuLink asChild><Link href="/about/team" className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition duration-150">Our Team</Link></NavigationMenuLink></li>
-                                                <li><NavigationMenuLink asChild><Link href="/about/contact" className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition duration-150">Contact</Link></NavigationMenuLink></li>
-                                            </ul>
-                                        </NavigationMenuContent>
-                                    </NavigationMenuItem>
+                                    {/*<NavigationMenuItem>*/}
+                                    {/*    /!* This is the trigger *!/*/}
+                                    {/*    <NavigationMenuTrigger className="text-sm font-medium p-2">About Us</NavigationMenuTrigger>*/}
+                                    {/*    /!* Removed redundant className="absolute" from NavigationMenuContent *!/*/}
+                                    {/*    <NavigationMenuContent>*/}
+                                    {/*        <ul className="grid w-[200px] gap-2 p-3 bg-white dark:bg-gray-800 rounded-lg shadow-xl border dark:border-gray-700">*/}
+                                    {/*            <li><NavigationMenuLink asChild><Link href="/about/mission" className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition duration-150">Our Mission</Link></NavigationMenuLink></li>*/}
+                                    {/*            <li><NavigationMenuLink asChild><Link href="/about/team" className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition duration-150">Our Team</Link></NavigationMenuLink></li>*/}
+                                    {/*            <li><NavigationMenuLink asChild><Link href="/about/contact" className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition duration-150">Contact</Link></NavigationMenuLink></li>*/}
+                                    {/*        </ul>*/}
+                                    {/*    </NavigationMenuContent>*/}
+                                    {/*</NavigationMenuItem>*/}
                                 </NavigationMenuList>
                             </NavigationMenu>
 
