@@ -274,20 +274,37 @@ export default function Index() {
     const allFilteredBooks = useMemo(() => {
         let filtered = books.filter((book) => {
             if (book.type !== bookType) return false;
-            const matchesSearch =
-                book.title.toLowerCase().includes(search.toLowerCase()) ||
-                book.author.toLowerCase().includes(search.toLowerCase()) ||
-                String(book.isbn)?.toLowerCase().includes(search.toLowerCase());
 
-            const matchesCategory = filterCategory === "All" || book.category?.name === filterCategory;
-            const matchesSubCategory = filterSubCategory === "All" || book.subcategory?.name === filterSubCategory;
-            const matchesBookcase = bookType === "ebook" || filterBookcase === "All" || book.bookcase?.code === filterBookcase;
-            const matchesShelf = bookType === "ebook" || filterShelf === "All" || book.shelf?.code === filterShelf;
-            const matchesGrade = filterGrade === "All" || book.grade?.name === filterGrade;
-            const matchesSubject = filterSubject === "All" || book.subject?.name === filterSubject;
-            const matchesCampus = bookType === "ebook" || scope !== "local" || filterCampus === "All" || book.campus?.name === filterCampus;
-            const matchesLanguage = filterLanguage === "All" || book.language === filterLanguage;
-            const matchesProgram = sortProgram === "All" || book.program?.toLowerCase() === sortProgram.toLowerCase();
+            const title = String(book.title || "");
+            const author = String(book.author || "");
+            const code = String(book.code || "");
+            const query = search.toLowerCase();
+
+            const matchesSearch =
+                title.toLowerCase().includes(query) ||
+                author.toLowerCase().includes(query)||
+                code.toLowerCase().includes(query);
+
+
+            const matchesCategory =
+                filterCategory === "All" || book.category?.name === filterCategory;
+            const matchesSubCategory =
+                filterSubCategory === "All" || book.subcategory?.name === filterSubCategory;
+            const matchesBookcase =
+                bookType === "ebook" || filterBookcase === "All" || book.bookcase?.code === filterBookcase;
+            const matchesShelf =
+                bookType === "ebook" || filterShelf === "All" || book.shelf?.code === filterShelf;
+            const matchesGrade =
+                filterGrade === "All" || book.grade?.name === filterGrade;
+            const matchesSubject =
+                filterSubject === "All" || book.subject?.name === filterSubject;
+            const matchesCampus =
+                bookType === "ebook" || scope !== "local" || filterCampus === "All" || book.campus?.name === filterCampus;
+            const matchesLanguage =
+                filterLanguage === "All" || book.language === filterLanguage;
+            const matchesProgram =
+                sortProgram === "All" ||
+                String(book.program || "").toLowerCase() === sortProgram.toLowerCase();
 
             return (
                 matchesSearch &&
@@ -302,6 +319,7 @@ export default function Index() {
                 matchesProgram
             );
         });
+
 
         return filtered.sort((a, b) => {
             if (sortBy === "Newest") {

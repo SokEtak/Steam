@@ -84,9 +84,6 @@ class Book extends Model
         }
         //global no need to filter
 
-        // Apply campus_id filter for role_id = 2
-//        if ($role_id == 2 && $scope == 'local') {//add logic to make sure
-//                                                librarian can preview correctly-cause property mixing(campus a can see campus b)
         if ($role_id == 2) {
             if ($scope == 'local') {
                 $conditions['campus_id'] = Auth::user()->campus_id;
