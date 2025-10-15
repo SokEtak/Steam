@@ -72,7 +72,7 @@ class Book extends Model
         ]);
     }
     // Scope for active base on role , campus , book type-used by ebook(global and admin)
-    public function scopeActive($query, $book_type, $scope = null)
+    public function scopeActive($query, $book_type, $scope = "local")
     {
         $conditions = [];
         $conditions['is_deleted'] = 0;
@@ -88,7 +88,9 @@ class Book extends Model
 //        if ($role_id == 2 && $scope == 'local') {//add logic to make sure
 //                                                librarian can preview correctly-cause property mixing(campus a can see campus b)
         if ($role_id == 2) {
-            $conditions['campus_id'] = Auth::user()->campus_id;
+            if ($scope == 'local') {
+                $conditions['campus_id'] = Auth::user()->campus_id;
+            }
         }
         // For role_id = 3, no campus_id filter (access all campuses)
 
