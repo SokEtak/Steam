@@ -9,31 +9,8 @@ use App\Http\Controllers\ShelvesController;
 use App\Http\Controllers\SubCategoryController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DashboardController;
-use Illuminate\Http\Request;
-use App\Models\Book;
-use App\Models\User;
-use GuzzleHttp\Client;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Hash;
-use Laravel\Socialite\Facades\Socialite;
-
-
-//Socialite Practice
 use App\Http\Controllers\AuthController;
-
-//-----OAuth------
-
-// Google Authentication
-Route::get('/auth/google', [AuthController::class, 'googleRedirect'])->name('auth.google');
-Route::get('/auth/google/callback', [AuthController::class, 'googleCallback']);
-
-// Facebook Authentication
-Route::get('/auth/facebook', [AuthController::class, 'facebookRedirect'])->name('auth.facebook');
-Route::get('/auth/facebook/callback', [AuthController::class, 'facebookCallback']);
-
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 

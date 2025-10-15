@@ -50,10 +50,7 @@ class LibraryController extends Controller
     public function globalEbooks()
     {
         try {
-            // Assuming globalEbooks() is a scope in your Book model
-            $books = Book::active("ebook", "local")->inrandomorder()->get();
-//            $books = Book::globalEbooks()->inrandomorder()->get();
-
+            $books = Book::active("ebook", "global")->inrandomorder()->get();
             return Inertia::render('Client/Library/Index', [
                 'books' => $books,
                 'bookType' => 'ebook',

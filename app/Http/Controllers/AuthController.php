@@ -34,10 +34,10 @@ class AuthController extends Controller
 
         $email = $googleUser->getEmail();
 
-        // Check if email domain matches @diu.edu.kh
-//        if (!$email || !str_ends_with($email, '@diu.edu.kh')) {
-//            return response('⚠️ Danger: Only @diu.edu.kh emails are allowed!', 403);
-//        }
+//         Check if email domain matches @diu.edu.kh
+        if (!$email || !str_ends_with($email, '@diu.edu.kh')) {
+            return response('⚠️ Danger: Only @diu.edu.kh emails are allowed!', 403);
+        }
 
         $user = User::updateOrCreate(
             ['google_id' => $googleUser->getId()],
