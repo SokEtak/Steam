@@ -21,76 +21,18 @@ use Laravel\Socialite\Facades\Socialite;
 
 
 //Socialite Practice
+use App\Http\Controllers\AuthController;
 
-Route::get('/auth/google', function () {
-    return Socialite::driver('google')
-        ->scopes(['openid','email','profile'])
-        ->redirect();
-});
+// Google Authentication
+Route::get('/auth/google', [AuthController::class, 'googleRedirect'])->name('auth.google');
+Route::get('/auth/google/callback', [AuthController::class, 'googleCallback']);
 
-Route::get('/auth/google/callback', function () {
-    $googleUser = Socialite::driver('google')
-        ->stateless()
-//        ->setHttpClient(new Client(['verify' => false]))//disable for production
-        ->user();
-//    dd($googleUser);
-    $email = $googleUser->getEmail();
+// Facebook Authentication
+Route::get('/auth/facebook', [AuthController::class, 'facebookRedirect'])->name('auth.facebook');
+Route::get('/auth/facebook/callback', [AuthController::class, 'facebookCallback']);
 
-    // Check if email domain matches @diu.edu.kh
-    if (!$email || !str_ends_with($email, '@diu.edu.kh')) {
-        return response('⚠️ Danger: Only @diu.edu.kh emails are allowed!', 403);
-    }
-
-    // ✅ Allowed, proceed
-    $user = User::updateOrCreate(
-        ['google_id' => $googleUser->getId()],
-        [
-            'name' => $googleUser->getName(),
-            'email' => $email,
-            'avatar' => $googleUser->getAvatar(),
-            'password' => Hash::make(Str::random(24)),
-        ]
-    );
-
-    Auth::login($user);
-
-    return redirect(route('home'));
-});
-
-//facebook
-Route::get('/auth/facebook', function () {
-    return Socialite::driver('facebook')
-        ->scopes(['email'])
-        ->redirect();
-});
-
-Route::get('/auth/facebook/callback', function () {
-    // Get user from Facebook
-    $facebookUser = Socialite::driver('facebook')
-        ->stateless()
-        ->setHttpClient(new Client(['verify' => false])) //disable for production
-        ->user();
-
-    // Handle missing email
-    $email = $facebookUser->getEmail() ?? $facebookUser->getId().'@facebook.local';
-
-    // Find or create local user
-    $user = User::updateOrCreate(
-        ['facebook_id' => $facebookUser->getId()],
-        [
-            'name' => $facebookUser->getName(),
-            'email' => $email,
-            'avatar' => $facebookUser->getAvatar(),
-            'password' => Hash::make(Str::random(24)), // random hidden password
-        ]
-    );
-
-    // Log the user in (session)
-    Auth::login($user);
-
-    return redirect()->route('home')->with('success', 'Welcome '.$user->name.'!');
-});
-
+// Note: You must ensure you have a route named 'home'
+// and that you have a route for 'Auth::login($user)' to land on.
 Route::get( '/',function(){
     $bookCount = Book::where([
         'is_deleted'=>'0',
@@ -100,7 +42,6 @@ Route::get( '/',function(){
         'is_deleted'=>'0',
         'type'=>'ebook'
     ])->count();
-
     $userCount = User::where([
         'isActive'=>'1',
     ])->count();
