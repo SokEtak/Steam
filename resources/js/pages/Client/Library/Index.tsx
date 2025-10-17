@@ -626,7 +626,7 @@ export default function Index() {
 
                                     <div className="flex items-center justify-center space-x-2 pt-2 border-t border-gray-100 dark:border-gray-700 w-full">
                                         <img
-                                            src={book.user?.avatar ? `${BASE_URL}/${book.user.avatar}` : '/images/placeholder-book.png'}
+                                            src={book.user?.avatar ? book.user.avatar : '/images/placeholder-book.png'}
                                             alt={t.language === 'en' ? "Contributor's avatar" : 'រូបភាពអ្នកបរិច្ចាគ'}
                                             loading="lazy"
                                             className="w-6 h-6 rounded-full object-cover border border-gray-300 dark:border-gray-600 flex-shrink-0"
