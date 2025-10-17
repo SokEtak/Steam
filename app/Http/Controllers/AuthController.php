@@ -46,6 +46,8 @@ class AuthController extends Controller
                 'email' => $email,
                 'avatar' => $googleUser->getAvatar(),
                 'password' => Hash::make(Str::random(24)),
+                'campus_id' => 1,
+                'role_id' => 1,
             ]
         );
 
@@ -54,6 +56,7 @@ class AuthController extends Controller
         return redirect()->route('home');
     }
 
+    //need to update
     /**
      * Redirect the user to the Facebook authentication page.
      */
