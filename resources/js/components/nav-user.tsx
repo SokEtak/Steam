@@ -66,7 +66,7 @@ export function NavUser({ user }: { user: User | null }) {
                                 {/*local*/}
                                 {/*<AvatarImage src={"/storage/"+user.avatar} alt={user.name} />*/}
                                 {/*for production*/}
-                                <AvatarImage src={"https://fls-9fd96a88-703c-423b-a3c6-5b74b203b091.laravel.cloud/"+user.avatar} alt={user.name} />
+                                <AvatarImage src={user.avatar} alt={user.name} />
                                 <AvatarFallback className="rounded-lg">
                                     {user.name.split(" ")[0][0]}
                                     {user.name.split(" ")[1]?.[0] ?? ""}
@@ -89,10 +89,9 @@ export function NavUser({ user }: { user: User | null }) {
                             <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                                 <Avatar className="h-8 w-8 rounded-lg">
                                     {/*for local*/}
-                                    {/*<AvatarImage src={"https://fls-9fd96a88-703c-423b-a3c6-5b74b203b091.laravel.cloud/avatars/zullHBi5mKjhOd7bVBXDbqem2dakkzK43ne6KoFL.jpg"} alt={user.name} />*/}
                                     {/*<AvatarImage src={"/storage/"+user.avatar} alt={user.name} />*/}
                                     {/*for production*/}
-                                    <AvatarImage src={"https://fls-9fd96a88-703c-423b-a3c6-5b74b203b091.laravel.cloud/"+user.avatar} alt={user.name} />
+                                    <AvatarImage src={user.avatar} alt={user.name} />
                                     <AvatarFallback className="rounded-lg">
                                         {user.name.split(" ")[0][0]}
                                         {user.name.split(" ")[1]?.[0] ?? ""}

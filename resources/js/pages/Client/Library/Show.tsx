@@ -204,7 +204,7 @@ export default function Show({ book, lang = 'en', authUser, relatedBooks = [] }:
                 className="flex items-center space-x-3 p-3 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors group"
             >
                 <img
-                    src={book.user.avatar ? `${BASE_URL}/${book.user.avatar}` : 'https://via.placeholder.com/40'}
+                    src={book.user.avatar ? book.user.avatar : 'https://via.placeholder.com/40'}
                     alt={book.user.name}
                     className="h-10 w-10 rounded-full object-cover border-2 border-amber-500 shadow-sm"
                 />

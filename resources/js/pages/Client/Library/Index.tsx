@@ -330,7 +330,7 @@ export default function Index() {
                     className="flex items-center space-x-3 text-sm sm:text-base px-4 h-10 sm:h-11 rounded-full transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 shadow-sm"
                 >
                     <img
-                        src={user.avatar ? `${BASE_URL}/${user.avatar}` : 'https://via.placeholder.com/40'}
+                        src={user.avatar ? user.avatar : 'https://via.placeholder.com/40'}
                         alt={user.name}
                         className="h-8 w-8 rounded-full object-contain border border-gray-300 dark:border-gray-600"
                     />
