@@ -54,27 +54,35 @@ class RegisteredUserController extends Controller
             'campus_id' => 'required|exists:campuses,id',
             'code' => 'required|exists:campuses,code',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // Max 2MB
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // Max 5MB
             'role_id' => 'nullable|exists:roles,id'
         ]);
 
-        $imagePath = null;
+        $imageUrl = null;
         if ($request->hasFile('avatar')) {
             try {
+                // Store the file and get the relative path
                 $imagePath = $request->file('avatar')->store('avatars', 'public');
+
+                // Set visibility to public
                 Storage::disk('public')->setVisibility($imagePath, 'public');
+
+                // Generate the full URL
+                $imageUrl = Storage::disk('public')->url($imagePath);
+
             } catch (\Exception $e) {
                 \Log::error('Failed to upload avatar to R2: ' . $e->getMessage());
                 return back()->withErrors(['avatar' => 'Failed to upload avatar. Please try again later.']);
             }
         }
+
         $role = $request->role_id;
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'avatar' => $imagePath, // Store the path, generate URL dynamically when needed
-            'role_id' => $request->role_id? $role:1,// pass 1 for user if not role provide
+            'avatar' => $imageUrl, // Store the full URL
+            'role_id' => $request->role_id ?: 1, // Use null-coalescing operator for cleaner code
             'campus_id' => $request->campus_id,
         ]);
 
