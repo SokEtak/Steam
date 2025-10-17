@@ -514,7 +514,7 @@ export default function Index() {
                         },
                         { label: t.grade, value: filterGrade, onChange: setFilterGrade, options: grades },
                         { label: t.subject, value: filterSubject, onChange: setFilterSubject, options: subjects },
-                        ...(bookType === 'physical' && scope === 'local'
+                        ...(bookType === 'physical' && scope === 'global'
                             ? [{ label: t.campus, value:filterCampus, onChange: setFilterCampus, options: campuses }]
                             : []),
                     ].map(({ label, value, onChange, options, display }) => (
