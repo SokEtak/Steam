@@ -10,13 +10,11 @@ use App\Http\Controllers\SubCategoryController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/library-type-dashboard', [HomeController::class, 'libraryTypeDashboard'])
     ->name('library-type-dashboard');
-
 Route::get('admin/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('auth');
 
 //-----Admin------

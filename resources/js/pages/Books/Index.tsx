@@ -272,7 +272,7 @@
                         )}
                     </Button>
                 ),
-                cell: ({ row }) => <div className="px-3">{row.getValue('page_count') || 'N/A'}</div>,
+                cell: ({ row }) => <div className="px-4">{row.getValue('page_count') || 'N/A'}</div>,
                 enableHiding: true,
             },
             {
@@ -289,7 +289,7 @@
                         )}
                     </Button>
                 ),
-                cell: ({ row }) => <div className="px-3">{row.getValue('publisher') || 'N/A'}</div>,
+                cell: ({ row }) => <div className="px-6">{row.getValue('publisher') || 'N/A'}</div>,
                 enableHiding: true,
             },
             {
@@ -404,11 +404,11 @@
 
                     if (value === 'Cambodia') {
                         label = value === 'Cambodia' ? 'កម្មវិធីខ្មែរ' : 'កម្មវិធីអង់គ្លេស';
-                    } else if (value) {
-                        label = value;
+                    } else if (value === 'American') {
+                        label = value === 'American' ? 'កម្មវិធីអាមេរិកកាំង' : 'កម្មវិធីអង់គ្លេស';
                     }
 
-                    return <div className="px-10">{label}</div>;
+                    return <div className="px-4">{label}</div>;
                 },
                 filterFn: (row, columnId, filterValue) => {
                     if (!filterValue || filterValue === 'All') return true;
@@ -875,7 +875,7 @@
                         </div>
                     );
                 },
-                cell: ({ row }) => <div className="px-2">{row.original.bookcase?.code || 'N/A'}</div>,
+                cell: ({ row }) => <div className="px-6">{row.original.bookcase?.code || 'N/A'}</div>,
                 filterFn: (row, columnId, filterValue) => {
                     const bookcaseCode = row.original.bookcase?.code?.toLowerCase() || '';
                     return filterValue === '' || bookcaseCode.includes(String(filterValue).toLowerCase());
@@ -891,7 +891,7 @@
 
                     return (
                         <div className="flex items-center space-x-2">
-                            <span>លេខកូដធ្នើរសៀវភៅ</span>
+                            <span>លេខកូដធ្នើរ</span>
                             <DropdownMenu open={isShelfDropdownOpen} onOpenChange={setIsShelfDropdownOpen}>
                                 <TooltipProvider>
                                     <Tooltip>
@@ -933,7 +933,7 @@
                         </div>
                     );
                 },
-                cell: ({ row }) => <div className="px-2">{row.original.shelf?.code || 'N/A'}</div>,
+                cell: ({ row }) => <div className="px-6">{row.original.shelf?.code || 'N/A'}</div>,
                 filterFn: (row, columnId, filterValue) => {
                     const shelfCode = row.original.shelf?.code?.toLowerCase() || '';
                     return filterValue === '' || shelfCode.includes(String(filterValue).toLowerCase());
@@ -1595,7 +1595,7 @@
                                         </Link>
                                     </TooltipTrigger>
                                     <TooltipContent className="rounded-xl bg-gradient-to-br from-yellow-900 to-yellow-600 text-white">
-                                        Books from your campus
+                                       Physical Books from your campus
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
@@ -1614,7 +1614,7 @@
                                         </Link>
                                     </TooltipTrigger>
                                     <TooltipContent className="rounded-xl bg-gradient-to-br from-rose-900 to-rose-600 text-white">
-                                        Digital books available
+                                        Digital books from overall campuses
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>

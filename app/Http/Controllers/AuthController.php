@@ -6,8 +6,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
-use App\Models\User; // Make sure you import your User model
-use GuzzleHttp\Client; // Required for the setHttpClient call
+use App\Models\User;
+use GuzzleHttp\Client;
 
 class AuthController extends Controller
 {
@@ -29,7 +29,7 @@ class AuthController extends Controller
         // ⚠️ WARNING: Remove setHttpClient and the Guzzle import for production
         $googleUser = Socialite::driver('google')
             ->stateless()
-            ->setHttpClient(new Client(['verify' => false]))
+//            ->setHttpClient(new Client(['verify' => false]))
             ->user();
 
         $email = $googleUser->getEmail();
@@ -72,7 +72,7 @@ class AuthController extends Controller
         // ⚠️ WARNING: Remove setHttpClient and the Guzzle import for production
         $facebookUser = Socialite::driver('facebook')
             ->stateless()
-            ->setHttpClient(new Client(['verify' => false]))
+//            ->setHttpClient(new Client(['verify' => false]))
             ->user();
 
         // Handle missing email

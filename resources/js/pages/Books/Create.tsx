@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { CheckCircle2Icon, X } from 'lucide-react';
-import { useState, useEffect, useCallback, Component, ReactNode } from 'react';
+import { useState, useEffect, Component, ReactNode } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Viewer, Worker } from '@react-pdf-viewer/core';
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
@@ -180,6 +180,7 @@ const translations = {
     audio: 'Audio',
     comingSoon: '(soon)',
     isContinue: 'Is Continue',
+    warning: 'You have unsaved changes. Are you sure you want to leave?',
   },
   kh: {
     go_back: 'បញ្ជីសៀវភៅ',
@@ -296,6 +297,7 @@ const translations = {
     audio: 'សំឡេង',
     comingSoon: '(ឆាប់ៗនេះ)',
     isContinue: 'បន្ត',
+      warning: 'មានការផ្លាស់ប្តូរដែលមិនទាន់រក្សាទុក។ តើអ្នកប្រាកដថាចង់ចាកចេញទេ?',
   },
 };
 
@@ -303,15 +305,6 @@ const breadcrumbs: BreadcrumbItem[] = [
   { title: translations.kh.go_back, href: route('books.index') },
   { title: translations.kh.createBook, href: '' },
 ];
-
-const generateRandomString = (length: number): string => {
-  const characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  let result = '';
-  for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-  return result;
-};
 
 // Error Boundary Component
 interface ErrorBoundaryProps {
@@ -612,7 +605,7 @@ export default function BooksCreate({
         author: 'បណ្ណាគារ បន្ទាយស្រី',
         flip_link: '',
         cover: null,
-        code: 'J3-0',
+        code: 'J6-0',
         isbn: '978',
         view: '0',
         is_available: !isEbook,
@@ -634,11 +627,65 @@ export default function BooksCreate({
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const defaultLayoutPluginInstance = defaultLayoutPlugin();
+    // Add state to track if the form is dirty
+    const [isFormDirty, setIsFormDirty] = useState(false);
 
-  //temp log
+// Update dirty state whenever form data changes
     useEffect(() => {
-        console.log('setErrors:', setErrors); // Debug to confirm setErrors is a function
-    }, [setErrors]);
+        // Check if any form field has a value different from initial values
+        const initialData = {
+            title: '',
+            description: '',
+            page_count: '1',
+            publisher: 'បណ្ណាគារ បន្ទាយស្រី',
+            language: 'kh',
+            program: '',
+            published_at: '201',
+            author: 'បណ្ណាគារ បន្ទាយស្រី',
+            flip_link: '',
+            cover: null,
+            code: 'J6-0',
+            isbn: '978',
+            view: '0',
+            is_available: !isEbook,
+            pdf_url: null,
+            category_id: '5',
+            subcategory_id: '',
+            shelf_id: isEbook ? '' : '',
+            bookcase_id: isEbook ? '' : '',
+            grade_id: '',
+            subject_id: '',
+            downloadable: !isEbook,
+            type,
+            is_continue: true,
+        };
+
+        const isDirty = Object.keys(data).some((key) => {
+            if (key === 'cover' || key === 'pdf_url') {
+                return data[key] !== null;
+            }
+            return data[key] !== initialData[key];
+        });
+
+        setIsFormDirty(isDirty);
+    }, [data, isEbook, type]);
+
+    // Add beforeunload event listener for unsaved changes
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (isFormDirty && !processing) {
+                // Standard message for most browsers
+                e.preventDefault();
+                e.returnValue = t.warning || 'មានការផ្លាស់ប្តូរដែលមិនទាន់រក្សាទុក។ តើអ្នកប្រាកដថាចង់ចាកចេញទេ?';
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, [isFormDirty, processing, t]);
 
   // Handle flash messages for toast notifications
     useEffect(() => {
@@ -662,19 +709,6 @@ export default function BooksCreate({
         setShowErrorAlert(!!Object.keys(errors).length || !!flash?.error);
     }, [flash, errors, t]);
 
-  // const generateCode = useCallback(() => {
-  //   const randomPrefix = generateRandomString(3).toUpperCase();
-  //   const typePrefix = isEbook ? 'EBK' : 'PHY';
-  //   const randomSuffix = generateRandomString(4);
-  //   return `${randomPrefix}-${typePrefix}-${randomSuffix}`.slice(0, 10);
-  // }, [isEbook]);
-
-  // auto code generate after category selected
-  // useEffect(() => {
-  //   if (data.category_id) {
-  //     setData('code', generateCode());
-  //   }
-  // }, [data.category_id, generateCode]);
 
   useEffect(() => {
     return () => {
@@ -789,7 +823,10 @@ export default function BooksCreate({
                     'grade_id',
                     'subject_id',
                     'cover',
-                    'pdf_url'
+                    'pdf_url',
+                    'code',
+                    'isbn'
+
                 );
                 setCoverPreviewUrl(null);
                 setPdfPreviewUrl(null);
