@@ -33,6 +33,7 @@ class BookLoanController extends Controller
         return Inertia::render('BookLoans/Create', [
             'books' => Book::active('physical')->get(),
             'users' => $this->getLoanableUsers(),
+            'statuses' => ['processing', 'returned', 'canceled'], // Pass status options
         ]);
     }
 
@@ -42,10 +43,12 @@ class BookLoanController extends Controller
             'return_date' => 'required|date',
             'book_id' => 'required|exists:books,id',
             'user_id' => 'required|exists:users,id',
+            'status' => 'required|in:processing,returned,canceled', // Validate status
         ]);
 
         // Add campus_id from authenticated user
         $validated['campus_id'] = Auth::user()->campus_id;
+        $validated['status'] = $validated['status'] ?? 'processing'; // Default to 'processing' if not provided
 
         BookLoan::create($validated);
 
@@ -79,6 +82,7 @@ class BookLoanController extends Controller
             'loan' => $bookloan,
             'books' => Book::active(null)->get(),
             'users' => $this->getLoanableUsers(),
+            'statuses' => ['processing', 'returned', 'canceled'], // Pass status options
         ]);
     }
 
@@ -88,6 +92,7 @@ class BookLoanController extends Controller
             'return_date' => 'required|date',
             'book_id' => 'required|exists:books,id',
             'user_id' => 'required|exists:users,id',
+            'status' => 'required|in:processing,returned,canceled', // Validate status
         ]);
 
         $bookloan->update($validated);

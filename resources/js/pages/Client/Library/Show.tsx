@@ -14,7 +14,7 @@ import {
 import { useState } from 'react';
 import { pdfjs } from 'react-pdf';
 import TopBar from '@/components/TopBar';
-import { translations } from '@/utils/translations';
+import { translations } from '@/utils/translations/translations';
 import { FaTelegram, FaTwitter, FaWhatsapp } from 'react-icons/fa';
 import { FaX, FaXTwitter } from 'react-icons/fa6';
 

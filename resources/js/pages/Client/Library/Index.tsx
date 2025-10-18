@@ -36,7 +36,7 @@ import {
     Globe,
     Crown,
 } from 'lucide-react';
-import { translations } from '@/utils/translations';
+import { translations } from '@/utils/translations/translations';
 
 interface Book {
     language: any;
@@ -292,12 +292,14 @@ export default function Index() {
     const goToPreviousPage = () => {
         if (currentPage > 1) {
             setCurrentPage((prev) => prev - 1);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     };
 
     const goToNextPage = () => {
         if (currentPage < totalPages) {
             setCurrentPage((prev) => prev + 1);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     };
 

@@ -23,6 +23,7 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { CheckCircle2Icon, Pencil, Trash, ArrowLeft, X } from "lucide-react";
+import translations from "@/utils/translations/bookloan/bookloanShowTranslations";
 
 interface User {
     id: number;
@@ -41,6 +42,7 @@ interface BookLoan {
     user_id: number;
     book: Book | null;
     user: User | null;
+    status: "processing" | "returned" | "canceled" | null;
     created_at: string;
     updated_at: string;
 }
@@ -52,64 +54,6 @@ interface BookLoanShowProps {
     };
     lang?: "kh" | "en";
 }
-
-const translations = {
-    kh: {
-        title: "ព័ត៌មានលម្អិតនៃការខ្ចីសៀវភៅ",
-        notification: "ការជូនដំណឹង",
-        id: "លេខសម្គាល់",
-        returnDate: "កាលបរិច្ឆេទត្រឡប់",
-        book: "សៀវភៅ",
-        bookTooltip: "មើលព័ត៌មានលម្អិតនៃសៀវភៅ",
-        loaner: "អ្នកខ្ចី",
-        loanerTooltip: "មើលព័ត៌មានលម្អិតនៃអ្នកប្រើប្រាស់",
-        createdAt: "បានបង្កើតនៅ",
-        lastModified: "កែប្រែចុងក្រោយ",
-        edit: "កែសម្រួល",
-        editTooltip: "កែសម្រួលការខ្ចីសៀវភៅនេះ",
-        delete: "លុប",
-        deleteTooltip: "លុបការខ្ចីសៀវភៅនេះ",
-        back: "ត្រឡប់",
-        backTooltip: "ត្រឡប់ទៅបញ្ជីការខ្ចីសៀវភៅ",
-        confirmDeleteTitle: "តើអ្នកប្រាកដទេ?",
-        confirmDeleteDescription: "សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។ វានឹងលុបការខ្ចីសៀវភៅសម្រាប់ ",
-        cancel: "បោះបង់",
-        na: "គ្មាន",
-    },
-    en: {
-        title: "Book Loan Details",
-        notification: "Notification",
-        id: "ID",
-        returnDate: "Return Date",
-        book: "Book",
-        bookTooltip: "View book details",
-        loaner: "Loaner",
-        loanerTooltip: "View user details",
-        createdAt: "Created At",
-        lastModified: "Last Modified",
-        edit: "Edit",
-        editTooltip: "Edit this book loan",
-        delete: "Delete",
-        deleteTooltip: "Delete this book loan",
-        back: "Back",
-        backTooltip: "Return to the book loans list",
-        confirmDeleteTitle: "Are you sure?",
-        confirmDeleteDescription: "This action cannot be undone. This will permanently delete the book loan for ",
-        cancel: "Cancel",
-        na: "N/A",
-    },
-};
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: "បញ្ជីកម្ចីសៀវភៅ",
-        href: route("bookloans.index"),
-    },
-    {
-        title: "ពត៌មានលំអិត",
-        href: "",
-    },
-];
 
 export default function BookLoanShow({ loan, flash, lang = "kh" }: BookLoanShowProps) {
     const t = translations[lang];
@@ -134,6 +78,17 @@ export default function BookLoanShow({ loan, flash, lang = "kh" }: BookLoanShowP
             },
         });
     };
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: t.title,
+            href: route("bookloans.index"),
+        },
+        {
+            title: t.na, // Using t.na for "Details" as per translation
+            href: "",
+        },
+    ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -246,6 +201,17 @@ export default function BookLoanShow({ loan, flash, lang = "kh" }: BookLoanShowP
                                 ) : (
                                     <span className="text-gray-500 dark:text-gray-400">{t.na}</span>
                                 )}
+                            </p>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {t.status}
+                            </label>
+                            <p
+                                className="px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border border-gray-300 dark:border-gray-600 transition-all duration-300"
+                                aria-label={`${t.status}: ${loan.status ? t[`status${loan.status.charAt(0).toUpperCase() + loan.status.slice(1)}`] : t.na}`}
+                            >
+                                {loan.status ? t[`status${loan.status.charAt(0).toUpperCase() + loan.status.slice(1)}`] : t.na}
                             </p>
                         </div>
                         <div className="space-y-2">

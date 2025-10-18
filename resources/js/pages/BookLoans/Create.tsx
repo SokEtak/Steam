@@ -21,12 +21,23 @@ import {
 } from "@/components/ui/popover";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { CheckCircle2Icon, X, ChevronDown } from "lucide-react";
+import { CheckCircle2Icon, X, ChevronDown, ClockIcon, CheckCircleIcon, XCircleIcon } from "lucide-react";
+import translations from "@/utils/translations/bookloan/bookloansCreateTranslations";
 
 interface User {
     id: number;
@@ -44,84 +55,57 @@ interface BookLoansCreateProps {
     lang?: "kh" | "en";
 }
 
-const translations = {
-    kh: {
-        title: "បង្កើតការខ្ចីសៀវភៅ",
-        returnDate: "កាលបរិច្ឆេទត្រឡប់",
-        returnDateTooltip: "ជ្រើសរើសកាលបរិច្ឆេទត្រឡប់សម្រាប់ការខ្ចីសៀវភៅ",
-        book: "សៀវភៅ",
-        bookTooltip: "ស្វែងរក និងជ្រើសរើសសៀវភៅសម្រាប់ការខ្ចីនេះ",
-        bookPlaceholder: "ជ្រើសរើសសៀវភៅ",
-        bookNone: "គ្មាន",
-        bookEmpty: "រកមិនឃើញសៀវភៅទេ",
-        loaner: "អ្នកខ្ចី",
-        loanerTooltip: "ស្វែងរ�找 និងជ្រើសរើសអ្នកខ្ចីសៀវភៅ",
-        loanerPlaceholder: "ជ្រើសរើសអ្នកប្រើប្រាស់",
-        loanerNone: "គ្មាន",
-        loanerEmpty: "រកមិនឃើញអ្នកប្រើប្រាស់ទេ",
-        create: "បង្កើត",
-        creating: "កំពុងបង្កើត...",
-        createTooltip: "រក្សាទុកការខ្ចីសៀវភៅថ្មី",
-        cancel: "បោះបង់",
-        cancelTooltip: "ត្រឡប់ទៅបញ្ជីការខ្ចីសៀវភៅ",
-        error: "កំហុស",
-    },
-    en: {
-        title: "Create New Book Loan",
-        returnDate: "Return Date",
-        returnDateTooltip: "Select the return date for the book loan",
-        book: "Book",
-        bookTooltip: "Search and select the book for this loan",
-        bookPlaceholder: "Select a book",
-        bookNone: "None",
-        bookEmpty: "No books found",
-        loaner: "Loaner",
-        loanerTooltip: "Search and select the loaner borrowing the book",
-        loanerPlaceholder: "Select a user",
-        loanerNone: "None",
-        loanerEmpty: "No users found",
-        create: "Create",
-        creating: "Creating...",
-        createTooltip: "Save the new book loan",
-        cancel: "Cancel",
-        cancelTooltip: "Return to the book loans list",
-        error: "Error",
-    },
-};
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: "បញ្ជីកម្ចីសៀវភៅ",
-        href: route("bookloans.index"),
-    },
-    {
-        title: "បង្កើត",
-        href: "",
-    },
+const statusOptions = [
+    { value: "processing", label: (t: typeof translations.kh) => t.statusProcessing, icon: <ClockIcon className="h-4 w-4 text-yellow-500 dark:text-yellow-300" /> },
+    { value: "returned", label: (t: typeof translations.kh) => t.statusReturned, icon: <CheckCircleIcon className="h-4 w-4 text-green-500 dark:text-green-300" /> },
+    { value: "canceled", label: (t: typeof translations.kh) => t.statusCanceled, icon: <XCircleIcon className="h-4 w-4 text-red-500 dark:text-red-400" /> },
 ];
 
 export default function BookLoansCreate({ books, users, lang = "kh" }: BookLoansCreateProps) {
     const t = translations[lang];
-    const { data, setData, post, processing, errors } = useForm({
+    const initialFormData = {
         return_date: "",
         book_id: "none",
         user_id: "none",
-    });
+        status: "none",
+    };
+    const { data, setData, post, processing, errors } = useForm(initialFormData);
     const [showErrorAlert, setShowErrorAlert] = useState(!!Object.keys(errors).length);
     const [openBook, setOpenBook] = useState(false);
     const [openUser, setOpenUser] = useState(false);
+    const [openStatus, setOpenStatus] = useState(false);
+    const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+    const [isDirty, setIsDirty] = useState(false);
 
+    // Track form changes
     useEffect(() => {
-        setShowErrorAlert(!!Object.keys(errors).length);
-    }, [errors]);
+        const hasChanges = Object.keys(data).some(
+            (key) => data[key as keyof typeof data] !== initialFormData[key as keyof typeof initialFormData]
+        );
+        setIsDirty(hasChanges);
+    }, [data]);
+
+    // Handle beforeunload event for refresh/navigation
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (isDirty) {
+                e.preventDefault();
+                e.returnValue = ""; // Standard for most browsers to show a confirmation prompt
+            }
+        };
+
+        window.addEventListener("beforeunload", handleBeforeUnload);
+        return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+    }, [isDirty]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         post(route("bookloans.store"), {
             data,
             onSuccess: () => {
-                setData({ return_date: "", book_id: "none", user_id: "none" });
+                setData(initialFormData);
                 setShowErrorAlert(false);
+                setIsDirty(false); // Reset dirty state on successful submission
             },
             onError: () => {
                 setShowErrorAlert(true);
@@ -130,6 +114,30 @@ export default function BookLoansCreate({ books, users, lang = "kh" }: BookLoans
     };
 
     const handleCloseAlert = () => setShowErrorAlert(false);
+
+    const handleCancel = () => {
+        if (isDirty) {
+            setShowLeaveDialog(true);
+        } else {
+            router.visit(route("bookloans.index"));
+        }
+    };
+
+    const confirmLeave = () => {
+        setShowLeaveDialog(false);
+        router.visit(route("bookloans.index"));
+    };
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: t.title,
+            href: route("bookloans.index"),
+        },
+        {
+            title: t.create,
+            href: "",
+        },
+    ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -181,10 +189,10 @@ export default function BookLoansCreate({ books, users, lang = "kh" }: BookLoans
                                             value={data.return_date}
                                             onChange={(e) => setData("return_date", e.target.value)}
                                             className={`w-full px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border ${
-                                                errors.return_date
-                                                    ? "border-red-500 dark:border-red-400"
-                                                    : "border-gray-300 dark:border-gray-600"
-                                            } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all duration-300 ease-in-out`}
+    errors.return_date
+        ? "border-red-500 dark:border-red-400"
+        : "border-gray-300 dark:border-gray-600"
+} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all duration-300 ease-in-out`}
                                             disabled={processing}
                                             aria-invalid={!!errors.return_date}
                                             aria-describedby={errors.return_date ? "return-date-error" : undefined}
@@ -218,10 +226,10 @@ export default function BookLoansCreate({ books, users, lang = "kh" }: BookLoans
                                                     role="combobox"
                                                     aria-expanded={openBook}
                                                     className={`w-full justify-between px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border ${
-                                                        errors.book_id
-                                                            ? "border-red-500 dark:border-red-400"
-                                                            : "border-gray-300 dark:border-gray-600"
-                                                    } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all duration-300 ease-in-out`}
+    errors.book_id
+        ? "border-red-500 dark:border-red-400"
+        : "border-gray-300 dark:border-gray-600"
+} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all duration-300 ease-in-out`}
                                                     disabled={processing}
                                                 >
                                                     {data.book_id !== "none"
@@ -230,7 +238,12 @@ export default function BookLoansCreate({ books, users, lang = "kh" }: BookLoans
                                                     <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                                                 </Button>
                                             </PopoverTrigger>
-                                            <PopoverContent className="w-full p-0 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg">
+                                            <PopoverContent
+                                                side="bottom"
+                                                align="start"
+                                                sideOffset={2}
+                                                className="w-full p-0 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg"
+                                            >
                                                 <Command>
                                                     <CommandInput placeholder={t.bookPlaceholder} className="h-10" />
                                                     <CommandList>
@@ -291,10 +304,10 @@ export default function BookLoansCreate({ books, users, lang = "kh" }: BookLoans
                                                     role="combobox"
                                                     aria-expanded={openUser}
                                                     className={`w-full justify-between px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border ${
-                                                        errors.user_id
-                                                            ? "border-red-500 dark:border-red-400"
-                                                            : "border-gray-300 dark:border-gray-600"
-                                                    } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all duration-300 ease-in-out`}
+    errors.user_id
+        ? "border-red-500 dark:border-red-400"
+        : "border-gray-300 dark:border-gray-600"
+} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all duration-300 ease-in-out`}
                                                     disabled={processing}
                                                 >
                                                     {data.user_id !== "none"
@@ -303,7 +316,12 @@ export default function BookLoansCreate({ books, users, lang = "kh" }: BookLoans
                                                     <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                                                 </Button>
                                             </PopoverTrigger>
-                                            <PopoverContent className="w-full p-0 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg">
+                                            <PopoverContent
+                                                side="bottom"
+                                                align="start"
+                                                sideOffset={2}
+                                                className="w-full p-0 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg"
+                                            >
                                                 <Command>
                                                     <CommandInput placeholder={t.loanerPlaceholder} className="h-10" />
                                                     <CommandList>
@@ -347,6 +365,87 @@ export default function BookLoansCreate({ books, users, lang = "kh" }: BookLoans
                                 </p>
                             )}
                         </div>
+                        <div className="space-y-2">
+                            <label
+                                htmlFor="status"
+                                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                            >
+                                {t.status}
+                            </label>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Popover open={openStatus} onOpenChange={setOpenStatus}>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    variant="outline"
+                                                    role="combobox"
+                                                    aria-expanded={openStatus}
+                                                    className={`w-full justify-between px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border ${
+    errors.status
+        ? "border-red-500 dark:border-red-400"
+        : "border-gray-300 dark:border-gray-600"
+} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all duration-300 ease-in-out`}
+                                                    disabled={processing}
+                                                >
+                                                    {data.status !== "none"
+                                                        ? statusOptions.find((status) => status.value === data.status)?.label(t)
+                                                        : t.statusPlaceholder}
+                                                    <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent
+                                                side="bottom"
+                                                align="start"
+                                                sideOffset={2}
+                                                className="w-full p-0 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg"
+                                            >
+                                                <Command>
+                                                    <CommandInput placeholder={t.statusPlaceholder} className="h-10" />
+                                                    <CommandList>
+                                                        <CommandEmpty>{t.statusEmpty}</CommandEmpty>
+                                                        <CommandGroup>
+                                                            <CommandItem
+                                                                value="none"
+                                                                onSelect={() => {
+                                                                    setData("status", "none");
+                                                                    setOpenStatus(false);
+                                                                }}
+                                                            >
+                                                                {t.statusNone}
+                                                            </CommandItem>
+                                                            {statusOptions.map((status) => (
+                                                                <CommandItem
+                                                                    key={status.value}
+                                                                    value={status.label(t)}
+                                                                    onSelect={() => {
+                                                                        setData("status", status.value);
+                                                                        setOpenStatus(false);
+                                                                    }}
+                                                                >
+                                                                    <div className="flex items-center gap-2">
+                                                                        {status.icon}
+                                                                        {status.label(t)}
+                                                                    </div>
+                                                                </CommandItem>
+                                                            ))}
+                                                        </CommandGroup>
+                                                    </CommandList>
+                                                </Command>
+                                            </PopoverContent>
+                                        </Popover>
+                                    </TooltipTrigger>
+                                    <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
+                                        {t.statusTooltip}
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                            {errors.status && (
+                                <p id="status-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
+                                    {errors.status}
+                                </p>
+                            )}
+                        </div>
                         <div className="flex gap-4">
                             <TooltipProvider>
                                 <Tooltip>
@@ -367,15 +466,14 @@ export default function BookLoansCreate({ books, users, lang = "kh" }: BookLoans
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <Link href={route("bookloans.index")}>
-                                            <Button
-                                                variant="outline"
-                                                className="bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-300 border-gray-300 dark:border-gray-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 px-6 py-2 rounded-lg transition-all duration-300 ease-in-out"
-                                                disabled={processing}
-                                            >
-                                                {t.cancel}
-                                            </Button>
-                                        </Link>
+                                        <Button
+                                            variant="outline"
+                                            className="bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-300 border-gray-300 dark:border-gray-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 px-6 py-2 rounded-lg transition-all duration-300 ease-in-out"
+                                            onClick={handleCancel}
+                                            disabled={processing}
+                                        >
+                                            {t.cancel}
+                                        </Button>
                                     </TooltipTrigger>
                                     <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
                                         {t.cancelTooltip}
@@ -384,6 +482,32 @@ export default function BookLoansCreate({ books, users, lang = "kh" }: BookLoans
                             </TooltipProvider>
                         </div>
                     </form>
+                    <AlertDialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
+                        <AlertDialogContent className="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl">
+                            <AlertDialogHeader>
+                                <AlertDialogTitle className="text-indigo-600 dark:text-indigo-300">
+                                    {lang === "kh" ? "តើអ្នកប្រាកដទេ?" : "Are you sure?"}
+                                </AlertDialogTitle>
+                                <AlertDialogDescription className="text-gray-600 dark:text-gray-300">
+                                    {lang === "kh"
+                                        ? "អ្នកមានការផ្លាស់ប្តូរដែលមិនបានរក្សាទុក។ ចាកចេញនឹងបាត់បង់ការផ្លាស់ប្តូរទាំងនេះ។"
+                                        : "You have unsaved changes. Leaving will discard these changes."}
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel className="bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-300 border-gray-300 dark:border-gray-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 rounded-lg transition-all duration-300">
+                                    {t.cancel}
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                    onClick={confirmLeave}
+                                    className="bg-red-600 text-white hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 rounded-lg transition-all duration-300"
+                                    disabled={processing}
+                                >
+                                    {lang === "kh" ? "ចាកចេញ" : "Leave"}
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </div>
             </div>
         </AppLayout>

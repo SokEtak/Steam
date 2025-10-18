@@ -11,7 +11,12 @@ import {
     ArrowUpDown,
     ArrowUp,
     ArrowDown,
-} from "lucide-react";
+    ClockIcon,
+    CheckCircleIcon,
+    XCircleIcon,
+    Filter,
+    CheckIcon,
+} from 'lucide-react';
 import {
     ColumnDef,
     Row,
@@ -38,7 +43,20 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandItem,
+    CommandList,
+} from "@/components/ui/command";
 import DataTable from '@/components/DataTable';
+import translations from '@/utils/translations/bookloan/bookloansTranslations';
 
 interface User {
     id: number;
@@ -57,6 +75,7 @@ interface BookLoan {
     user_id: number;
     created_at: string;
     updated_at: string;
+    status: 'processing' | 'returned' | 'canceled';
     book: Book | null;
     user: User | null;
 }
@@ -69,29 +88,25 @@ interface BookLoansProps {
         message?: string | null;
         type?: "success" | "error";
     };
+    lang?: "kh" | "en";
 }
 
 const commonStyles = {
     button: "rounded-lg text-sm transition-colors",
     text: "text-gray-800 dark:text-gray-100 text-sm",
-    indigoButton:
-        "bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700",
-    outlineButton:
-        "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-300 border-indigo-200 dark:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-800",
+    indigoButton: "bg-indigo-500 text-white hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700",
+    outlineButton: "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-300 border-indigo-200 dark:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-800",
     gradientBg: "bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-indigo-900",
     tooltipBg: "bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl",
 };
 
-const breadcrumbs = [
-    { title: "កម្ចីសៀវភៅ", href: route("bookloans.index") },
-];
-
 const getColumns = (
+    t: typeof translations.kh,
     processing: boolean,
     setBookLoanToDelete: React.Dispatch<React.SetStateAction<BookLoan | null>>,
     setRowModalOpen: React.Dispatch<React.SetStateAction<boolean>>,
     setSelectedRow: React.Dispatch<React.SetStateAction<BookLoan | null>>,
-    setDeleteDialogOpen: React.Dispatch<React.SetStateAction<boolean>> // Added for dialog control
+    setDeleteDialogOpen: React.Dispatch<React.SetStateAction<boolean>>
 ): ColumnDef<BookLoan>[] => [
     {
         id: "actions",
@@ -119,7 +134,6 @@ const getColumns = (
                         className={`${commonStyles.gradientBg} w-auto min-w-0 dark:border-indigo-600 rounded-xl p-1`}
                     >
                         <div className="flex flex-col items-center gap-1 px-1 py-1">
-                            {/* View Action */}
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
@@ -135,12 +149,10 @@ const getColumns = (
                                         </DropdownMenuItem>
                                     </TooltipTrigger>
                                     <TooltipContent side="right" align="center" className={commonStyles.tooltipBg}>
-                                        View Book Loan
+                                        {t.viewTooltip}
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
-
-                            {/* Edit Action */}
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
@@ -160,12 +172,10 @@ const getColumns = (
                                         </DropdownMenuItem>
                                     </TooltipTrigger>
                                     <TooltipContent side="right" align="center" className={commonStyles.tooltipBg}>
-                                        Edit Book Loan
+                                        {t.editTooltip}
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
-
-                            {/* Delete Action */}
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
@@ -173,7 +183,7 @@ const getColumns = (
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 setBookLoanToDelete(bookLoan);
-                                                setDeleteDialogOpen(true); // Open the dialog
+                                                setDeleteDialogOpen(true);
                                             }}
                                         >
                                             <Button
@@ -186,7 +196,7 @@ const getColumns = (
                                         </DropdownMenuItem>
                                     </TooltipTrigger>
                                     <TooltipContent side="right" align="center" className={commonStyles.tooltipBg}>
-                                        Delete Book Loan
+                                        {t.deleteTooltip}
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
@@ -204,7 +214,7 @@ const getColumns = (
                 onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                 className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
             >
-                លេខរៀង
+                {t.id}
                 {{
                     asc: <ArrowUp className="ml-2 h-4 w-4" />,
                     desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -213,7 +223,7 @@ const getColumns = (
         ),
         cell: ({ row }) => (
             <button
-                className={`${commonStyles.text} px-3 cursor-pointer`}
+                className={`${commonStyles.text} px-5 cursor-pointer`}
                 onClick={() => {
                     setRowModalOpen(true);
                     setSelectedRow(row.original);
@@ -234,7 +244,7 @@ const getColumns = (
                 onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                 className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
             >
-                ថ្ងៃសងសៀវភៅ
+                {t.returnDate}
                 {{
                     asc: <ArrowUp className="ml-2 h-4 w-4" />,
                     desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -249,13 +259,13 @@ const getColumns = (
                     setSelectedRow(row.original);
                 }}
                 role="button"
-                aria-label={`View details for book loan with return date ${row.getValue("return_date") || "N/A"}`}
+                aria-label={`View details for book loan with return date ${row.getValue("return_date") || t.none}`}
             >
-                {row.getValue("return_date") || "N/A"}
+                {row.getValue("return_date") || t.none}
             </button>
         ),
         filterFn: (row, id, value) =>
-            String(row.getValue(id) || "N/A").toLowerCase().includes(String(value).toLowerCase()),
+            String(row.getValue(id) || t.none).toLowerCase().includes(String(value).toLowerCase()),
     },
     {
         accessorKey: "book",
@@ -265,7 +275,7 @@ const getColumns = (
                 onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                 className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
             >
-                ចំណងជើងសៀវភៅ
+                {t.book}
                 {{
                     asc: <ArrowUp className="ml-2 h-4 w-4" />,
                     desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -276,7 +286,7 @@ const getColumns = (
             const book = row.original.book;
             return (
                 <button
-                    className={`${commonStyles.text} px-3 cursor-pointer`}
+                    className={`${commonStyles.text} px-0 cursor-pointer`}
                     onClick={() => {
                         setRowModalOpen(true);
                         setSelectedRow(row.original);
@@ -285,7 +295,7 @@ const getColumns = (
                     aria-label={
                         book
                             ? `View details for book loan with book ${book.title}`
-                            : "View details for book loan with no book"
+                            : `View details for book loan with no book`
                     }
                 >
                     {book ? (
@@ -302,20 +312,20 @@ const getColumns = (
                                     </Link>
                                 </TooltipTrigger>
                                 <TooltipContent className={commonStyles.tooltipBg}>
-                                    Navigate to /books/{book.id}
+                                    {t.bookLinkTooltip(book.id)}
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
                     ) : (
-                        <span className="text-red-500 dark:text-red-400 text-sm">N/A</span>
+                        <span className="text-red-500 dark:text-red-400 text-sm">{t.none}</span>
                     )}
                 </button>
             );
         },
         filterFn: (row, _id, value) =>
-            (row.original.book?.title || "N/A").toLowerCase().includes(String(value).toLowerCase()),
+            (row.original.book?.title || t.none).toLowerCase().includes(String(value).toLowerCase()),
         sortingFn: (rowA, rowB) =>
-            (rowA.original.book?.title || "N/A").localeCompare(rowB.original.book?.title || "N/A"),
+            (rowA.original.book?.title || t.none).localeCompare(rowB.original.book?.title || t.none),
     },
     {
         accessorKey: "user",
@@ -325,7 +335,7 @@ const getColumns = (
                 onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                 className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
             >
-                អ្នកខ្ចី
+                {t.loaner}
                 {{
                     asc: <ArrowUp className="ml-2 h-4 w-4" />,
                     desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -345,7 +355,7 @@ const getColumns = (
                     aria-label={
                         user
                             ? `View details for book loan with user ${user.name}`
-                            : "View details for book loan with no user"
+                            : `View details for book loan with no user`
                     }
                 >
                     {user ? (
@@ -362,20 +372,108 @@ const getColumns = (
                                     </Link>
                                 </TooltipTrigger>
                                 <TooltipContent className={commonStyles.tooltipBg}>
-                                    Navigate to /users/{user.id}
+                                    {t.userLinkTooltip(user.id)}
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
                     ) : (
-                        <span className="text-red-500 dark:text-red-400 text-sm">N/A</span>
+                        <span className="text-red-500 dark:text-red-400 text-sm">{t.none}</span>
                     )}
                 </button>
             );
         },
         filterFn: (row, _id, value) =>
-            (row.original.user?.name || "N/A").toLowerCase().includes(String(value).toLowerCase()),
+            (row.original.user?.name || t.none).toLowerCase().includes(String(value).toLowerCase()),
         sortingFn: (rowA, rowB) =>
-            (rowA.original.user?.name || "N/A").localeCompare(rowB.original.user?.name || "N/A"),
+            (rowA.original.user?.name || t.none).localeCompare(rowB.original.user?.name || t.none),
+    },
+    {
+        accessorKey: "status",
+        header: ({ column }) => {
+            const statusOptions = [
+                { value: "all", label: t.statusAll, icon: null },
+                { value: "processing", label: t.statusProcessing, icon: <ClockIcon className="h-4 w-4 text-yellow-500 dark:text-yellow-300" /> },
+                { value: "returned", label: t.statusReturned, icon: <CheckCircleIcon className="h-4 w-4 text-green-500 dark:text-green-300" /> },
+                { value: "canceled", label: t.statusCanceled, icon: <XCircleIcon className="h-4 w-4 text-red-500 dark:text-red-300" /> },
+            ];
+            const selectedOption = statusOptions.find(opt => opt.value === (column.getFilterValue() || "all")) || statusOptions[0];
+            return (
+                <Popover>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300 flex items-center gap-2`}
+                                        aria-label={`Filter by status, currently ${selectedOption.label}`}
+                                    >
+                                        {t.status}
+                                        <Filter className="h-4 w-4" />
+                                    </Button>
+                                </PopoverTrigger>
+                            </TooltipTrigger>
+                            <TooltipContent className={commonStyles.tooltipBg}>
+                                {t.statusPlaceholder}
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                    <PopoverContent className={`${commonStyles.gradientBg} w-48 p-0`} align="start" sideOffset={2}>
+                        <Command>
+                            <CommandList>
+                                <CommandEmpty>{t.statusEmpty}</CommandEmpty>
+                                <CommandGroup>
+                                    {statusOptions.map((option) => (
+                                        <CommandItem
+                                            key={option.value}
+                                            value={option.value}
+                                            onSelect={() => {
+                                                column.setFilterValue(option.value === "all" ? undefined : option.value);
+                                            }}
+                                            className="flex items-center gap-2"
+                                        >
+                                            {option.icon}
+                                            {option.label}
+                                            {option.value === (column.getFilterValue() || "all") && (
+                                                <CheckIcon className="ml-auto h-4 w-4 text-indigo-600 dark:text-indigo-300" />
+                                            )}
+                                        </CommandItem>
+                                    ))}
+                                </CommandGroup>
+                            </CommandList>
+                        </Command>
+                    </PopoverContent>
+                </Popover>
+            );
+        },
+        cell: ({ row }) => {
+            const status = row.getValue("status") as BookLoan["status"];
+            const statusOptions = [
+                { value: "processing", label: t.statusProcessing, icon: <ClockIcon className="h-4 w-4 text-yellow-500 dark:text-yellow-300" /> },
+                { value: "returned", label: t.statusReturned, icon: <CheckCircleIcon className="h-4 w-4 text-green-500 dark:text-green-300" /> },
+                { value: "canceled", label: t.statusCanceled, icon: <XCircleIcon className="h-4 w-4 text-red-500 dark:text-red-300" /> },
+            ];
+            const { icon, label } = statusOptions.find(opt => opt.value === status) || { icon: null, label: t.none };
+            return (
+                <button
+                    className={`${commonStyles.text} flex items-center gap-2 px-0 cursor-pointer`}
+                    onClick={() => {
+                        setRowModalOpen(true);
+                        setSelectedRow(row.original);
+                    }}
+                    role="button"
+                    aria-label={`View details for book loan with status ${label}`}
+                >
+                    {icon}
+                    <span>{label}</span>
+                </button>
+            );
+        },
+        filterFn: (row, id, value) => {
+            if (!value || value === "all") return true;
+            return row.getValue(id) === value;
+        },
+        enableSorting: false,
     },
     {
         accessorKey: "created_at",
@@ -385,7 +483,7 @@ const getColumns = (
                 onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                 className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
             >
-                ធ្វើឡើងនៅ
+                {t.createdAt}
                 {{
                     asc: <ArrowUp className="ml-2 h-4 w-4" />,
                     desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -418,7 +516,7 @@ const getColumns = (
                 onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                 className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
             >
-                កែប្រែលើកចុងក្រោយ
+                {t.updatedAt}
                 {{
                     asc: <ArrowUp className="ml-2 h-4 w-4" />,
                     desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -427,7 +525,7 @@ const getColumns = (
         ),
         cell: ({ row }) => (
             <button
-                className={`${commonStyles.text} px-1 cursor-pointer`}
+                className={`${commonStyles.text} px-2 cursor-pointer`}
                 onClick={() => {
                     setRowModalOpen(true);
                     setSelectedRow(row.original);
@@ -445,16 +543,17 @@ const getColumns = (
     },
 ];
 
-export default function BookLoans({ bookloans = [], flash, books, users }: BookLoansProps) {
+export default function BookLoans({ bookloans = [], flash, books, users, lang = "kh" }: BookLoansProps) {
+    const t = translations[lang];
     const { processing, delete: destroy } = useForm();
     const [bookLoanToDelete, setBookLoanToDelete] = useState<BookLoan | null>(null);
     const [rowModalOpen, setRowModalOpen] = useState(false);
     const [selectedRow, setSelectedRow] = useState<BookLoan | null>(null);
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false); // State for dialog
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
     const columns = useMemo(
-        () => getColumns(processing, setBookLoanToDelete, setRowModalOpen, setSelectedRow, setDeleteDialogOpen),
-        [processing]
+        () => getColumns(t, processing, setBookLoanToDelete, setRowModalOpen, setSelectedRow, setDeleteDialogOpen),
+        [t, processing]
     );
 
     const globalFilterFn = (row: Row<BookLoan>, columnId: string, filterValue: string) => {
@@ -463,18 +562,21 @@ export default function BookLoans({ bookloans = [], flash, books, users }: BookL
         const bookLoan = row.original;
         return (
             String(bookLoan.id).includes(search) ||
-            (bookLoan.return_date || "N/A").toLowerCase().includes(search) ||
-            (bookLoan.book?.title || "N/A").toLowerCase().includes(search) ||
-            (bookLoan.user?.name || "N/A").toLowerCase().includes(search) ||
+            (bookLoan.return_date || t.none).toLowerCase().includes(search) ||
+            (bookLoan.book?.title || t.none).toLowerCase().includes(search) ||
+            (bookLoan.user?.name || t.none).toLowerCase().includes(search) ||
             new Date(bookLoan.created_at).toLocaleString().toLowerCase().includes(search) ||
-            new Date(bookLoan.updated_at).toLocaleString().toLowerCase().includes(search)
+            new Date(bookLoan.updated_at).toLocaleString().toLowerCase().includes(search) ||
+            (bookLoan.status === "processing" ? t.statusProcessing :
+             bookLoan.status === "returned" ? t.statusReturned :
+             bookLoan.status === "canceled" ? t.statusCanceled : t.none).toLowerCase().includes(search)
         );
     };
 
     const modalFields = (item: BookLoan) => (
         <>
             <p>
-                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">Book:</strong>{" "}
+                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">{t.book}:</strong>{" "}
                 {item.book ? (
                     <Link
                         href={route("books.show", item.book.id)}
@@ -484,11 +586,11 @@ export default function BookLoans({ bookloans = [], flash, books, users }: BookL
                         {item.book.title}
                     </Link>
                 ) : (
-                    "N/A"
+                    t.none
                 )}
             </p>
             <p>
-                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">Loaner:</strong>{" "}
+                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">{t.loaner}:</strong>{" "}
                 {item.user ? (
                     <Link
                         href={route("users.show", item.user.id)}
@@ -498,20 +600,26 @@ export default function BookLoans({ bookloans = [], flash, books, users }: BookL
                         {item.user.name}
                     </Link>
                 ) : (
-                    "N/A"
+                    t.none
                 )}
             </p>
             <p>
-                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">Return Date:</strong>{" "}
-                {item.return_date || "N/A"}
+                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">{t.returnDate}:</strong>{" "}
+                {item.return_date || t.none}
             </p>
             <p>
-                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">Created At:</strong>{" "}
+                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">{t.createdAt}:</strong>{" "}
                 {new Date(item.created_at).toLocaleString()}
             </p>
             <p>
-                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">Last Modified:</strong>{" "}
+                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">{t.updatedAt}:</strong>{" "}
                 {new Date(item.updated_at).toLocaleString()}
+            </p>
+            <p>
+                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">{t.status}:</strong>{" "}
+                {item.status === "processing" ? t.statusProcessing :
+                 item.status === "returned" ? t.statusReturned :
+                 item.status === "canceled" ? t.statusCanceled : t.none}
             </p>
         </>
     );
@@ -519,24 +627,30 @@ export default function BookLoans({ bookloans = [], flash, books, users }: BookL
     const tooltipFields = (item: BookLoan) => (
         <>
             <p>
-                <strong className="text-indigo-200">ID:</strong> {item.id}
+                <strong className="text-indigo-200">{t.id}:</strong> {item.id}
             </p>
             <p>
-                <strong className="text-indigo-200">Book:</strong> {item.book?.title || "N/A"}
+                <strong className="text-indigo-200">{t.book}:</strong> {item.book?.title || t.none}
             </p>
             <p>
-                <strong className="text-indigo-200">User:</strong> {item.user?.name || "N/A"}
+                <strong className="text-indigo-200">{t.loaner}:</strong> {item.user?.name || t.none}
             </p>
             <p>
-                <strong className="text-indigo-200">Return Date:</strong> {item.return_date || "N/A"}
+                <strong className="text-indigo-200">{t.returnDate}:</strong> {item.return_date || t.none}
             </p>
             <p>
-                <strong className="text-indigo-200">Created At:</strong>{" "}
+                <strong className="text-indigo-200">{t.createdAt}:</strong>{" "}
                 {new Date(item.created_at).toLocaleString()}
             </p>
             <p>
-                <strong className="text-indigo-200">Last Modified:</strong>{" "}
+                <strong className="text-indigo-200">{t.updatedAt}:</strong>{" "}
                 {new Date(item.updated_at).toLocaleString()}
+            </p>
+            <p>
+                <strong className="text-indigo-200">{t.status}:</strong>{" "}
+                {item.status === "processing" ? t.statusProcessing :
+                 item.status === "returned" ? t.statusReturned :
+                 item.status === "canceled" ? t.statusCanceled : t.none}
             </p>
         </>
     );
@@ -552,14 +666,18 @@ export default function BookLoans({ bookloans = [], flash, books, users }: BookL
         }
     };
 
+    const breadcrumbs = [
+        { title: t.title, href: route("bookloans.index") },
+    ];
+
     return (
         <>
             <DataTable
                 data={bookloans || []}
                 columns={columns}
                 breadcrumbs={breadcrumbs}
-                title="Book Loans"
-                resourceName="book loans"
+                title={t.title}
+                resourceName={t.title.toLowerCase()}
                 routes={{
                     index: route("bookloans.index"),
                     create: route("bookloans.create"),
@@ -576,11 +694,12 @@ export default function BookLoans({ bookloans = [], flash, books, users }: BookL
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <AlertDialogContent className={commonStyles.gradientBg}>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure you want to delete this book loan?</AlertDialogTitle>
+                        <AlertDialogTitle>{t.deleteDialogTitle}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the book loan
-                            {bookLoanToDelete?.book ? ` for "${bookLoanToDelete.book.title}"` : ""}{" "}
-                            {bookLoanToDelete?.user ? `borrowed by ${bookLoanToDelete.user.name}` : ""}.
+                            {t.deleteDialogDescription(
+                                bookLoanToDelete?.book?.title || "",
+                                bookLoanToDelete?.user?.name || ""
+                            )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -591,14 +710,14 @@ export default function BookLoans({ bookloans = [], flash, books, users }: BookL
                                 setDeleteDialogOpen(false);
                             }}
                         >
-                            Cancel
+                            {t.cancel}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             className={commonStyles.indigoButton}
                             onClick={handleDelete}
                             disabled={processing}
                         >
-                            Delete
+                            {t.confirmDelete}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

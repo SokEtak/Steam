@@ -1,4 +1,4 @@
-//added file for global translation
+//added file for global translations
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
@@ -55,7 +55,7 @@ i18n
     .init({
         resources,
         lng: 'en', // Default language
-        fallbackLng: 'en', // Fallback language if translation is missing
+        fallbackLng: 'en', // Fallback language if translations is missing
         interpolation: {
             escapeValue: false, // React already escapes values
         },

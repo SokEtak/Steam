@@ -26,7 +26,8 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { CheckCircle2Icon, X, ChevronDown } from "lucide-react";
+import { CheckCircle2Icon, X, ChevronDown, ClockIcon, CheckCircleIcon, XCircleIcon } from "lucide-react";
+import translations from "@/utils/translations/bookloan/bookloansEditTranslations";
 
 interface User {
     id: number;
@@ -45,6 +46,7 @@ interface BookLoan {
     user_id: number;
     book: Book | null;
     user: User | null;
+    status: 'processing' | 'returned' | 'canceled';
 }
 
 interface BookLoansEditProps {
@@ -54,56 +56,10 @@ interface BookLoansEditProps {
     lang?: "kh" | "en";
 }
 
-const translations = {
-    kh: {
-        title: "កែសម្រួលការខ្ចីសៀវភៅ",
-        returnDate: "កាលបរិច្ឆេទត្រឡប់",
-        returnDateTooltip: "ជ្រើសរើសកាលបរិច្ឆេទត្រឡប់សម្រាប់ការខ្ចីសៀវភៅ",
-        book: "សៀវភៅ",
-        bookTooltip: "ស្វែងរក និងជ្រើសរើសសៀវភៅសម្រាប់ការខ្ចីនេះ",
-        bookPlaceholder: "ជ្រើសរើសសៀវភៅ",
-        bookEmpty: "រកមិនឃើញសៀវភៅទេ",
-        loaner: "អ្នកខ្ចី",
-        loanerTooltip: "ស្វែងរក និងជ្រើសរើសអ្នកខ្ចីសៀវភៅ",
-        loanerPlaceholder: "ជ្រើសរើសអ្នកប្រើប្រាស់",
-        loanerEmpty: "រកមិនឃើញអ្នកប្រើប្រាស់ទេ",
-        update: "កែប្រែ",
-        updating: "កំពុងកែប្រែ...",
-        updateTooltip: "រក្សាទុកការផ្លាស់ប្តូរទៅការខ្ចីសៀវភៅ",
-        cancel: "បោះបង់",
-        cancelTooltip: "ត្រឡប់ទៅបញ្ជីការខ្ចីសៀវភៅ",
-        error: "កំហុស",
-    },
-    en: {
-        title: "Edit Book Loan",
-        returnDate: "Return Date",
-        returnDateTooltip: "Select the return date for the book loan",
-        book: "Book",
-        bookTooltip: "Search and select the book for this loan",
-        bookPlaceholder: "Select a book",
-        bookEmpty: "No books found",
-        loaner: "Loaner",
-        loanerTooltip: "Search and select the loaner borrowing the book",
-        loanerPlaceholder: "Select a user",
-        loanerEmpty: "No users found",
-        update: "Update",
-        updating: "Updating...",
-        updateTooltip: "Save changes to the book loan",
-        cancel: "Cancel",
-        cancelTooltip: "Return to the book loans list",
-        error: "Error",
-    },
-};
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: "បញ្ជីកម្ចីសៀវភៅ",
-        href: route("bookloans.index"),
-    },
-    {
-        title: "កែប្រែ",
-        href: "",
-    },
+const statusOptions = [
+    { value: "processing", label: (t: typeof translations.kh) => t.statusProcessing, icon: <ClockIcon className="h-4 w-4 text-yellow-500 dark:text-yellow-300" /> },
+    { value: "returned", label: (t: typeof translations.kh) => t.statusReturned, icon: <CheckCircleIcon className="h-4 w-4 text-green-500 dark:text-green-300" /> },
+    { value: "canceled", label: (t: typeof translations.kh) => t.statusCanceled, icon: <XCircleIcon className="h-4 w-4 text-red-500 dark:text-red-300" /> },
 ];
 
 export default function BookLoansEdit({ loan, books, users, lang = "kh" }: BookLoansEditProps) {
@@ -112,10 +68,12 @@ export default function BookLoansEdit({ loan, books, users, lang = "kh" }: BookL
         return_date: loan.return_date || "",
         book_id: loan.book_id.toString(),
         user_id: loan.user_id.toString(),
+        status: loan.status || "processing",
     });
     const [showErrorAlert, setShowErrorAlert] = useState(!!Object.keys(errors).length);
     const [openBook, setOpenBook] = useState(false);
     const [openUser, setOpenUser] = useState(false);
+    const [openStatus, setOpenStatus] = useState(false);
 
     useEffect(() => {
         setShowErrorAlert(!!Object.keys(errors).length);
@@ -136,7 +94,19 @@ export default function BookLoansEdit({ loan, books, users, lang = "kh" }: BookL
 
     const handleCloseAlert = () => setShowErrorAlert(false);
 
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: t.title,
+            href: route("bookloans.index"),
+        },
+        {
+            title: t.update,
+            href: "",
+        },
+    ];
+
     return (
+        // This opening fragment tag was misplaced
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={t.title} />
             <div className="min-h-screen p-6 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
@@ -184,15 +154,12 @@ export default function BookLoansEdit({ loan, books, users, lang = "kh" }: BookL
                                             type="date"
                                             value={data.return_date}
                                             onChange={(e) => setData("return_date", e.target.value)}
-                                            className={`w-full px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border ${
-                                                errors.return_date
-                                                    ? "border-red-500 dark:border-red-400"
-                                                    : "border-gray-300 dark:border-gray-600"
-                                            } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all duration-300 ease-in-out`}
+                                            className={`w-full px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border ${errors.return_date
+                                                ? "border-red-500 dark:border-red-400"
+                                                : "border-gray-300 dark:border-gray-600"} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all duration-300 ease-in-out`}
                                             disabled={processing}
                                             aria-invalid={!!errors.return_date}
-                                            aria-describedby={errors.return_date ? "return-date-error" : undefined}
-                                        />
+                                            aria-describedby={errors.return_date ? "return-date-error" : undefined} />
                                     </TooltipTrigger>
                                     <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
                                         {t.returnDateTooltip}
@@ -221,11 +188,9 @@ export default function BookLoansEdit({ loan, books, users, lang = "kh" }: BookL
                                                     variant="outline"
                                                     role="combobox"
                                                     aria-expanded={openBook}
-                                                    className={`w-full justify-between px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border ${
-                                                        errors.book_id
-                                                            ? "border-red-500 dark:border-red-400"
-                                                            : "border-gray-300 dark:border-gray-600"
-                                                    } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all duration-300 ease-in-out`}
+                                                    className={`w-full justify-between px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border ${errors.book_id
+                                                        ? "border-red-500 dark:border-red-400"
+                                                        : "border-gray-300 dark:border-gray-600"} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all duration-300 ease-in-out`}
                                                     disabled={processing}
                                                 >
                                                     {data.book_id !== ""
@@ -234,7 +199,13 @@ export default function BookLoansEdit({ loan, books, users, lang = "kh" }: BookL
                                                     <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                                                 </Button>
                                             </PopoverTrigger>
-                                            <PopoverContent className="w-full p-0 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg">
+                                            <PopoverContent
+                                                side="bottom"
+                                                align="start"
+                                                // FIX: Added = sign and value
+                                                sideOffset={2}
+                                                className="w-full p-0 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg"
+                                            >
                                                 <Command>
                                                     <CommandInput placeholder={t.bookPlaceholder} className="h-10" />
                                                     <CommandList>
@@ -247,7 +218,7 @@ export default function BookLoansEdit({ loan, books, users, lang = "kh" }: BookL
                                                                     onSelect={() => {
                                                                         setData("book_id", book.id.toString());
                                                                         setOpenBook(false);
-                                                                    }}
+                                                                    } }
                                                                 >
                                                                     {book.title}
                                                                 </CommandItem>
@@ -268,6 +239,7 @@ export default function BookLoansEdit({ loan, books, users, lang = "kh" }: BookL
                                     {errors.book_id}
                                 </p>
                             )}
+                            {/* FIX: Removed misplaced closing fragment tag </> */}
                         </div>
                         <div className="space-y-2">
                             <label
@@ -285,11 +257,9 @@ export default function BookLoansEdit({ loan, books, users, lang = "kh" }: BookL
                                                     variant="outline"
                                                     role="combobox"
                                                     aria-expanded={openUser}
-                                                    className={`w-full justify-between px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border ${
-                                                        errors.user_id
-                                                            ? "border-red-500 dark:border-red-400"
-                                                            : "border-gray-300 dark:border-gray-600"
-                                                    } focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all duration-300 ease-in-out`}
+                                                    className={`w-full justify-between px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border ${errors.user_id
+                                                        ? "border-red-500 dark:border-red-400"
+                                                        : "border-gray-300 dark:border-gray-600"} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all duration-300 ease-in-out`}
                                                     disabled={processing}
                                                 >
                                                     {data.user_id !== ""
@@ -298,7 +268,13 @@ export default function BookLoansEdit({ loan, books, users, lang = "kh" }: BookL
                                                     <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                                                 </Button>
                                             </PopoverTrigger>
-                                            <PopoverContent className="w-full p-0 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg">
+                                            <PopoverContent
+                                                side="bottom"
+                                                align="start"
+                                                // FIX: Added = sign and value
+                                                sideOffset={2}
+                                                className="w-full p-0 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg"
+                                            >
                                                 <Command>
                                                     <CommandInput placeholder={t.loanerPlaceholder} className="h-10" />
                                                     <CommandList>
@@ -311,7 +287,7 @@ export default function BookLoansEdit({ loan, books, users, lang = "kh" }: BookL
                                                                     onSelect={() => {
                                                                         setData("user_id", user.id.toString());
                                                                         setOpenUser(false);
-                                                                    }}
+                                                                    } }
                                                                 >
                                                                     {user.name}
                                                                 </CommandItem>
@@ -333,6 +309,78 @@ export default function BookLoansEdit({ loan, books, users, lang = "kh" }: BookL
                                 </p>
                             )}
                         </div>
+                        <div className="space-y-2">
+                            <label
+                                htmlFor="status"
+                                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                            >
+                                {t.status}
+                            </label>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Popover open={openStatus} onOpenChange={setOpenStatus}>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    variant="outline"
+                                                    role="combobox"
+                                                    aria-expanded={openStatus}
+                                                    className={`w-full justify-between px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border ${errors.status
+                                                        ? "border-red-500 dark:border-red-400"
+                                                        : "border-gray-300 dark:border-gray-600"} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all duration-300 ease-in-out`}
+                                                    disabled={processing}
+                                                >
+                                                    {data.status
+                                                        ? statusOptions.find((status) => status.value === data.status)?.label(t)
+                                                        : t.statusPlaceholder}
+                                                    <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent
+                                                side="bottom"
+                                                align="start"
+                                                // FIX: Added = sign and value
+                                                sideOffset={2}
+                                                className="w-full p-0 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg"
+                                            >
+                                                <Command>
+                                                    <CommandInput placeholder={t.statusPlaceholder} className="h-10" />
+                                                    <CommandList>
+                                                        <CommandEmpty>{t.statusEmpty}</CommandEmpty>
+                                                        <CommandGroup>
+                                                            {statusOptions.map((status) => (
+                                                                <CommandItem
+                                                                    key={status.value}
+                                                                    value={status.label(t)}
+                                                                    onSelect={() => {
+                                                                        setData("status", status.value);
+                                                                        setOpenStatus(false);
+                                                                    } }
+                                                                >
+                                                                    <div className="flex items-center gap-2">
+                                                                        {status.icon}
+                                                                        {status.label(t)}
+                                                                    </div>
+                                                                </CommandItem>
+                                                            ))}
+                                                        </CommandGroup>
+                                                    </CommandList>
+                                                </Command>
+                                            </PopoverContent>
+                                        </Popover>
+                                    </TooltipTrigger>
+                                    <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
+                                        {t.statusTooltip}
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                            {errors.status && (
+                                <p id="status-error" className="text-red-500 dark:text-red-400 text-sm mt-1">
+                                    {errors.status}
+                                </p>
+                            )}
+                        </div>
+                        {/* FIX: Moved this div with buttons inside the form */}
                         <div className="flex gap-4">
                             <TooltipProvider>
                                 <Tooltip>
@@ -369,6 +417,7 @@ export default function BookLoansEdit({ loan, books, users, lang = "kh" }: BookL
                                 </Tooltip>
                             </TooltipProvider>
                         </div>
+                        {/* FIX: Removed misplaced fragment tag and placed elements correctly inside the form */}
                     </form>
                 </div>
             </div>
