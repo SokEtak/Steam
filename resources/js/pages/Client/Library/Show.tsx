@@ -15,6 +15,8 @@ import { useState } from 'react';
 import { pdfjs } from 'react-pdf';
 import TopBar from '@/components/TopBar';
 import { translations } from '@/utils/translations';
+import { FaTelegram, FaTwitter, FaWhatsapp } from 'react-icons/fa';
+import { FaX, FaXTwitter } from 'react-icons/fa6';
 
 // Set up worker for react-pdf with a hardcoded stable version
 pdfjs.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@2.16.105/build/pdf.worker.min.js';
@@ -180,9 +182,6 @@ export default function Show({ book, lang = 'en', authUser, relatedBooks = [] }:
             alert(translations[language].no_pdf_available);
         }
     };
-
-    const BASE_URL = 'https://fls-9fd96a88-703c-423b-a3c6-5b74b203b091.laravel.cloud';
-
     if (!book) {
         return (
             <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
@@ -209,10 +208,10 @@ export default function Show({ book, lang = 'en', authUser, relatedBooks = [] }:
                     className="h-10 w-10 rounded-full object-cover border-2 border-amber-500 shadow-sm"
                 />
                 <div className='flex-1 min-w-0'>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center truncate">
+                    <p className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center truncate">
                         {book.user.name}
                         {(book.user.isVerified || book.user.verified) && (
-                            <Verified className="ml-1 w-3 h-3 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                            <Verified className="ml-2 w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                         )}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -312,7 +311,6 @@ export default function Show({ book, lang = 'en', authUser, relatedBooks = [] }:
                             </h1>
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-white dark:bg-gray-800 shadow-lg rounded-xl p-3 border border-gray-200 dark:border-gray-700">
                                 {renderContributorSection()}
-
                                 {/* Views and Share Row */}
                                 <div className="flex items-center space-x-6 pr-3 pt-3 sm:pt-0">
                                     {/* Views Count */}
@@ -321,7 +319,7 @@ export default function Show({ book, lang = 'en', authUser, relatedBooks = [] }:
                                         <p className="text-base text-gray-900 dark:text-gray-100 font-bold">
                                             {formatNumber(book.view)}
                                         </p>
-                                        <span className="text-sm text-gray-500 dark:text-gray-400 hidden lg:inline">{translations[language].views}</span>
+                                        {/*<span className="text-sm text-gray-500 dark:text-gray-400 hidden lg:inline">{translations[language].views}</span>*/}
                                     </div>
 
                                     {/* Share Menu */}
@@ -338,9 +336,9 @@ export default function Show({ book, lang = 'en', authUser, relatedBooks = [] }:
                                             <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-900 rounded-xl shadow-2xl py-2 z-20 border border-gray-200 dark:border-gray-700">
                                                 {[
                                                     { platform: 'facebook', icon: Facebook, label: translations[language].share_facebook, color: 'text-blue-600' },
-                                                    { platform: 'telegram', icon: Clipboard, label: translations[language].share_telegram, color: 'text-blue-400' },
-                                                    { platform: 'twitter', icon: Clipboard, label: translations[language].share_twitter, color: 'text-sky-500' },
-                                                    { platform: 'whatsapp', icon: Clipboard, label: translations[language].share_whatsapp, color: 'text-green-500' },
+                                                    { platform: 'telegram', icon: FaTelegram, label: translations[language].share_telegram, color: 'text-blue-400' },
+                                                    { platform: 'twitter', icon: FaXTwitter, label: translations[language].share_twitter, color: 'text-black-500' },
+                                                    { platform: 'whatsapp', icon: FaWhatsapp, label: translations[language].share_whatsapp, color: 'text-green-500' },
                                                     { platform: 'copy_link', icon: Clipboard, label: translations[language].copy_link || 'Copy Link', color: 'text-gray-500' }
                                                 ].map(({ platform, icon: Icon, label, color }) => (
                                                     <button
@@ -462,11 +460,11 @@ export default function Show({ book, lang = 'en', authUser, relatedBooks = [] }:
                                             <img
                                                 src={relatedBook.cover}
                                                 alt={relatedBook.title}
-                                                className="w-full h-auto object-cover rounded-md shadow-md transition duration-400 ease-in-out transform group-hover:scale-[1.03]"
+                                                className="w-full h-auto object-fill rounded-md shadow-md transition duration-400 ease-in-out transform group-hover:scale-[1.03]"
                                                 style={{ aspectRatio: '3/4', maxWidth: '140px' }}
                                             />
                                             <div className="mt-3 text-center w-full">
-                                                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 leading-tight">
+                                                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-tight">
                                                     {relatedBook.title}
                                                 </p>
                                                 <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mt-1 font-medium">

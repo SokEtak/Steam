@@ -35,8 +35,6 @@ export default function TopBar({ authUser, language, onLanguageChange }: TopBarP
         router.post('/logout');
     };
 
-    const BASE_URL ='https://fls-9fd96a88-703c-423b-a3c6-5b74b203b091.laravel.cloud';
-
     return (
         <header className="bg-white dark:bg-gray-800 shadow-lg py-4 px-4 sm:px-6 lg:px-8 sticky top-0 z-50">
             <div className="max-w-[1440px] mx-auto flex justify-between items-center">
@@ -68,7 +66,7 @@ export default function TopBar({ authUser, language, onLanguageChange }: TopBarP
                                 aria-label={`${authUser.name}'s profile`}
                             >
                                 <img
-                                    src={authUser.avatar ? `${BASE_URL}/${authUser.avatar}` : 'https://via.placeholder.com/40'}
+                                    src={authUser.avatar ? authUser.avatar : 'https://via.placeholder.com/40'}
                                     alt={authUser.name}
                                     className="h-12 w-12 rounded-full border-2 border-amber-500 hover:scale-105 transition-transform"
                                 />
@@ -82,7 +80,7 @@ export default function TopBar({ authUser, language, onLanguageChange }: TopBarP
                                 <div className="absolute right-0 mt-3 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-2xl py-2 z-20 border border-gray-200 dark:border-gray-700">
                                     <button
                                         onClick={handleLogout}
-                                        className="block px-5 py-3 text-base text-gray-700 dark:text-gray-200 hover:bg-amber-100 dark:hover:bg-amber-900/30 w-full text-left flex items-center transition-colors font-medium"
+                                        className="block px-5 py-3 text-base text-gray-700 dark:text-gray-200 hover:bg-amber-100 dark:hover:bg-amber-900/30 w-full text-left items-center transition-colors font-medium"
                                         aria-label={t.logout}
                                     >
                                         <LogOut className="w-5 h-5 mr-3" />
