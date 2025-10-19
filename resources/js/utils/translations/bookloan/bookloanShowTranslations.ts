@@ -6,7 +6,7 @@ const translations: Translations = {
         notification: "ការជូនដំណឹង",
         id: "លេខសម្គាល់",
         returnDate: "កាលបរិច្ឆេទត្រឡប់",
-        book: "ស៖ាវភៅ",
+        book: "សៀវភៅ",
         bookTooltip: "មើលព័ត៌មានលម្អិតនៃសៀវភៅ",
         loaner: "អ្នកខ្ចី",
         loanerTooltip: "មើលព័ត៌មានលម្អិតនៃអ្នកប្រើប្រាស់",

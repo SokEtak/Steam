@@ -18,6 +18,7 @@ class BookLoanRequest extends FormRequest
             'return_date' => 'required|date',
             'book_id' => 'required|exists:books,id',
             'user_id' => 'required|exists:users,id',
+            'status'  => 'required|in:processing,canceled,returned',
         ];
     }
 
@@ -25,7 +26,6 @@ class BookLoanRequest extends FormRequest
     {
         $validated = $this->validated();
         $validated['campus_id'] = Auth::user()->campus_id;
-        $validated['status'] = 'processing';
 
         return $validated;
     }

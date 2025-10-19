@@ -83,19 +83,19 @@ class BookLoanController extends Controller
         ]);
     }
 
-    public function update(BookLoanRequest $request, BookLoan $bookLoan)
+    public function update(BookLoanRequest $request, BookLoan $bookloan)
     {
-        // Get validated data with extras
         $validated = $request->validatedWithExtras();
 
-        // Update the book loan
-        $bookLoan->update($validated);
+        // Update the loan including status
+        $bookloan->update($validated);
 
-        // Update book availability since status is always processing
-        Book::where('id', $validated['book_id'])->update(['is_available' => false]);
+        // Update book availability if loan is canceled or returned
+        in_array($bookloan->status, ['canceled', 'returned']) &&
+        Book::where('id', $bookloan->book_id)->update(['is_available' => true]);
 
         return redirect()
-            ->route('bookloans.show', $bookLoan->id)
+            ->route('bookloans.show', $bookloan)
             ->with('message', 'Book loan updated successfully.');
     }
 
