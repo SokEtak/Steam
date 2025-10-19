@@ -38,7 +38,7 @@ export default function Profile({ status }: { status?: string }) {
                             >
                                 <Avatar className="h-28 w-28 rounded-full border-4 border-purple-300 dark:border-purple-600 shadow-lg transition-all duration-500 ease-in-out group-hover:border-pink-500 group-hover:shadow-2xl group-hover:animate-pulse">
                                     {/*<AvatarImage src={auth.user.avatar ? `/storage/${auth.user.avatar}` : undefined} alt={auth.user.name} />*/}
-                                    <AvatarImage src={"https://fls-9fd96a88-703c-423b-a3c6-5b74b203b091.laravel.cloud/"+auth.user.avatar} alt={auth.user.name} />
+                                    <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
                                     <AvatarFallback className="rounded-full text-4xl font-extrabold bg-gradient-to-br from-purple-400 to-pink-500 text-white">
                                         {auth.user.name.split(" ")[0][0]}
                                         {auth.user.name.split(" ")[1]?.[0] ?? ""}
@@ -110,7 +110,7 @@ export default function Profile({ status }: { status?: string }) {
                             </button>
                             <Avatar className="h-[28rem] w-[28rem] rounded-2xl shadow-3xl transform scale-105">
                                 {/*<AvatarImage src={auth.user.avatar ? `/storage/${auth.user.avatar}` : undefined} alt={auth.user.name} className="object-cover w-full h-full rounded-2xl" />*/}
-                                <AvatarImage src={"https://fls-9fd96a88-703c-423b-a3c6-5b74b203b091.laravel.cloud/"+auth.user.avatar} alt={auth.user.name} className="object-cover w-full h-full rounded-2xl" />
+                                <AvatarImage src={auth.user.avatar} alt={auth.user.name} className="object-cover w-full h-full rounded-2xl" />
                                 <AvatarFallback className="rounded-2xl text-8xl font-black bg-gray-200/50 dark:bg-gray-700/50">
                                     {auth.user.name.split(" ")[0][0]}
                                     {auth.user.name.split(" ")[1]?.[0] ?? ""}

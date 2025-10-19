@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\BookLoan\BookLoanRequest;
 use App\Models\Book;
 use App\Models\BookLoan;
 use App\Models\User;
@@ -37,20 +38,16 @@ class BookLoanController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(BookLoanRequest $request)
     {
-        $validated = $request->validate([
-            'return_date' => 'required|date',
-            'book_id' => 'required|exists:books,id',
-            'user_id' => 'required|exists:users,id',
-            'status' => 'required|in:processing,returned,canceled', // Validate status
-        ]);
+        // Get validated data with extras
+        $validated = $request->validatedWithExtras();
 
-        // Add campus_id from authenticated user
-        $validated['campus_id'] = Auth::user()->campus_id;
-        $validated['status'] = $validated['status'] ?? 'processing'; // Default to 'processing' if not provided
-
+        // Create the book loan
         BookLoan::create($validated);
+
+        // Update book availability since status is always processing
+        Book::where('id', $validated['book_id'])->update(['is_available' => false]);
 
         return redirect()
             ->route('bookloans.index')
@@ -86,18 +83,20 @@ class BookLoanController extends Controller
         ]);
     }
 
-    public function update(Request $request, BookLoan $bookloan)
+    public function update(BookLoanRequest $request, BookLoan $bookLoan)
     {
-        $validated = $request->validate([
-            'return_date' => 'required|date',
-            'book_id' => 'required|exists:books,id',
-            'user_id' => 'required|exists:users,id',
-            'status' => 'required|in:processing,returned,canceled', // Validate status
-        ]);
+        // Get validated data with extras
+        $validated = $request->validatedWithExtras();
 
-        $bookloan->update($validated);
+        // Update the book loan
+        $bookLoan->update($validated);
 
-        return redirect()->route('bookloans.show', $bookloan->id)->with('message', 'Book loan updated successfully.');
+        // Update book availability since status is always processing
+        Book::where('id', $validated['book_id'])->update(['is_available' => false]);
+
+        return redirect()
+            ->route('bookloans.show', $bookLoan->id)
+            ->with('message', 'Book loan updated successfully.');
     }
 
     public function destroy(BookLoan $bookloan)

@@ -107,6 +107,33 @@ class Book extends Model
         return $query->where($conditions)->select(self::$selectColumns);
     }
 
+//  Scope to fetch related books based on category or user.
+    public function scopeRelatedBooks($query, Book $book)
+    {
+        return $query
+            ->where(function ($query) use ($book) {
+                $query->where('category_id', $book->category_id)
+                    ->orWhere('user_id', $book->user_id);
+            })
+            ->where('id', '!=', $book->id)
+            ->where('is_deleted', false)
+            ->inRandomOrder()
+            ->take(10)
+            ->with(['user', 'category', 'subcategory', 'shelf', 'subject', 'grade'])
+            ->get()
+            ->map(function ($relatedBook) {
+                return [
+                    'id' => $relatedBook->id,
+                    'title' => $relatedBook->title,
+                    'cover' => $relatedBook->cover,
+                    'user' => $relatedBook->user ? [
+                        'name' => $relatedBook->user->name,
+                        'isVerified' => $relatedBook->user->isVerified ?? false,
+                    ] : null,
+                ];
+            });
+    }
+
     // Relationships
     public function user()
     {

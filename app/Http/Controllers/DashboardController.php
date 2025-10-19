@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Book;
@@ -26,7 +27,7 @@ class DashboardController extends Controller
      */
     public function index(Request $request)
     {
-        // Restrict access to role_id = 2 or 3
+        // Restrict access to role_id = 2 or 3 or other role that can access
         if (!in_array(Auth::user()->role_id, [2, 3])) {
             abort(403, 'Unauthorized access to dashboard.');
         }
@@ -40,9 +41,9 @@ class DashboardController extends Controller
         $missingBookCount = Book::active('miss')->count();
         $deletedBookCount = Book::active('delBook')->count();
 
-        // Get count of unreturned book loans
+        // Get count of books currently on loan (status = processing)
         $bookLoansCount = BookLoan::active($campusId)
-            ->whereNull('return_date')
+            ->where('status', 'processing')
             ->count();
 
         return Inertia::render('dashboard', [
@@ -50,7 +51,7 @@ class DashboardController extends Controller
                 'ebookCount' => $ebookCount,
                 'physicalBookCount' => $physicalBookCount,
                 'missingBookCount' => $missingBookCount,
-                'deletedBookCount' => $deletedBookCount,
+//                'deletedBookCount' => $deletedBookCount,
                 'bookLoansCount' => $bookLoansCount,
             ],
             'role_id' => Auth::user()->role_id, // Pass role_id directly

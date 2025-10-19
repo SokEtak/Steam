@@ -4,7 +4,7 @@
 import { router } from '@inertiajs/react';
 import { Globe, LogOut } from 'lucide-react';
 import { useState } from 'react';
-import { translations } from '@/utils/translations/translations';
+import { translations } from '@/utils/translations/library/translations';
 
 interface AuthUser {
     name: string;

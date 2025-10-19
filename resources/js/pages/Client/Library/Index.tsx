@@ -36,7 +36,7 @@ import {
     Globe,
     Crown,
 } from 'lucide-react';
-import { translations } from '@/utils/translations/translations';
+import { translations } from '@/utils/translations/library/translations';
 
 interface Book {
     language: any;

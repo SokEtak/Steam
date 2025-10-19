@@ -66,28 +66,7 @@ class LibraryController extends Controller
     public function show(Book $book)
     {
         // Fetch related books logic
-        $relatedBooks = Book::query()
-            ->where(function ($query) use ($book) {
-                $query->where('category_id', $book->category_id)
-                    ->orWhere('user_id', $book->user_id);
-            })
-            ->where('id', '!=', $book->id)
-            ->where('is_deleted', false)
-            ->inRandomOrder()
-            ->take(10)
-            ->with(['user', 'category', 'subcategory', 'shelf', 'subject', 'grade'])
-            ->get()
-            ->map(function ($relatedBook) {
-                return [
-                    'id' => $relatedBook->id,
-                    'title' => $relatedBook->title,
-                    'cover' => $relatedBook->cover,
-                    'user' => $relatedBook->user ? [
-                        'name' => $relatedBook->user->name,
-                        'isVerified' => $relatedBook->user->isVerified ?? false,
-                    ] : null,
-                ];
-            });
+        $relatedBooks = Book::relatedBooks($book);
 
         // Increment view count if the user is not the book's owner
         if ($book->user_id !== Auth::id()){ // Use Auth::id() for cleaner check
