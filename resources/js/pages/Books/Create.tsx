@@ -819,13 +819,10 @@ export default function BooksCreate({
                     'description',
                     'program',
                     'flip_link',
-                    'subcategory_id',
                     'grade_id',
                     'subject_id',
                     'cover',
                     'pdf_url',
-                    'code',
-                    'isbn'
 
                 );
                 setCoverPreviewUrl(null);
