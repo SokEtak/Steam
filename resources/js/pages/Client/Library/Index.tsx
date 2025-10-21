@@ -78,14 +78,18 @@ interface AuthUser {
 
 interface PageProps {
     flash: { message?: string };
-    books: Book[];
+    books: {
+        data: Book[];
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+    };
     auth: { user: AuthUser | null };
     scope?: 'local' | 'global';
     bookType?: 'ebook' | 'physical';
     lang?: 'en' | 'kh';
 }
-
-const ITEMS_PER_PAGE = 40;
 
 const formatDate = (dateInput: string | number | undefined): string => {
     if (!dateInput) return translations.kh.unknownContributor;
@@ -117,7 +121,8 @@ export default function Index() {
     const [filterLanguage, setFilterLanguage] = useState('All');
     const [sortProgram, setSortProgram] = useState('All');
     const [sortBy, setSortBy] = useState('None');
-    const [currentPage, setCurrentPage] = useState(1);
+    const [currentPage, setCurrentPage] = useState(books.current_page);
+
     const [language, setLanguage] = useState<'en' | 'kh'>(() => {
         const savedLanguage = typeof window !== 'undefined' ? localStorage.getItem('language') : null;
         return (savedLanguage === 'en' || savedLanguage === 'kh' ? savedLanguage : lang) as 'en' | 'kh';
@@ -136,35 +141,49 @@ export default function Index() {
     const currentLibrary = bookType === 'ebook' ? 'ebook' : scope === 'global' ? 'global' : 'local';
 
     const handleLibraryChange = (value: string) => {
+        const query = {
+            search,
+            category: filterCategory,
+            subcategory: filterSubCategory,
+            bookcase: filterBookcase,
+            shelf: filterShelf,
+            grade: filterGrade,
+            subject: filterSubject,
+            campus: filterCampus,
+            language: filterLanguage,
+            program: sortProgram,
+            sort_by: sortBy,
+            page: 1,
+        };
         if (value === 'ebook') {
-            router.get(route('global e-library'));
+            router.get(route('global e-library'), query);
         } else if (value === 'local') {
-            router.get(route('local library'));
+            router.get(route('local library'), query);
         } else if (value === 'global') {
-            router.get(route('global library'));
+            router.get(route('global library'), query);
         }
     };
 
     const categories = useMemo(
-        () => Array.from(new Set(books.map((b) => b.category?.name).filter(Boolean))),
-        [books]
+        () => Array.from(new Set(books.data.map((b) => b.category?.name).filter(Boolean))),
+        [books.data]
     );
     const subcategories = useMemo(
-        () => Array.from(new Set(books.map((b) => b.subcategory?.name).filter(Boolean))),
-        [books]
+        () => Array.from(new Set(books.data.map((b) => b.subcategory?.name).filter(Boolean))),
+        [books.data]
     );
     const bookcases = useMemo(
-        () => Array.from(new Set(books.map((b) => b.bookcase?.code).filter(Boolean))),
-        [books]
+        () => Array.from(new Set(books.data.map((b) => b.bookcase?.code).filter(Boolean))),
+        [books.data]
     );
     const shelves = useMemo(
-        () => Array.from(new Set(books.map((b) => b.shelf?.code).filter(Boolean))),
-        [books]
+        () => Array.from(new Set(books.data.map((b) => b.shelf?.code).filter(Boolean))),
+        [books.data]
     );
     const grades = useMemo(() => {
         const gradeNames = Array.from(
             new Set(
-                books
+                books.data
                     .map((b) => b.grade?.name)
                     .filter((name): name is string => !!name)
                     .filter((name) => {
@@ -179,26 +198,26 @@ export default function Index() {
             const numB = parseInt(b.match(/(\d+)/)![0], 10);
             return numA - numB;
         });
-    }, [books]);
+    }, [books.data]);
     const subjects = useMemo(
-        () => Array.from(new Set(books.map((b) => b.subject?.name).filter(Boolean))),
-        [books]
+        () => Array.from(new Set(books.data.map((b) => b.subject?.name).filter(Boolean))),
+        [books.data]
     );
     const campuses = useMemo(
-        () => Array.from(new Set(books.map((b) => b.campus?.name).filter(Boolean))),
-        [books]
+        () => Array.from(new Set(books.data.map((b) => b.campus?.name).filter(Boolean))),
+        [books.data]
     );
     const languages = useMemo(
-        () => Array.from(new Set(books.map((b) => b.language).filter(Boolean))),
-        [books]
+        () => Array.from(new Set(books.data.map((b) => b.language).filter(Boolean))),
+        [books.data]
     );
     const programs = useMemo(
-        () => Array.from(new Set(books.map((b) => b.program?.toLowerCase()).filter(Boolean))),
-        [books]
+        () => Array.from(new Set(books.data.map((b) => b.program?.toLowerCase()).filter(Boolean))),
+        [books.data]
     );
 
     const allFilteredBooks = useMemo(() => {
-        let filtered = books.filter((book) => {
+        let filtered = books.data.filter((book) => {
             if (book.type !== bookType) return false;
 
             const title = String(book.title || '');
@@ -265,7 +284,7 @@ export default function Index() {
             return 0;
         });
     }, [
-        books,
+        books.data,
         search,
         filterCategory,
         filterSubCategory,
@@ -284,27 +303,50 @@ export default function Index() {
     // Find the book with the highest view count
     const maxViews = allFilteredBooks.length > 0 ? Math.max(...allFilteredBooks.map(b => b.view ?? 0)) : 0;
 
-    const totalPages = Math.ceil(allFilteredBooks.length / ITEMS_PER_PAGE);
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    const paginatedBooks = allFilteredBooks.slice(startIndex, endIndex);
+    const totalPages = books.last_page;
+    const paginatedBooks = allFilteredBooks;
+
+    const goToPage = (page: number) => {
+        if (page >= 1 && page <= totalPages && page !== currentPage) {
+            setCurrentPage(page);
+            router.get(
+                route(currentLibrary === 'ebook' ? 'global e-library' : currentLibrary === 'global' ? 'global library' : 'local library'),
+                {
+                    search,
+                    category: filterCategory,
+                    subcategory: filterSubCategory,
+                    bookcase: filterBookcase,
+                    shelf: filterShelf,
+                    grade: filterGrade,
+                    subject: filterSubject,
+                    campus: filterCampus,
+                    language: filterLanguage,
+                    program: sortProgram,
+                    sort_by: sortBy,
+                    page,
+                },
+                { preserveState: true, preserveScroll: true }
+            );
+        }
+    };
 
     const goToPreviousPage = () => {
-        if (currentPage > 1) {
-            setCurrentPage((prev) => prev - 1);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        goToPage(currentPage - 1);
     };
 
     const goToNextPage = () => {
-        if (currentPage < totalPages) {
-            setCurrentPage((prev) => prev + 1);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        goToPage(currentPage + 1);
     };
 
     useEffect(() => {
-        setCurrentPage(1);
+        setCurrentPage(books.current_page);
+    }, [books.current_page]);
+
+    useEffect(() => {
+        // Reset to page 1 when filters change
+        if (currentPage !== 1) {
+            goToPage(1);
+        }
     }, [
         search,
         filterCategory,
@@ -517,7 +559,7 @@ export default function Index() {
                         { label: t.grade, value: filterGrade, onChange: setFilterGrade, options: grades },
                         { label: t.subject, value: filterSubject, onChange: setFilterSubject, options: subjects },
                         ...(bookType === 'physical' && scope === 'global'
-                            ? [{ label: t.campus, value:filterCampus, onChange: setFilterCampus, options: campuses }]
+                            ? [{ label: t.campus, value: filterCampus, onChange: setFilterCampus, options: campuses }]
                             : []),
                     ].map(({ label, value, onChange, options, display }) => (
                         <Select key={label} value={value} onValueChange={onChange}>

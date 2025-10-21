@@ -107,7 +107,7 @@ export default function Page({ bookStats, role_id }) {
             iconColor: 'text-red-600 dark:text-red-400',
         },
         {
-            title: 'Total Books on Loan',
+            title: 'Total Books on Loan(Processing)',
             value: bookStats.bookLoansCount,
             Icon: Book,
             actionUrl: '/admin/library/bookloans',
