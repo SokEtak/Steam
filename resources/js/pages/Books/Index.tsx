@@ -1907,7 +1907,7 @@
                                         {!isSuperLibrarian && (
                                             <>
                                                 <a
-                                                    href={"https://online.fliphtml5.com/ayjcf/rkht"}
+                                                    href={rowModal.flip_link}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="flex h-8 cursor-pointer items-center gap-1 rounded-lg border-blue-300 bg-white text-blue-700 hover:bg-blue-100 dark:border-blue-500 dark:bg-gray-800 dark:text-blue-200 dark:hover:bg-blue-700"

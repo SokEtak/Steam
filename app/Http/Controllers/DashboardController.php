@@ -39,7 +39,6 @@ class DashboardController extends Controller
         $ebookCount = Book::active('ebook')->count();
         $physicalBookCount = Book::active('physical')->count();
         $missingBookCount = Book::active('miss')->count();
-        $deletedBookCount = Book::active('delBook')->count();
 
         // Get count of books currently on loan (status = processing)
         $bookLoansCount = BookLoan::active($campusId)
@@ -51,10 +50,9 @@ class DashboardController extends Controller
                 'ebookCount' => $ebookCount,
                 'physicalBookCount' => $physicalBookCount,
                 'missingBookCount' => $missingBookCount,
-//                'deletedBookCount' => $deletedBookCount,
                 'bookLoansCount' => $bookLoansCount,
             ],
-            'role_id' => Auth::user()->role_id, // Pass role_id directly
+            'role_id' => Auth::user()->role_id,
         ]);
     }
 }
