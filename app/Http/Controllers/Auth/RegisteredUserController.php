@@ -76,15 +76,15 @@ class RegisteredUserController extends Controller
             }
         }
 
-        $role = $request->role_id;
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'avatar' => $imageUrl, // Store the full URL
-            'role_id' => $request->role_id ?: 1, // Use null-coalescing operator for cleaner code
             'campus_id' => $request->campus_id,
         ]);
+
+        $user->assignRole('regular-user'); // Assign the pms
 
         event(new Registered($user));
 

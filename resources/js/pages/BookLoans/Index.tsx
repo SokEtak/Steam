@@ -677,7 +677,7 @@ export default function BookLoans({ bookloans = [], flash, books, users, lang = 
                 columns={columns}
                 breadcrumbs={breadcrumbs}
                 title={t.title}
-                resourceName={t.title.toLowerCase()}
+                resourceName={translations.en.title.toLowerCase()}
                 routes={{
                     index: route("bookloans.index"),
                     create: route("bookloans.create"),

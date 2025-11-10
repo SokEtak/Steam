@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle2Icon, Pencil, ArrowLeft, X } from "lucide-react";
+import { translations } from "@/utils/translations/bookcase";
 
 interface Book {
     id: number;
@@ -38,50 +39,6 @@ interface BookcasesShowProps {
     lang?: "kh" | "en";
 }
 
-const translations = {
-    kh: {
-        title: "ព័ត៌មានលម្អិតនៃទូសៀវភៅ",
-        notification: "ការជូនដំណឹង",
-        id: "លេខសម្គាល់",
-        code: "លេខកូដ",
-        booksInBookcase: "សៀវភៅនៅក្នុងទូសៀវភៅ",
-        bookCount: (count: number) => `${count} សៀវភៅ${count === 1 ? "" : ""}`,
-        noBooks: "គ្មានសៀវភៅនៅក្នុងទូសៀវភៅនេះទេ។",
-        bookTooltip: "មើលព័ត៌មានសៀវភៅនេះ",
-        edit: "កែសម្រួល",
-        editTooltip: "កែសម្រួលទូសៀវភៅនេះ",
-        back: "ត្រឡប់",
-        backTooltip: "ត្រឡប់ទៅបញ្ជីទូសៀវភៅ",
-        na: "គ្មាន",
-    },
-    en: {
-        title: "Bookcase Details",
-        notification: "Notification",
-        id: "ID",
-        code: "Code",
-        booksInBookcase: "Books in This Bookcase",
-        bookCount: (count: number) => `${count} Book${count === 1 ? "" : "s"}`,
-        noBooks: "No books in this bookcase.",
-        bookTooltip: "View this book information",
-        edit: "Edit",
-        editTooltip: "Edit this bookcase",
-        back: "Back",
-        backTooltip: "Return to the bookcases list",
-        na: "N/A",
-    },
-};
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: "Bookcases",
-        href: route("bookcases.index"),
-    },
-    {
-        title: "Show",
-        href: "",
-    },
-];
-
 export default function BookcasesShow({ bookcase, flash, lang = "kh" }: BookcasesShowProps) {
     const t = translations[lang];
     const { processing } = useForm();
@@ -97,13 +54,24 @@ export default function BookcasesShow({ bookcase, flash, lang = "kh" }: Bookcase
 
     const handleCloseAlert = () => setShowAlert(false);
 
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: t.indexTitle,
+            href: route("bookcases.index"),
+        },
+        {
+            title: t.showBreadcrumb,
+            href: "",
+        },
+    ];
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`${t.title}: ${bookcase.code || t.na}`} />
+            <Head title={`${t.showTitle}: ${bookcase.code || t.showNa}`} />
             <div className="min-h-screen p-6 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
                 <div className="max-w-1xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-8">
                     <h1 className="text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-8">
-                        {t.title}
+                        {t.showTitle}
                     </h1>
                     {showAlert && flash.message && (
                         <Alert className="mb-6 bg-blue-50 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-700 rounded-lg">
@@ -112,7 +80,7 @@ export default function BookcasesShow({ bookcase, flash, lang = "kh" }: Bookcase
                                     <CheckCircle2Icon className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                                     <div>
                                         <AlertTitle className="text-blue-600 dark:text-blue-400 font-semibold">
-                                            {t.notification}
+                                            {t.showNotification}
                                         </AlertTitle>
                                         <AlertDescription className="text-blue-600 dark:text-blue-400">
                                             {flash.message}
@@ -133,34 +101,34 @@ export default function BookcasesShow({ bookcase, flash, lang = "kh" }: Bookcase
                     <div className="space-y-6">
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                {t.id}
+                                {t.showId}
                             </label>
                             <p
                                 className="px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border border-gray-300 dark:border-gray-600 transition-all duration-300"
-                                aria-label={`${t.id}: ${bookcase.id}`}
+                                aria-label={`${t.showId}: ${bookcase.id}`}
                             >
                                 {bookcase.id}
                             </p>
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                {t.code}
+                                {t.showCode}
                             </label>
                             <p
                                 className="px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border border-gray-300 dark:border-gray-600 transition-all duration-300"
-                                aria-label={`${t.code}: ${bookcase.code || t.na}`}
+                                aria-label={`${t.showCode}: ${bookcase.code || t.showNa}`}
                             >
-                                {bookcase.code || t.na}
+                                {bookcase.code || t.showNa}
                             </p>
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                {t.booksInBookcase}
+                                {t.showBooksInBookcase}
                             </label>
                             <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                                 <CardContent className="max-h-64 overflow-y-auto p-4">
                                     <h3 className="text-sm font-semibold text-indigo-600 dark:text-indigo-300 mb-2">
-                                        {t.bookCount(bookcase.books?.length || 0)}
+                                        {t.showBookCount(bookcase.books?.length || 0)}
                                     </h3>
                                     {bookcase.books && bookcase.books.length > 0 ? (
                                         <ol className="list-decimal list-inside text-sm text-gray-700 dark:text-gray-200 space-y-1">
@@ -178,7 +146,7 @@ export default function BookcasesShow({ bookcase, flash, lang = "kh" }: Bookcase
                                                                 </Link>
                                                             </TooltipTrigger>
                                                             <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                                                {t.bookTooltip}
+                                                                {t.showBookTooltip}
                                                             </TooltipContent>
                                                         </Tooltip>
                                                     </TooltipProvider>
@@ -196,7 +164,7 @@ export default function BookcasesShow({ bookcase, flash, lang = "kh" }: Bookcase
                                         </ol>
                                     ) : (
                                         <p className="text-sm text-gray-600 dark:text-gray-300">
-                                            {t.noBooks}
+                                            {t.showNoBooks}
                                         </p>
                                     )}
                                 </CardContent>
@@ -214,12 +182,12 @@ export default function BookcasesShow({ bookcase, flash, lang = "kh" }: Bookcase
                                             aria-label="Edit bookcase"
                                         >
                                             <Pencil className="h-4 w-4 mr-2" />
-                                            {t.edit}
+                                            {t.showEdit}
                                         </Button>
                                     </Link>
                                 </TooltipTrigger>
                                 <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                    {t.editTooltip}
+                                    {t.showEditTooltip}
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
@@ -234,12 +202,12 @@ export default function BookcasesShow({ bookcase, flash, lang = "kh" }: Bookcase
                                             aria-label="Return to bookcases list"
                                         >
                                             <ArrowLeft className="h-4 w-4 mr-2" />
-                                            {t.back}
+                                            {t.showBack}
                                         </Button>
                                     </Link>
                                 </TooltipTrigger>
                                 <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                    {t.backTooltip}
+                                    {t.showBackTooltip}
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>

@@ -6,9 +6,13 @@ use App\Models\{Bookcase, Shelf};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Illuminate\Http\RedirectResponse;
 
 class ShelvesController extends Controller
 {
+    /**
+     * Display a listing of shelves.
+     */
     public function index()
     {
         $shelves = Shelf::forCurrentCampusWithActiveBooks()->get();
@@ -18,9 +22,12 @@ class ShelvesController extends Controller
         ]);
     }
 
+    /**
+     * Show the form for creating a new shelf.
+     */
     public function create()
     {
-        if ($redirect = $this->shouldRedirectIfNotStudent()) {
+        if ($redirect = $this->shouldRedirectIfNotStaff()) {
             return $redirect;
         }
 
@@ -29,13 +36,16 @@ class ShelvesController extends Controller
         ]);
     }
 
+    /**
+     * Display the specified shelf.
+     */
     public function show(Shelf $shelf)
     {
         if (!$this->belongsToUserCampus($shelf)) {
             return abort(404, 'Not Found');
         }
 
-        if ($redirect = $this->shouldRedirectIfNotStudent()) {
+        if ($redirect = $this->shouldRedirectIfNotStaff()) {
             return $redirect;
         }
 
@@ -46,7 +56,10 @@ class ShelvesController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    /**
+     * Store a newly created shelf.
+     */
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'code' => 'required|string|max:10',
@@ -66,13 +79,16 @@ class ShelvesController extends Controller
         return redirect()->route('shelves.index')->with('message', 'Shelf created successfully.');
     }
 
+    /**
+     * Show the form for editing a shelf.
+     */
     public function edit(Shelf $shelf)
     {
         if (!$this->belongsToUserCampus($shelf)) {
             return abort(404, 'Not Found');
         }
 
-        if ($redirect = $this->shouldRedirectIfNotStudent()) {
+        if ($redirect = $this->shouldRedirectIfNotStaff()) {
             return $redirect;
         }
 
@@ -83,7 +99,10 @@ class ShelvesController extends Controller
         ]);
     }
 
-    public function update(Request $request, Shelf $shelf)
+    /**
+     * Update the specified shelf.
+     */
+    public function update(Request $request, Shelf $shelf): RedirectResponse
     {
         $validated = $request->validate([
             'code' => 'required|string|max:255',
@@ -103,20 +122,27 @@ class ShelvesController extends Controller
         return redirect()->route('shelves.show', $shelf->id)->with('message', 'Shelf updated successfully.');
     }
 
-    // 🔁 Reusable helper methods
-
-    protected function shouldRedirectIfNotStudent()
+    /**
+     * Redirect if the user is not a staff member.
+     */
+    protected function shouldRedirectIfNotStaff(): ?RedirectResponse
     {
-        return Auth::check() && Auth::user()->role_id != 2
+        return Auth::check() && !Auth::user()->hasRole('staff')
             ? redirect()->route('shelves.index')
             : null;
     }
 
-    protected function belongsToUserCampus($model)
+    /**
+     * Check if the model belongs to the user's campus.
+     */
+    protected function belongsToUserCampus($model): bool
     {
         return $model->campus_id === Auth::user()->campus_id;
     }
 
+    /**
+     * Get bookcases for the user's campus.
+     */
     protected function getBookcasesForCampus()
     {
         return Bookcase::select('id', 'code')
@@ -124,7 +150,10 @@ class ShelvesController extends Controller
             ->get();
     }
 
-    protected function bookcaseBelongsToUserCampus($bookcaseId)
+    /**
+     * Check if the bookcase belongs to the user's campus.
+     */
+    protected function bookcaseBelongsToUserCampus($bookcaseId): bool
     {
         $bookcase = Bookcase::find($bookcaseId);
         return $bookcase && $bookcase->campus_id === Auth::user()->campus_id;

@@ -259,7 +259,7 @@ export default function BooksShow({ book }: BooksShowProps) {
                                 render: () =>
                                     book.subcategory_id ? (
                                         <Link
-                                            href={route('subcategories.show', book.subcategory_id)}
+                                            href={route('subcategory.show', book.subcategory_id)}
                                             className="text-blue-500 hover:underline"
                                         >
                                             {book.subcategory?.name || 'N/A'}

@@ -32,14 +32,12 @@ class SubCategoryController extends Controller
         ]);
     }
 
-    public function store(Request $request) {
+    public function store(Request $request) {;
         $validated = $request->validate([
             'name' => 'required|string|max:100|unique:sub_categories,name',
             'category_id' => 'required|exists:categories,id',
         ]);
-
         SubCategory::create($validated);
-
         return redirect()->route('subcategories.index')->with('message', 'Subcategory created successfully.');
     }
 

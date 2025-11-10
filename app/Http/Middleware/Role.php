@@ -9,14 +9,16 @@ use Symfony\Component\HttpFoundation\Response;
 
 class Role
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
-    public function handle(Request $request, Closure $next, string $role)
+    public function handle(Request $request, Closure $next, string $role): Response
     {
-        if (Auth::check() && in_array(Auth::user()->role_id, [2, 3])) {
+        if (!auth()->check()) {
+            return redirect()->route('login')->with('flash.warning', 'Please log in.');
+        }
+
+        // Split roles by '|' to support 'staff|admin'
+        $roles = explode('|', $role);
+
+        if (auth()->user()->hasAnyRole($roles)) {
             return $next($request);
         }
 

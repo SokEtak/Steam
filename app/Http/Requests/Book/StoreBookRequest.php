@@ -11,7 +11,7 @@ class StoreBookRequest extends FormRequest
 {
     public function authorize()
     {
-        return Auth::check() && Auth::user()->role_id == 2;
+        return $this->user()->hasRole('staff');
     }
 
     protected function prepareForValidation()
@@ -109,7 +109,7 @@ class StoreBookRequest extends FormRequest
             'bookcase_id.required_if' => 'Bookcase is required for physical books.',
             'grade_id.exists' => 'Selected grade is invalid.',
             'subject_id.exists' => 'Selected subject is invalid.',
-            'campus_id.required' => 'Campus is required for physical books.',
+            'campus_id.required' => 'Campuses is required for physical books.',
             'campus_id.exists' => 'Selected campus is invalid.',
             'published_at.integer' => 'The published year must be a valid number.',
             'published_at.digits' => 'The published year must be exactly 4 digits.',

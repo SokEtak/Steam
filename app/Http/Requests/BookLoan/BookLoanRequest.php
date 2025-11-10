@@ -9,7 +9,7 @@ class BookLoanRequest extends FormRequest
 {
     public function authorize()
     {
-        return Auth::check() && Auth::user()->role_id == 2;
+        return $this->user()->hasRole('staff');
     }
 
     public function rules()

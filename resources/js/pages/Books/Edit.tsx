@@ -182,7 +182,7 @@ const translations = {
         shelfError: 'Please select a valid shelf.',
         shelfHelper: 'Select a shelf for the physical book.',
         campusPlaceholder: 'Select a campus',
-        campusError: 'Campus is required for physical books.',
+        campusError: 'Campuses is required for physical books.',
         campusHelper: 'Select the campus where the book is located.',
         files: 'Files',
         cover: 'Cover (portrait recommended)',

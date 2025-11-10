@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('book_loans', function (Blueprint $table) {
             $table->id();
             $table->date('return_date')->nullable();
+            $table->enum('status', ['processing', 'returned', 'canceled'])->default('processing');
+            $table->foreignId('campus_id')->nullable()->constrained('campuses')->onDelete('set null');
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('book_id')->nullable()->constrained('books')->onDelete('set null');
             $table->tinyInteger('is_deleted')->default(0);

@@ -14,6 +14,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { CheckCircle2Icon, X } from "lucide-react";
+import { translations } from "@/utils/translations/category/category-edit";
 
 interface Category {
     id: number;
@@ -27,40 +28,13 @@ interface CategoriesEditProps {
     lang?: "kh" | "en";
 }
 
-const translations = {
-    kh: {
-        title: "កែសម្រួលប្រភេទ",
-        categoryName: "ឈ្មោះប្រភេទ",
-        categoryNameTooltip: "កែសម្រួលឈ្មោះប្រភេទ",
-        categoryNamePlaceholder: "បញ្ចូលឈ្មោះប្រភេទ",
-        save: "រក្សាទុក",
-        saving: "កំពុងរក្សាទុក...",
-        saveTooltip: "រក្សាទុកការផ្លាស់ប្តូរទៅប្រភេទ",
-        cancel: "បោះបង់",
-        cancelTooltip: "ត្រឡប់ទៅបញ្ជីប្រភេទ",
-        error: "កំហុស",
-    },
-    en: {
-        title: "Edit Category",
-        categoryName: "Category Name",
-        categoryNameTooltip: "Edit the name of the category",
-        categoryNamePlaceholder: "Enter category name",
-        save: "Save",
-        saving: "Saving...",
-        saveTooltip: "Save changes to the category",
-        cancel: "Cancel",
-        cancelTooltip: "Return to the categories list",
-        error: "Error",
-    },
-};
-
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: "ប្រភេទ",
+        title: translations.kh.indexTitle,
         href: route("categories.index"),
     },
     {
-        title: "កែប្រែ",
+        title: translations.kh.editTitle,
         href: "",
     },
 ];
@@ -93,11 +67,11 @@ export default function CategoriesEdit({ category, lang = "kh" }: CategoriesEdit
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t.title} />
+            <Head title={t.editTitle} />
             <div className="min-h-screen p-6 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
                 <div className="max-w-1xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-8">
                     <h1 className="text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-8">
-                        {t.title}
+                        {t.editTitle}
                     </h1>
                     {showErrorAlert && Object.keys(errors).length > 0 && (
                         <Alert className="mb-6 bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-700 rounded-lg">
@@ -106,7 +80,7 @@ export default function CategoriesEdit({ category, lang = "kh" }: CategoriesEdit
                                     <CheckCircle2Icon className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
                                     <div>
                                         <AlertTitle className="text-red-600 dark:text-red-400 font-semibold">
-                                            {t.error}
+                                            {t.editError}
                                         </AlertTitle>
                                         <AlertDescription className="text-red-600 dark:text-red-400">
                                             {Object.values(errors).join(", ")}
@@ -129,7 +103,7 @@ export default function CategoriesEdit({ category, lang = "kh" }: CategoriesEdit
                                 htmlFor="name"
                                 className="text-sm font-medium text-gray-700 dark:text-gray-300"
                             >
-                                {t.categoryName}
+                                {t.editCategoryName}
                             </label>
                             <TooltipProvider>
                                 <Tooltip>
@@ -139,7 +113,7 @@ export default function CategoriesEdit({ category, lang = "kh" }: CategoriesEdit
                                             maxLength={100}
                                             value={data.name}
                                             onChange={(e) => setData("name", e.target.value)}
-                                            placeholder={t.categoryNamePlaceholder}
+                                            placeholder={t.editCategoryNamePlaceholder}
                                             className={`w-full px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border ${
                                                 errors.name
                                                     ? "border-red-500 dark:border-red-400"
@@ -151,7 +125,7 @@ export default function CategoriesEdit({ category, lang = "kh" }: CategoriesEdit
                                         />
                                     </TooltipTrigger>
                                     <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                        {t.categoryNameTooltip}
+                                        {t.editCategoryNameTooltip}
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
@@ -170,11 +144,11 @@ export default function CategoriesEdit({ category, lang = "kh" }: CategoriesEdit
                                             disabled={processing}
                                             className="bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 px-6 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105"
                                         >
-                                            {processing ? t.saving : t.save}
+                                            {processing ? t.editSaving : t.editSave}
                                         </Button>
                                     </TooltipTrigger>
                                     <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                        {t.saveTooltip}
+                                        {t.editSaveTooltip}
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
@@ -187,12 +161,12 @@ export default function CategoriesEdit({ category, lang = "kh" }: CategoriesEdit
                                                 className="bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-300 border-gray-300 dark:border-gray-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 px-6 py-2 rounded-lg transition-all duration-300 ease-in-out"
                                                 disabled={processing}
                                             >
-                                                {t.cancel}
+                                                {t.editCancel}
                                             </Button>
                                         </Link>
                                     </TooltipTrigger>
                                     <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                        {t.cancelTooltip}
+                                        {t.editCancelTooltip}
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>

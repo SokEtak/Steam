@@ -3,10 +3,25 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Campus extends Model
 {
-//    protected $fillable = ['name','code'];
+    protected $fillable = [
+        'school_id',
+        'name',
+        'code',
+        'address',
+        'contact',
+        'email',
+        'website',
+    ];
+
+
+    public function school(): BelongsTo
+    {
+        return $this->belongsTo(School::class);
+    }
 
     public function books()
     {

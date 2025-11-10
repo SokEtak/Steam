@@ -7,9 +7,13 @@ use App\Models\Bookcase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Illuminate\Http\RedirectResponse;
 
 class BookcaseController extends Controller
 {
+    /**
+     * Display a listing of bookcases.
+     */
     public function index()
     {
         $bookcases = Bookcase::forCurrentCampusWithBooks()->get();
@@ -19,25 +23,34 @@ class BookcaseController extends Controller
         ]);
     }
 
+    /**
+     * Show the form for creating a new bookcase.
+     */
     public function create()
     {
-        if ($redirect = $this->shouldRedirectIfNotStudent()) {
+        if ($redirect = $this->shouldRedirectIfNotStaff()) {
             return $redirect;
         }
 
         return Inertia::render('Bookcases/Create');
     }
 
-    public function store(StoreBookcaseRequest $request)
+    /**
+     * Store a newly created bookcase.
+     */
+    public function store(StoreBookcaseRequest $request): RedirectResponse
     {
         Bookcase::create($request->validated() + ['campus_id' => Auth::user()->campus_id]);
 
         return redirect()->route('bookcases.index')->with('message', 'Bookcase created successfully.');
     }
 
+    /**
+     * Display the specified bookcase.
+     */
     public function show(Bookcase $bookcase)
     {
-        if ($redirect = $this->shouldRedirectIfNotStudent()) {
+        if ($redirect = $this->shouldRedirectIfNotStaff()) {
             return $redirect;
         }
 
@@ -49,13 +62,16 @@ class BookcaseController extends Controller
         ]);
     }
 
+    /**
+     * Show the form for editing a bookcase.
+     */
     public function edit(Bookcase $bookcase)
     {
         if ($bookcase->campus_id !== Auth::user()->campus_id) {
             return abort(404, 'Not Found.');
         }
 
-        if ($redirect = $this->shouldRedirectIfNotStudent()) {
+        if ($redirect = $this->shouldRedirectIfNotStaff()) {
             return $redirect;
         }
 
@@ -65,7 +81,10 @@ class BookcaseController extends Controller
         ]);
     }
 
-    public function update(Request $request, Bookcase $bookcase)
+    /**
+     * Update the specified bookcase.
+     */
+    public function update(Request $request, Bookcase $bookcase): RedirectResponse
     {
         $bookcase->update($request->validate([
             'code' => 'required|string|max:255',
@@ -74,11 +93,12 @@ class BookcaseController extends Controller
         return redirect()->route('bookcases.index')->with('message', 'Bookcase updated successfully.');
     }
 
-    // 🔁 Reusable helper method
-
-    protected function shouldRedirectIfNotStudent()
+    /**
+     * Redirect if the user is not a staff member.
+     */
+    protected function shouldRedirectIfNotStaff(): ?RedirectResponse
     {
-        return Auth::check() && Auth::user()->role_id != 2
+        return Auth::check() && !Auth::user()->hasRole('staff')
             ? redirect()->route('bookcases.index')
             : null;
     }

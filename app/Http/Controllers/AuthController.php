@@ -29,16 +29,17 @@ class AuthController extends Controller
         // ⚠️ WARNING: Remove setHttpClient and the Guzzle import for production
         $googleUser = Socialite::driver('google')
             ->stateless()
-//            ->setHttpClient(new Client(['verify' => false]))
+            ->setHttpClient(new Client(['verify' => false]))
             ->user();
 
         $email = $googleUser->getEmail();
 
-//         Check if email domain matches @diu.edu.kh
+        // Check if email domain matches @diu.edu.kh
         if (!$email || !str_ends_with($email, '@diu.edu.kh')) {
             return response('⚠️ Danger: Only @diu.edu.kh emails are allowed!', 403);
         }
 
+        // Update or create user with Spatie pms assignment
         $user = User::updateOrCreate(
             ['google_id' => $googleUser->getId()],
             [
@@ -47,9 +48,13 @@ class AuthController extends Controller
                 'avatar' => $googleUser->getAvatar(),
                 'password' => Hash::make(Str::random(24)),
                 'campus_id' => 1,
-                'role_id' => 1,
             ]
         );
+
+        // Assign 'regular-user' pms if no roles are assigned
+        if (!$user->hasAnyRole(['regular-user', 'staff', 'admin'])) {
+            $user->assignRole('regular-user');
+        }
 
         Auth::login($user);
 

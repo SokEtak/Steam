@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('shelves', function (Blueprint $table) {
             $table->id();
             $table->string('code',10);
+            $table->foreignId('campus_id')->nullable()->constrained('campuses')->onDelete('set null');
+            $table->foreignId('bookcase_id')->constrained()->cascadeOnDelete();
         });
     }
 

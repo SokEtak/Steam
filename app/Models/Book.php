@@ -71,20 +71,19 @@ class Book extends Model
             'campus_id' => Auth::user()->campus_id,
         ]);
     }
-    // Scope for active base on role , campus , book type-used by ebook(global,local and admin)
+    // Scope for active base on pms , campus , book type-used by ebook(global,local and admin)
     public function scopeActive($query, $book_type, $scope = "local")
     {
         $conditions = [];
         $conditions['is_deleted'] = 0;
-        $role_id = Auth::user()->role_id;
 
-        // For role_id = 1, handle global and local scope
-        if ($role_id == 1 && $scope == 'local') {
+        // For regular, handle global and local scope
+        if (Auth::user()->hasAnyRole(['regular-user']) && $scope == 'local') {
             $conditions['campus_id'] = Auth::user()->campus_id;
         }
         //global no need to filter
 
-        if ($role_id == 2) {
+        if (Auth::user()->hasAnyRole(['staff'])) {
             if ($scope == 'local') {
                 $conditions['campus_id'] = Auth::user()->campus_id;
             }
@@ -107,7 +106,7 @@ class Book extends Model
         return $query->where($conditions)->select(self::$selectColumns);
     }
 
-//  Scope to fetch related books based on category or user.
+    //  Scope to fetch related books based on category or user.
     public function scopeRelatedBooks($query, Book $book)
     {
         return $query

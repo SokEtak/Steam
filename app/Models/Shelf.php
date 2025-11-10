@@ -10,22 +10,6 @@ class Shelf extends Model
     protected $fillable = ['code', 'campus_id', 'bookcase_id'];
     public $timestamps = false;
 
-    // Relationships
-    public function bookcase()
-    {
-        return $this->belongsTo(Bookcase::class);
-    }
-
-    public function books()
-    {
-        return $this->hasMany(Book::class, 'shelf_id');
-    }
-
-    public function campus()
-    {
-        return $this->belongsTo(Campus::class);
-    }
-
     // Scopes
     public function scopeForCurrentCampus($query)
     {
@@ -71,5 +55,21 @@ class Shelf extends Model
             'books as books_count' => fn($q) => $q->where('is_deleted', 0)
                 ->where('campus_id', Auth::user()->campus_id)
         ]);
+    }
+
+    // Relationships
+    public function bookcase()
+    {
+        return $this->belongsTo(Bookcase::class);
+    }
+
+    public function books()
+    {
+        return $this->hasMany(Book::class, 'shelf_id');
+    }
+
+    public function campus()
+    {
+        return $this->belongsTo(Campus::class);
     }
 }

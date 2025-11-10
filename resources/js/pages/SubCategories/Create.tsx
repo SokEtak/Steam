@@ -27,6 +27,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { CheckCircle2Icon, X, ChevronDown } from "lucide-react";
+import { translations } from "@/utils/translations/subcategory/subcategory-create";
 
 interface Category {
     id: number;
@@ -37,43 +38,6 @@ interface SubcategoriesCreateProps {
     categories: Category[];
     lang?: "kh" | "en";
 }
-
-const translations = {
-    kh: {
-        title: "បង្កើតប្រភេទរង",
-        subcategoryName: "ឈ្មោះប្រភេទរង",
-        subcategoryNameTooltip: "បញ្ចូលឈ្មោះប្រភេទរងថ្មី",
-        subcategoryNamePlaceholder: "បញ្ចូលឈ្មោះប្រភេទរង",
-        category: "ប្រភេទ",
-        categoryTooltip: "ស្វែងរក និងជ្រើសរើសប្រភេទមេសម្រាប់ប្រភេទរងនេះ",
-        categoryPlaceholder: "ជ្រើសរើសប្រភេទ",
-        categoryNone: "គ្មាន",
-        categoryEmpty: "រកមិនឃើញប្រភេទទេ",
-        create: "បង្កើត",
-        creating: "កំពុងបង្កើត...",
-        createTooltip: "រក្សាទុកប្រភេទរងថ្មី",
-        cancel: "បោះបង់",
-        cancelTooltip: "ត្រឡប់ទៅបញ្ជីប្រភេទរង",
-        error: "កំហុស",
-    },
-    en: {
-        title: "Create Subcategory",
-        subcategoryName: "Subcategory Name",
-        subcategoryNameTooltip: "Enter the name of the new subcategory",
-        subcategoryNamePlaceholder: "Enter subcategory name",
-        category: "Category",
-        categoryTooltip: "Search and select the parent category for this subcategory",
-        categoryPlaceholder: "Select a category",
-        categoryNone: "None",
-        categoryEmpty: "No categories found",
-        create: "Create",
-        creating: "Creating...",
-        createTooltip: "Save the new subcategory",
-        cancel: "Cancel",
-        cancelTooltip: "Return to the subcategories list",
-        error: "Error",
-    },
-};
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -214,7 +178,10 @@ export default function SubcategoriesCreate({ categories, lang = "kh" }: Subcate
                                                     <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                                                 </Button>
                                             </PopoverTrigger>
-                                            <PopoverContent className="w-full p-0 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg">
+                                            <PopoverContent className="w-full p-0 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg"
+                                                            side="bottom"
+                                                            align="start"
+                                                            sideOffset={2}>
                                                 <Command>
                                                     <CommandInput placeholder={t.categoryPlaceholder} className="h-10" />
                                                     <CommandList>

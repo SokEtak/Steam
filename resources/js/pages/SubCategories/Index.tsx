@@ -29,6 +29,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import DataTable from '@/components/DataTable';
+import { translations } from "@/utils/translations/subcategory/subcategory-index";
 
 interface Category {
     id: number;
@@ -49,6 +50,7 @@ interface SubcategoriesIndexProps {
         type?: "success" | "error";
     };
     isSuperLibrarian?: boolean;
+    lang?: "kh" | "en";
 }
 
 const commonStyles = {
@@ -62,18 +64,16 @@ const commonStyles = {
     tooltipBg: "bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl",
 };
 
-// NOTE: Assumes 'route' function is defined globally or imported elsewhere for Inertia.js routing
-// const route = (name: string, params?: any) => `/${name.replace(/\./g, '/')}/${params?.id || ''}`;
-
 const breadcrumbs = [
-    { title: "ប្រភេទរង", href: route("subcategories.index") },
+    { title: translations.kh.indexTitle, href: route("subcategories.index") },
 ];
 
 const getColumns = (
     processing: boolean,
     setSubcategoryToDelete: React.Dispatch<React.SetStateAction<Subcategory | null>>,
     setRowModalOpen: React.Dispatch<React.SetStateAction<boolean>>,
-    setSelectedRow: React.Dispatch<React.SetStateAction<Subcategory | null>>
+    setSelectedRow: React.Dispatch<React.SetStateAction<Subcategory | null>>,
+    t: typeof translations.kh
 ): ColumnDef<Subcategory>[] => [
     {
         id: "actions",
@@ -103,7 +103,6 @@ const getColumns = (
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        {/* View Action */}
                                         <DropdownMenuItem asChild>
                                             <Link href={route("subcategories.show", subcategory.id)} className="p-0">
                                                 <Button variant="ghost" className="h-4 w-4 p-0">
@@ -113,7 +112,7 @@ const getColumns = (
                                         </DropdownMenuItem>
                                     </TooltipTrigger>
                                     <TooltipContent side="right" align="center" className={commonStyles.tooltipBg}>
-                                        View Subcategory
+                                        {t.viewTooltip}
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
@@ -121,7 +120,6 @@ const getColumns = (
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        {/* Edit Action - Corrected missing closing tags */}
                                         <DropdownMenuItem asChild>
                                             <Link href={route("subcategories.edit", subcategory.id)} className="p-0">
                                                 <Button
@@ -135,7 +133,7 @@ const getColumns = (
                                         </DropdownMenuItem>
                                     </TooltipTrigger>
                                     <TooltipContent side="right" align="center" className={commonStyles.tooltipBg}>
-                                        Edit
+                                        {t.editTooltip}
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
@@ -143,13 +141,12 @@ const getColumns = (
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        {/* Delete Action - Wrapped in DropdownMenuItem for consistency */}
                                         <DropdownMenuItem asChild>
                                             <Button
                                                 variant="ghost"
                                                 className="h-4 w-4 p-0 text-red-600 dark:text-red-300"
                                                 onClick={(e) => {
-                                                    e.preventDefault(); // Prevent dropdown closing immediately
+                                                    e.preventDefault();
                                                     setSubcategoryToDelete(subcategory);
                                                 }}
                                                 disabled={processing}
@@ -159,7 +156,7 @@ const getColumns = (
                                         </DropdownMenuItem>
                                     </TooltipTrigger>
                                     <TooltipContent side="right" className={commonStyles.tooltipBg}>
-                                        Delete
+                                        {t.deleteTooltip}
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
@@ -177,7 +174,7 @@ const getColumns = (
                 onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                 className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
             >
-                លេខរៀង
+                {t.indexId}
                 {{
                     asc: <ArrowUp className="ml-2 h-4 w-4" />,
                     desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -198,7 +195,8 @@ const getColumns = (
             </button>
         ),
         filterFn: (row, id, value) => String(row.getValue(id) || "").toLowerCase().includes(String(value).toLowerCase()),
-    },{
+    },
+    {
         accessorKey: "name",
         header: ({ column }) => (
             <Button
@@ -206,7 +204,7 @@ const getColumns = (
                 onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                 className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
             >
-                ឈ្មោះប្រភេទរង
+                {t.indexName}
                 {{
                     asc: <ArrowUp className="ml-2 h-4 w-4" />,
                     desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -236,7 +234,7 @@ const getColumns = (
                 onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                 className={`${commonStyles.button} text-indigo-600 dark:text-indigo-300`}
             >
-                ឈ្មោះប្រភេទ
+                {t.indexCategory}
                 {{
                     asc: <ArrowUp className="ml-2 h-4 w-4" />,
                     desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -273,37 +271,38 @@ const getColumns = (
                                     </Link>
                                 </TooltipTrigger>
                                 <TooltipContent className={commonStyles.tooltipBg}>
-                                    Navigate to /categories/{category.id}
+                                    {t.indexCategoryTooltip}
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
                     ) : (
-                        <span className="text-red-500 dark:text-red-400 text-sm">N/A</span>
+                        <span className="text-red-500 dark:text-red-400 text-sm">{t.none}</span>
                     )}
                 </button>
             );
         },
         filterFn: (row, id, value) => {
-            const categoryName = row.original.category?.name || "N/A";
+            const categoryName = row.original.category?.name || t.none;
             return categoryName.toLowerCase().includes(String(value).toLowerCase());
         },
         sortingFn: (rowA, rowB) => {
-            const nameA = rowA.original.category?.name || "N/A";
-            const nameB = rowB.original.category?.name || "N/A";
+            const nameA = rowA.original.category?.name || t.none;
+            const nameB = rowB.original.category?.name || t.none;
             return nameA.localeCompare(nameB);
         },
     },
 ];
 
-export default function SubcategoriesIndex({ subcategories = [], flash, isSuperLibrarian = false }: SubcategoriesIndexProps) {
+export default function SubcategoriesIndex({ subcategories = [], flash, isSuperLibrarian = false, lang = "kh" }: SubcategoriesIndexProps) {
+    const t = translations[lang];
     const { processing } = useForm();
     const [subcategoryToDelete, setSubcategoryToDelete] = useState<Subcategory | null>(null);
     const [rowModalOpen, setRowModalOpen] = useState(false);
     const [selectedRow, setSelectedRow] = useState<Subcategory | null>(null);
 
     const columns = useMemo(
-        () => getColumns(processing, setSubcategoryToDelete, setRowModalOpen, setSelectedRow),
-        [processing]
+        () => getColumns(processing, setSubcategoryToDelete, setRowModalOpen, setSelectedRow, t),
+        [processing, t]
     );
 
     const globalFilterFn = (row: Row<Subcategory>, columnId: string, filterValue: string) => {
@@ -313,18 +312,18 @@ export default function SubcategoriesIndex({ subcategories = [], flash, isSuperL
         return (
             String(subcategory.id).includes(search) ||
             String(subcategory.name || "").toLowerCase().includes(search) ||
-            String(subcategory.category?.name || "N/A").toLowerCase().includes(search)
+            String(subcategory.category?.name || t.none).toLowerCase().includes(search)
         );
     };
 
     const modalFields = (item: Subcategory) => (
         <>
             <p>
-                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">Name:</strong>{" "}
+                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">{t.name}:</strong>{" "}
                 {item.name || "N/A"}
             </p>
             <p>
-                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">Category:</strong>{" "}
+                <strong className="font-semibold text-indigo-500 dark:text-indigo-300">{t.category}:</strong>{" "}
                 {item.category ? (
                     <Link
                         href={route("categories.show", item.category.id)}
@@ -334,7 +333,7 @@ export default function SubcategoriesIndex({ subcategories = [], flash, isSuperL
                         {item.category.name}
                     </Link>
                 ) : (
-                    "N/A"
+                    t.none
                 )}
             </p>
         </>
@@ -343,10 +342,10 @@ export default function SubcategoriesIndex({ subcategories = [], flash, isSuperL
     const tooltipFields = (item: Subcategory) => (
         <>
             <p>
-                <strong className="text-indigo-200">Name:</strong> {item.name || "N/A"}
+                <strong className="text-indigo-200">{t.name}:</strong> {item.name || "N/A"}
             </p>
             <p>
-                <strong className="text-indigo-200">Category:</strong> {item.category?.name || "N/A"}
+                <strong className="text-indigo-200">{t.category}:</strong> {item.category?.name || t.none}
             </p>
         </>
     );
@@ -356,7 +355,7 @@ export default function SubcategoriesIndex({ subcategories = [], flash, isSuperL
             data={subcategories}
             columns={columns}
             breadcrumbs={breadcrumbs}
-            title="Subcategories"
+            title={t.indexTitle}
             resourceName="subcategories"
             routes={{
                 index: route("subcategories.index"),

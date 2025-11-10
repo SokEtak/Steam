@@ -14,6 +14,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { CheckCircle2Icon, X } from "lucide-react";
+import { translations } from "@/utils/translations/bookcase";
 
 interface Bookcase {
     id: number;
@@ -27,46 +28,6 @@ interface BookcasesEditProps {
     };
     lang?: "kh" | "en";
 }
-
-const translations = {
-    kh: {
-        title: "កែសម្រួលទូសៀវភៅ",
-        bookcaseCode: "លេខកូដទូសៀវភៅ",
-        bookcaseCodeTooltip: "កែសម្រួលលេខកូដសម្រាប់ទូសៀវភៅ",
-        bookcaseCodePlaceholder: "បញ្ចូលលេខកូដទូសៀវភៅ",
-        update: "ធ្វើបច្ចុប្បន្នភាព",
-        updating: "កំពុងធ្វើបច្ចុប្បន្នភាព...",
-        updateTooltip: "រក្សាទុកការផ្លាស់ប្តូរទៅទូសៀវភៅ",
-        cancel: "បោះបង់",
-        cancelTooltip: "ត្រឡប់ទៅបញ្ជីទូសៀវភៅ",
-        error: "កំហុស",
-        notification: "ការជូនដំណឹង",
-    },
-    en: {
-        title: "Edit Bookcase",
-        bookcaseCode: "Bookcase Code",
-        bookcaseCodeTooltip: "Edit the code for the bookcase",
-        bookcaseCodePlaceholder: "Enter bookcase code",
-        update: "Update",
-        updating: "Updating...",
-        updateTooltip: "Save changes to the bookcase",
-        cancel: "Cancel",
-        cancelTooltip: "Return to the bookcases list",
-        error: "Error",
-        notification: "Notification",
-    },
-};
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: "ទូសៀវភៅ",
-        href: route("bookcases.index"),
-    },
-    {
-        title: "កែប្រែ",
-        href: "",
-    },
-];
 
 export default function BookcasesEdit({ bookcase, flash, lang = "kh" }: BookcasesEditProps) {
     const t = translations[lang];
@@ -96,13 +57,24 @@ export default function BookcasesEdit({ bookcase, flash, lang = "kh" }: Bookcase
     const handleCloseErrorAlert = () => setShowErrorAlert(false);
     const handleCloseSuccessAlert = () => setShowSuccessAlert(false);
 
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: t.indexTitle,
+            href: route("bookcases.index"),
+        },
+        {
+            title: t.editBreadcrumb,
+            href: "",
+        },
+    ];
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t.title} />
+            <Head title={t.editTitle} />
             <div className="min-h-screen p-6 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
                 <div className="max-w-1xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-8">
                     <h1 className="text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-8">
-                        {t.title}
+                        {t.editTitle}
                     </h1>
                     {showSuccessAlert && flash?.message && (
                         <Alert className="mb-6 bg-blue-50 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-700 rounded-lg">
@@ -111,7 +83,7 @@ export default function BookcasesEdit({ bookcase, flash, lang = "kh" }: Bookcase
                                     <CheckCircle2Icon className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                                     <div>
                                         <AlertTitle className="text-blue-600 dark:text-blue-400 font-semibold">
-                                            {t.notification}
+                                            {t.editNotification}
                                         </AlertTitle>
                                         <AlertDescription className="text-blue-600 dark:text-blue-400">
                                             {flash.message}
@@ -135,7 +107,7 @@ export default function BookcasesEdit({ bookcase, flash, lang = "kh" }: Bookcase
                                     <CheckCircle2Icon className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
                                     <div>
                                         <AlertTitle className="text-red-600 dark:text-red-400 font-semibold">
-                                            {t.error}
+                                            {t.editError}
                                         </AlertTitle>
                                         <AlertDescription className="text-red-600 dark:text-red-400">
                                             {Object.values(errors).join(", ")}
@@ -158,7 +130,7 @@ export default function BookcasesEdit({ bookcase, flash, lang = "kh" }: Bookcase
                                 htmlFor="code"
                                 className="text-sm font-medium text-gray-700 dark:text-gray-300"
                             >
-                                {t.bookcaseCode}
+                                {t.editBookcaseCode}
                             </label>
                             <TooltipProvider>
                                 <Tooltip>
@@ -168,7 +140,7 @@ export default function BookcasesEdit({ bookcase, flash, lang = "kh" }: Bookcase
                                             maxLength={10}
                                             value={data.code}
                                             onChange={(e) => setData("code", e.target.value)}
-                                            placeholder={t.bookcaseCodePlaceholder}
+                                            placeholder={t.editBookcaseCodePlaceholder}
                                             className={`w-full px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border ${
                                                 errors.code
                                                     ? "border-red-500 dark:border-red-400"
@@ -180,7 +152,7 @@ export default function BookcasesEdit({ bookcase, flash, lang = "kh" }: Bookcase
                                         />
                                     </TooltipTrigger>
                                     <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                        {t.bookcaseCodeTooltip}
+                                        {t.editBookcaseCodeTooltip}
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
@@ -199,11 +171,11 @@ export default function BookcasesEdit({ bookcase, flash, lang = "kh" }: Bookcase
                                             disabled={processing}
                                             className="bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 px-6 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105"
                                         >
-                                            {processing ? t.updating : t.update}
+                                            {processing ? t.editUpdating : t.editUpdate}
                                         </Button>
                                     </TooltipTrigger>
                                     <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                        {t.updateTooltip}
+                                        {t.editUpdateTooltip}
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
@@ -216,12 +188,12 @@ export default function BookcasesEdit({ bookcase, flash, lang = "kh" }: Bookcase
                                                 className="bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-300 border-gray-300 dark:border-gray-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 px-6 py-2 rounded-lg transition-all duration-300 ease-in-out"
                                                 disabled={processing}
                                             >
-                                                {t.cancel}
+                                                {t.editCancel}
                                             </Button>
                                         </Link>
                                     </TooltipTrigger>
                                     <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                        {t.cancelTooltip}
+                                        {t.editCancelTooltip}
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>

@@ -22,6 +22,19 @@ export default function Profile({ status }: { status?: string }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { recentlySuccessful } = useForm({});
 
+    // Map Spatie roles to display names
+    const roleDisplayMap: { [key: string]: string } = {
+        'regular-user': 'User',
+        'staff': 'Librarian',
+        'admin': 'Super Librarian',
+        'super-admin': 'Admin',
+    };
+
+    // Determine the display pms (show the first matching pms or 'Unknown')
+    const displayRole = auth.user && auth.user.roles.length > 0
+        ? roleDisplayMap[auth.user.roles[0]] || 'Unknown'
+        : 'Unknown';
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Profile settings" />
@@ -62,12 +75,10 @@ export default function Profile({ status }: { status?: string }) {
                                 </div>
                             )}
 
-                            {auth.user.role && (
-                                <div className="space-y-2">
-                                    <Label className="text-sm font-semibold text-gray-500 dark:text-gray-400">Role</Label>
-                                    <p className="text-xl font-bold text-gray-900 dark:text-white">{auth.user.role.name}</p>
-                                </div>
-                            )}
+                            <div className="space-y-2">
+                                <Label className="text-sm font-semibold text-gray-500 dark:text-gray-400">Role</Label>
+                                <p className="text-xl font-bold text-gray-900 dark:text-white">{displayRole}</p>
+                            </div>
                         </div>
 
                         {status === 'verification-link-sent' && (

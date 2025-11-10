@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle2Icon, Pencil, ArrowLeft, X } from "lucide-react";
+import { translations } from "@/utils/translations/shelf/shelf-show";
 
 interface Book {
     id: number;
@@ -42,52 +43,13 @@ interface ShelvesShowProps {
     lang?: "kh" | "en";
 }
 
-const translations = {
-    kh: {
-        title: "ព័ត៌មានលម្អិតនៃធ្នើរសៀវភៅ",
-        notification: "ការជូនដំណឹង",
-        id: "លេខសម្គាល់",
-        code: "លេខកូដ",
-        bookcase: "ទូសៀវភៅ",
-        bookcaseTooltip: "មើលព័ត៌មានលម្អិតនៃទូសៀវភៅ",
-        none: "គ្មាន",
-        booksInShelf: "សៀវភៅនៅក្នុងធ្នើរសៀវភៅ",
-        bookCount: (count: number) => `${count} សៀវភៅ${count === 1 ? "" : ""}`,
-        noBooks: "គ្មានសៀវភៅនៅក្នុងធ្នើរសៀវភៅនេះទេ។",
-        bookTooltip: "មើលព័ត៌មានសៀវភៅនេះ",
-        edit: "កែសម្រួល",
-        editTooltip: "កែសម្រួលធ្នើរសៀវភៅនេះ",
-        back: "ត្រឡប់",
-        backTooltip: "ត្រឡប់ទៅបញ្ជីធ្នើរសៀវភៅ",
-        na: "គ្មាន",
-    },
-    en: {
-        title: "Shelf Details",
-        notification: "Notification",
-        id: "ID",
-        code: "Code",
-        bookcase: "Bookcase",
-        bookcaseTooltip: "View bookcase details",
-        none: "None",
-        booksInShelf: "Books in This Shelf",
-        bookCount: (count: number) => `${count} Book${count === 1 ? "" : "s"}`,
-        noBooks: "No books in this shelf.",
-        bookTooltip: "View this book information",
-        edit: "Edit",
-        editTooltip: "Edit this shelf",
-        back: "Back",
-        backTooltip: "Return to the shelves list",
-        na: "N/A",
-    },
-};
-
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: "ធ្នើរសៀវភៅ",
+        title: translations.kh.indexTitle,
         href: route("shelves.index"),
     },
     {
-        title: "ព័ត៌មានលម្អិត",
+        title: translations.kh.showTitle,
         href: "",
     },
 ];
@@ -109,11 +71,11 @@ export default function ShelvesShow({ shelf, flash, lang = "kh" }: ShelvesShowPr
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`${t.title}: ${shelf.code || t.na}`} />
+            <Head title={`${t.showTitle}: ${shelf.code || t.showNa}`} />
             <div className="min-h-screen p-6 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
                 <div className="max-w-1xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-8">
                     <h1 className="text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-8">
-                        {t.title}
+                        {t.showTitle}
                     </h1>
                     {showAlert && flash.message && (
                         <Alert className="mb-6 bg-blue-50 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-700 rounded-lg">
@@ -122,7 +84,7 @@ export default function ShelvesShow({ shelf, flash, lang = "kh" }: ShelvesShowPr
                                     <CheckCircle2Icon className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                                     <div>
                                         <AlertTitle className="text-blue-600 dark:text-blue-400 font-semibold">
-                                            {t.notification}
+                                            {t.showNotification}
                                         </AlertTitle>
                                         <AlertDescription className="text-blue-600 dark:text-blue-400">
                                             {flash.message}
@@ -143,36 +105,36 @@ export default function ShelvesShow({ shelf, flash, lang = "kh" }: ShelvesShowPr
                     <div className="space-y-6">
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                {t.id}
+                                {t.showId}
                             </label>
                             <p
                                 className="px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border border-gray-300 dark:border-gray-600 transition-all duration-300"
-                                aria-label={`${t.id}: ${shelf.id}`}
+                                aria-label={`${t.showId}: ${shelf.id}`}
                             >
                                 {shelf.id}
                             </p>
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                {t.code}
+                                {t.showCode}
                             </label>
                             <p
                                 className="px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border border-gray-300 dark:border-gray-600 transition-all duration-300"
-                                aria-label={`${t.code}: ${shelf.code || t.na}`}
+                                aria-label={`${t.showCode}: ${shelf.code || t.showNa}`}
                             >
-                                {shelf.code || t.na}
+                                {shelf.code || t.showNa}
                             </p>
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                {t.bookcase}
+                                {t.showBookcase}
                             </label>
                             <p
                                 className="px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border border-gray-300 dark:border-gray-600 transition-all duration-300"
                                 aria-label={
                                     shelf.bookcase
-                                        ? `${t.bookcase}: ${shelf.bookcase.code}`
-                                        : `${t.bookcase}: ${t.none}`
+                                        ? `${t.showBookcase}: ${shelf.bookcase.code}`
+                                        : `${t.showBookcase}: ${t.showNone}`
                                 }
                             >
                                 {shelf.bookcase ? (
@@ -187,23 +149,23 @@ export default function ShelvesShow({ shelf, flash, lang = "kh" }: ShelvesShowPr
                                                 </Link>
                                             </TooltipTrigger>
                                             <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                                {t.bookcaseTooltip}
+                                                {t.showBookcaseTooltip}
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
                                 ) : (
-                                    <span className="text-gray-500 dark:text-gray-400">{t.none}</span>
+                                    <span className="text-gray-500 dark:text-gray-400">{t.showNone}</span>
                                 )}
                             </p>
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                {t.booksInShelf}
+                                {t.showBooksInShelf}
                             </label>
                             <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                                 <CardContent className="max-h-64 overflow-y-auto p-4">
                                     <h3 className="text-sm font-semibold text-indigo-600 dark:text-indigo-300 mb-2">
-                                        {t.bookCount(shelf.books?.length || 0)}
+                                        {t.showBookCount(shelf.books?.length || 0)}
                                     </h3>
                                     {shelf.books && shelf.books.length > 0 ? (
                                         <ol className="list-decimal list-inside text-sm text-gray-700 dark:text-gray-200 space-y-1">
@@ -221,7 +183,7 @@ export default function ShelvesShow({ shelf, flash, lang = "kh" }: ShelvesShowPr
                                                                 </Link>
                                                             </TooltipTrigger>
                                                             <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                                                {t.bookTooltip}
+                                                                {t.showBookTooltip}
                                                             </TooltipContent>
                                                         </Tooltip>
                                                     </TooltipProvider>
@@ -239,7 +201,7 @@ export default function ShelvesShow({ shelf, flash, lang = "kh" }: ShelvesShowPr
                                         </ol>
                                     ) : (
                                         <p className="text-sm text-gray-600 dark:text-gray-300">
-                                            {t.noBooks}
+                                            {t.showNoBooks}
                                         </p>
                                     )}
                                 </CardContent>
@@ -257,12 +219,12 @@ export default function ShelvesShow({ shelf, flash, lang = "kh" }: ShelvesShowPr
                                             aria-label="Edit shelf"
                                         >
                                             <Pencil className="h-4 w-4 mr-2" />
-                                            {t.edit}
+                                            {t.showEdit}
                                         </Button>
                                     </Link>
                                 </TooltipTrigger>
                                 <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                    {t.editTooltip}
+                                    {t.showEditTooltip}
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
@@ -277,12 +239,12 @@ export default function ShelvesShow({ shelf, flash, lang = "kh" }: ShelvesShowPr
                                             aria-label="Return to shelves list"
                                         >
                                             <ArrowLeft className="h-4 w-4 mr-2" />
-                                            {t.back}
+                                            {t.showBack}
                                         </Button>
                                     </Link>
                                 </TooltipTrigger>
                                 <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                    {t.backTooltip}
+                                    {t.showBackTooltip}
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>

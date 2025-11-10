@@ -1,14 +1,10 @@
 <?php
 
-use App\Http\Controllers\api\BookController;
+use App\Models\Campus;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
-
-use App\Http\Controllers\Api\CategoryApiController;
-
-Route::apiResource('categories', CategoryApiController::class);
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -30,11 +26,7 @@ Route::post('/login', function (Request $request) {
 });
 
 Route::middleware('auth:sanctum')->post('/logout', function (Request $request) {
-//    dd('logout');
     $request->user()->currentAccessToken()->delete();
     return ['message' => 'Logged out'];
 });
 
-//60 request per minute
-Route::middleware('throttle:60,1')->apiResource('/library/v1/books',BookController::class );
-//Route::apiResource('/v1/users',UserController::class );

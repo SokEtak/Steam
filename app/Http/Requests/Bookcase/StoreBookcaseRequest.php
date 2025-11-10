@@ -9,7 +9,7 @@ class StoreBookcaseRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return Auth::check() && Auth::user()->role_id == 2;
+        return Auth::check() && Auth::user()->hasRole('staff');
     }
 
     public function rules(): array

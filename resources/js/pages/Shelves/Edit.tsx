@@ -27,6 +27,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { CheckCircle2Icon, X, ChevronDown } from "lucide-react";
+import { translations } from "@/utils/translations/shelf/shelf-edit";
 
 interface Bookcase {
     id: number;
@@ -48,52 +49,13 @@ interface ShelvesEditProps {
     lang?: "kh" | "en";
 }
 
-const translations = {
-    kh: {
-        title: "កែសម្រួលធ្នើរសៀវភៅ",
-        shelfCode: "លេខកូដធ្នើរសៀវភៅ",
-        shelfCodeTooltip: "កែសម្រួលលេខកូដសម្រាប់ធ្នើរសៀវភៅ",
-        shelfCodePlaceholder: "បញ្ចូលលេខកូដធ្នើរសៀវភៅ",
-        bookcase: "ទូសៀវភៅ",
-        bookcaseTooltip: "ស្វែងរក និងជ្រើសរើសទូសៀវភៅសម្រាប់ធ្នើរនេះ",
-        bookcasePlaceholder: "ជ្រើសរើសទូសៀវភៅ",
-        bookcaseNone: "គ្មាន",
-        bookcaseEmpty: "រកមិនឃើញទូសៀវភៅទេ",
-        update: "ធ្វើបច្ចុប្បន្នភាព",
-        updating: "កំពុងធ្វើបច្ចុប្បន្នភាព...",
-        updateTooltip: "រក្សាទុកការផ្លាស់ប្តូរទៅធ្នើរសៀវភៅ",
-        cancel: "បោះបង់",
-        cancelTooltip: "ត្រឡប់ទៅបញ្ជីធ្នើរសៀវភៅ",
-        error: "កំហុស",
-        notification: "ការជូនដំណឹង",
-    },
-    en: {
-        title: "Edit Shelf",
-        shelfCode: "Shelf Code",
-        shelfCodeTooltip: "Edit the code for the shelf",
-        shelfCodePlaceholder: "Enter shelf code",
-        bookcase: "Bookcase",
-        bookcaseTooltip: "Search and select the bookcase for this shelf",
-        bookcasePlaceholder: "Select a bookcase",
-        bookcaseNone: "None",
-        bookcaseEmpty: "No bookcases found",
-        update: "Update",
-        updating: "Updating...",
-        updateTooltip: "Save changes to the shelf",
-        cancel: "Cancel",
-        cancelTooltip: "Return to the shelves list",
-        error: "Error",
-        notification: "Notification",
-    },
-};
-
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: "ធ្នើរសៀវភៅ",
+        title: translations.kh.indexTitle,
         href: route("shelves.index"),
     },
     {
-        title: "កែប្រែ",
+        title: translations.kh.editTitle,
         href: "",
     },
 ];
@@ -130,11 +92,11 @@ export default function ShelvesEdit({ shelf, bookcases, flash, lang = "kh" }: Sh
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t.title} />
+            <Head title={t.editTitle} />
             <div className="min-h-screen p-6 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
                 <div className="max-w-1xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-8">
                     <h1 className="text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-8">
-                        {t.title}
+                        {t.editTitle}
                     </h1>
                     {showSuccessAlert && flash?.message && (
                         <Alert className="mb-6 bg-blue-50 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-700 rounded-lg">
@@ -143,7 +105,7 @@ export default function ShelvesEdit({ shelf, bookcases, flash, lang = "kh" }: Sh
                                     <CheckCircle2Icon className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                                     <div>
                                         <AlertTitle className="text-blue-600 dark:text-blue-400 font-semibold">
-                                            {t.notification}
+                                            {t.editNotification}
                                         </AlertTitle>
                                         <AlertDescription className="text-blue-600 dark:text-blue-400">
                                             {flash.message}
@@ -167,7 +129,7 @@ export default function ShelvesEdit({ shelf, bookcases, flash, lang = "kh" }: Sh
                                     <CheckCircle2Icon className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
                                     <div>
                                         <AlertTitle className="text-red-600 dark:text-red-400 font-semibold">
-                                            {t.error}
+                                            {t.editError}
                                         </AlertTitle>
                                         <AlertDescription className="text-red-600 dark:text-red-400">
                                             {Object.values(errors).join(", ")}
@@ -190,7 +152,7 @@ export default function ShelvesEdit({ shelf, bookcases, flash, lang = "kh" }: Sh
                                 htmlFor="code"
                                 className="text-sm font-medium text-gray-700 dark:text-gray-300"
                             >
-                                {t.shelfCode}
+                                {t.editShelfCode}
                             </label>
                             <TooltipProvider>
                                 <Tooltip>
@@ -200,7 +162,7 @@ export default function ShelvesEdit({ shelf, bookcases, flash, lang = "kh" }: Sh
                                             maxLength={10}
                                             value={data.code}
                                             onChange={(e) => setData("code", e.target.value)}
-                                            placeholder={t.shelfCodePlaceholder}
+                                            placeholder={t.editShelfCodePlaceholder}
                                             className={`w-full px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border ${
                                                 errors.code
                                                     ? "border-red-500 dark:border-red-400"
@@ -212,7 +174,7 @@ export default function ShelvesEdit({ shelf, bookcases, flash, lang = "kh" }: Sh
                                         />
                                     </TooltipTrigger>
                                     <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                        {t.shelfCodeTooltip}
+                                        {t.editShelfCodeTooltip}
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
@@ -227,7 +189,7 @@ export default function ShelvesEdit({ shelf, bookcases, flash, lang = "kh" }: Sh
                                 htmlFor="bookcase_id"
                                 className="text-sm font-medium text-gray-700 dark:text-gray-300"
                             >
-                                {t.bookcase}
+                                {t.editBookcase}
                             </label>
                             <TooltipProvider>
                                 <Tooltip>
@@ -247,15 +209,18 @@ export default function ShelvesEdit({ shelf, bookcases, flash, lang = "kh" }: Sh
                                                 >
                                                     {data.bookcase_id !== "none"
                                                         ? bookcases.find((bookcase) => bookcase.id.toString() === data.bookcase_id)?.code
-                                                        : t.bookcasePlaceholder}
+                                                        : t.editBookcasePlaceholder}
                                                     <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                                                 </Button>
                                             </PopoverTrigger>
-                                            <PopoverContent className="w-full p-0 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg">
+                                            <PopoverContent className="w-full p-0 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg"
+                                                            side="bottom"
+                                                            align="start"
+                                                            sideOffset={2}>
                                                 <Command>
-                                                    <CommandInput placeholder={t.bookcasePlaceholder} className="h-10" />
+                                                    <CommandInput placeholder={t.editBookcasePlaceholder} className="h-10" />
                                                     <CommandList>
-                                                        <CommandEmpty>{t.bookcaseEmpty}</CommandEmpty>
+                                                        <CommandEmpty>{t.editBookcaseEmpty}</CommandEmpty>
                                                         <CommandGroup>
                                                             <CommandItem
                                                                 value="none"
@@ -264,7 +229,7 @@ export default function ShelvesEdit({ shelf, bookcases, flash, lang = "kh" }: Sh
                                                                     setOpenBookcase(false);
                                                                 }}
                                                             >
-                                                                {t.bookcaseNone}
+                                                                {t.editBookcaseNone}
                                                             </CommandItem>
                                                             {bookcases.map((bookcase) => (
                                                                 <CommandItem
@@ -285,7 +250,7 @@ export default function ShelvesEdit({ shelf, bookcases, flash, lang = "kh" }: Sh
                                         </Popover>
                                     </TooltipTrigger>
                                     <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                        {t.bookcaseTooltip}
+                                        {t.editBookcaseTooltip}
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
@@ -304,11 +269,11 @@ export default function ShelvesEdit({ shelf, bookcases, flash, lang = "kh" }: Sh
                                             disabled={processing}
                                             className="bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 px-6 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105"
                                         >
-                                            {processing ? t.updating : t.update}
+                                            {processing ? t.editUpdating : t.editUpdate}
                                         </Button>
                                     </TooltipTrigger>
                                     <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                        {t.updateTooltip}
+                                        {t.editUpdateTooltip}
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
@@ -321,12 +286,12 @@ export default function ShelvesEdit({ shelf, bookcases, flash, lang = "kh" }: Sh
                                                 className="bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-300 border-gray-300 dark:border-gray-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 px-6 py-2 rounded-lg transition-all duration-300 ease-in-out"
                                                 disabled={processing}
                                             >
-                                                {t.cancel}
+                                                {t.editCancel}
                                             </Button>
                                         </Link>
                                     </TooltipTrigger>
                                     <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                        {t.cancelTooltip}
+                                        {t.editCancelTooltip}
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>

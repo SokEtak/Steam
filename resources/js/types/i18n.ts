@@ -7,8 +7,8 @@ const resources = {
     en: {
         translation: {
             "programSelection": "Program Selection",
-            "selectProgramAndCampus": "Select Program & Campus Of Your Childrens",
-            "chooseCampus": "Choose Campus",
+            "selectProgramAndCampus": "Select Program & Campuses Of Your Childrens",
+            "chooseCampus": "Choose Campuses",
             "selectACampus": "Select a campus",
             "chooseProgram": "Choose Program",
             "selectAProgram": "Select a program",

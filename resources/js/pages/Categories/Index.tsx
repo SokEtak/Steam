@@ -6,7 +6,6 @@ import { Link, useForm, usePage } from '@inertiajs/react';
 import {
     EyeIcon,
     PencilIcon,
-    TrashIcon,
     MoreHorizontal,
     ArrowUpDown,
     ArrowUp,
@@ -14,7 +13,6 @@ import {
 } from 'lucide-react';
 import {
     ColumnDef,
-    flexRender,
 } from "@tanstack/react-table";
 import {
     Tooltip,
@@ -28,6 +26,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import DataTable from '@/components/DataTable';
+import { translations } from "@/utils/translations/category/category-index";
 
 interface Category {
     id: number;
@@ -41,17 +40,19 @@ interface PageProps {
     flash: {
         message?: string;
     };
+    lang?: "kh" | "en";
 }
 
 const breadcrumbs = [
-    { title: "ប្រភេទ", href: route("categories.index") },
+    { title: translations.kh.indexTitle, href: route("categories.index") },
 ];
 
 const getColumns = (
     setCategoryToDelete: React.Dispatch<React.SetStateAction<Category | null>>,
     processing: boolean,
     setRowModalOpen: React.Dispatch<React.SetStateAction<boolean>>,
-    setSelectedRow: React.Dispatch<React.SetStateAction<Category | null>>
+    setSelectedRow: React.Dispatch<React.SetStateAction<Category | null>>,
+    t: typeof translations.kh
 ): ColumnDef<Category>[] => {
     return [
         {
@@ -81,7 +82,7 @@ const getColumns = (
                                             </Link>
                                         </TooltipTrigger>
                                         <TooltipContent side="right" className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
-                                            View Category
+                                            {t.viewTooltip}
                                         </TooltipContent>
                                     </Tooltip>
                                     <Tooltip>
@@ -93,7 +94,7 @@ const getColumns = (
                                             </Link>
                                         </TooltipTrigger>
                                         <TooltipContent side="right" className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
-                                            Edit
+                                            {t.editTooltip}
                                         </TooltipContent>
                                     </Tooltip>
                                 </div>
@@ -114,7 +115,7 @@ const getColumns = (
                     }}
                     className="text-indigo-600 dark:text-indigo-300 text-sm"
                 >
-                    លេខរៀង
+                    {t.indexId}
                     {{
                         asc: <ArrowUp className="ml-2 h-4 w-4" />,
                         desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -146,7 +147,7 @@ const getColumns = (
                     }}
                     className="text-indigo-600 dark:text-indigo-300 text-sm"
                 >
-                    ឈ្មោះប្រភេទ
+                    {t.indexName}
                     {{
                         asc: <ArrowUp className="ml-2 h-4 w-4" />,
                         desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -178,7 +179,7 @@ const getColumns = (
                     }}
                     className="text-indigo-600 dark:text-indigo-300 text-sm"
                 >
-                    ធ្វើឡើងនៅ
+                    {t.indexCreatedAt}
                     {{
                         asc: <ArrowUp className="ml-2 h-4 w-4" />,
                         desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -211,7 +212,7 @@ const getColumns = (
                     }}
                     className="text-indigo-600 dark:text-indigo-300 text-sm"
                 >
-                    កែប្រែចុងក្រោយ
+                    {t.indexUpdatedAt}
                     {{
                         asc: <ArrowUp className="ml-2 h-4 w-4" />,
                         desc: <ArrowDown className="ml-2 h-4 w-4" />,
@@ -236,21 +237,22 @@ const getColumns = (
     ];
 };
 
-export default function CategoriesIndex() {
+export default function CategoriesIndex({ lang = "kh" }: { lang?: "kh" | "en" }) {
+    const t = translations[lang];
     const { categories, flash } = usePage<PageProps>().props;
     const { processing } = useForm();
     const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
     const [rowModalOpen, setRowModalOpen] = useState(false);
     const [selectedRow, setSelectedRow] = useState<Category | null>(null);
 
-    const columns = getColumns(setCategoryToDelete, processing, setRowModalOpen, setSelectedRow);
+    const columns = getColumns(setCategoryToDelete, processing, setRowModalOpen, setSelectedRow, t);
 
     return (
         <DataTable
             data={categories}
             columns={columns}
             breadcrumbs={breadcrumbs}
-            title="List of Categories"
+            title={t.indexTitle}
             resourceName="categories"
             routes={{
                 index: route("categories.index"),

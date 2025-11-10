@@ -43,8 +43,14 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
-            'auth' => [
-                'user' => $request->user(),
+            'auth' => [ // Use 'auth' to match your frontend
+                'user' => $request->user() ? [
+                    'id' => $request->user()->id,
+                    'name' => $request->user()->name,
+                    'email' => $request->user()->email,
+                    'roles' => $request->user()->getRoleNames()->toArray(), // Spatie roles
+                    'permissions' => $request->user()->getAllPermissions()->pluck('name')->toArray(), // Spatie permissions
+                ] : null,
             ],
             // ✅ Flash messages
             'flash' => [

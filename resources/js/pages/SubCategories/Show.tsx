@@ -13,6 +13,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { CheckCircle2Icon, Pencil, ArrowLeft, X } from "lucide-react";
+import { translations } from "@/utils/translations/subcategory/subcategory-show";
 
 interface Category {
     id: number;
@@ -32,35 +33,6 @@ interface SubcategoriesShowProps {
     };
     lang?: "kh" | "en";
 }
-
-const translations = {
-    kh: {
-        title: "ព័ត៌មានលម្អិតនៃប្រភេទរង",
-        notification: "ការជូនដំណឹង",
-        id: "លេខសម្គាល់",
-        name: "ឈ្មោះ",
-        category: "ប្រភេទ",
-        categoryTooltip: "មើលព័ត៌មានលម្អិតនៃប្រភេទ",
-        none: "គ្មាន",
-        edit: "កែសម្រួល",
-        editTooltip: "កែសម្រួលប្រភេទរងនេះ",
-        back: "ត្រឡប់",
-        backTooltip: "ត្រឡប់ទៅបញ្ជីប្រភេទរង",
-    },
-    en: {
-        title: "Subcategory Details",
-        notification: "Notification",
-        id: "ID",
-        name: "Name",
-        category: "Category",
-        categoryTooltip: "View category details",
-        none: "None",
-        edit: "Edit",
-        editTooltip: "Edit this subcategory",
-        back: "Back",
-        backTooltip: "Return to the subcategories list",
-    },
-};
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -86,11 +58,11 @@ export default function SubcategoriesShow({ subcategory, flash, lang = "kh" }: S
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`${t.title}: ${subcategory.name}`} />
+            <Head title={`${t.showTitle}: ${subcategory.name}`} />
             <div className="min-h-screen p-6 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
                 <div className="max-w-1xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-8">
                     <h1 className="text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-8">
-                        {t.title}
+                        {t.showTitle}
                     </h1>
                     {showAlert && flash.message && (
                         <Alert className="mb-6 bg-blue-50 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-700 rounded-lg">
@@ -163,7 +135,7 @@ export default function SubcategoriesShow({ subcategory, flash, lang = "kh" }: S
                                                 </Link>
                                             </TooltipTrigger>
                                             <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                                {t.categoryTooltip}
+                                                {t.showCategoryTooltip}
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
@@ -192,23 +164,6 @@ export default function SubcategoriesShow({ subcategory, flash, lang = "kh" }: S
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
-                        {/* <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        className="bg-red-600 text-white hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 px-6 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105"
-                                        onClick={() => setShowDeleteDialog(true)}
-                                        disabled={processing}
-                                    >
-                                        <Trash className="h-4 w-4 mr-2" />
-                                        {t.delete}
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                    {t.deleteTooltip}
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider> */}
                         <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild>

@@ -1,0 +1,118 @@
+export const translations = {
+    en: {
+        // Index
+        indexTitle: "Asset Sub-Categories",
+        indexId: "ID",
+        indexName: "Name",
+        indexCategory: "Category",
+        indexSearch: "Search",
+        indexSearchPlaceholder: "Search by name...",
+        indexCategoryPlaceholder: "All Categories",
+        indexAllCategories: "All Categories",
+        indexViewTooltip: "View",
+        indexEditTooltip: "Edit",
+        indexDeleteTooltip: "Delete",
+        indexDeleteConfirm: "Are you sure you want to delete this sub-category?",
+        indexNoData: "No sub-categories found.",
+
+        // Create
+        createTitle: "Create Sub-Category",
+        createBreadcrumb: "Create",
+        createCategory: "Category",
+        createCategoryPlaceholder: "Select a category...",
+        createCategoryEmpty: "No categories found.",
+        createCategoryNoMatch: "No category found.", // <-- Added
+        createName: "Sub-Category Name",
+        createNamePlaceholder: "e.g., Laptop Accessories",
+        createCreate: "Create",
+        createCreating: "Creating...",
+        createCancel: "Cancel",
+        createNotification: "Success", // <-- Added
+        createError: "Validation Error", // <-- Added
+
+        // Edit
+        editTitle: "Edit Sub-Category",
+        editBreadcrumb: "Edit",
+        editCategory: "Category",
+        editCategoryPlaceholder: "Select a category...",
+        editCategoryEmpty: "No categories found.",
+        editCategoryNoMatch: "No category found.", // <-- Added
+        editName: "Sub-Category Name",
+        editNamePlaceholder: "e.g., Laptop Accessories",
+        editUpdate: "Update",
+        editUpdating: "Updating...",
+        editCancel: "Cancel",
+        editNotification: "Success", // <-- Added
+        editError: "Validation Error", // <-- Added
+
+        // Show
+        showTitle: "View Sub-Category",
+        showId: "ID",
+        showName: "Name",
+        showCategory: "Category",
+        showCreated: "Created At",
+        showUpdated: "Updated At",
+        showEdit: "Edit",
+        showBack: "Back",
+        showEditTooltip: "Edit this sub-category",
+        showBackTooltip: "Back to list",
+    },
+    kh: {
+        // Index
+        indexTitle: "ប្រភេទរងទ្រព្យ",
+        indexId: "លេខសម្គាល់",
+        indexName: "ឈ្មោះ",
+        indexCategory: "ប្រភេទ",
+        indexSearch: "ស្វែងរក",
+        indexSearchPlaceholder: "ស្វែងរកតាមឈ្មោះ...",
+        indexCategoryPlaceholder: "ប្រភេទទាំងអស់",
+        indexAllCategories: "ប្រភេទទាំងអស់",
+        indexViewTooltip: "មើល",
+        indexEditTooltip: "កែ",
+        indexDeleteTooltip: "លុប",
+        indexDeleteConfirm: "តើអ្នកប្រាកដជាចង់លុបប្រភេទរងនេះមែនទេ?",
+        indexNoData: "រកមិនឃើញប្រភេទរង។",
+
+        // Create
+        createTitle: "បង្កើតប្រភេទរង",
+        createBreadcrumb: "បង្កើត",
+        createCategory: "ប្រភេទ",
+        createCategoryPlaceholder: "ជ្រើសរើសប្រភេទ...",
+        createCategoryEmpty: "រកមិនឃើញប្រភេទ។",
+        createCategoryNoMatch: "រកមិនឃើញប្រភេទ។", // <-- Added
+        createName: "ឈ្មោះប្រភេទរង",
+        createNamePlaceholder: "ឧ. គ្រឿងបន្លាស់កុំព្យូទ័រ",
+        createCreate: "បង្កើត",
+        createCreating: "កំពុងបង្កើត...",
+        createCancel: "បោះបង់",
+        createNotification: "ជោគជ័យ", // <-- Added
+        createError: "កំហុសក្នុងការបញ្ជាក់", // <-- Added
+
+        // Edit
+        editTitle: "កែប្រភេទរង",
+        editBreadcrumb: "កែ",
+        editCategory: "ប្រភេទ",
+        editCategoryPlaceholder: "ជ្រើសរើសប្រភេទ...",
+        editCategoryEmpty: "រកមិនឃើញប្រភេទ។",
+        editCategoryNoMatch: "រកមិនឃើញប្រភេទ។",
+        editName: "ឈ្មោះប្រភេទរង",
+        editNamePlaceholder: "ឧ. គ្រឿងបន្លាស់កុំព្យូទ័រ",
+        editUpdate: "កែ",
+        editUpdating: "កំពុងកែ...",
+        editCancel: "បោះបង់",
+        editNotification: "ជោគជ័យ",
+        editError: "កំហុសក្នុងការបញ្ជាក់",
+
+        // Show
+        showTitle: "មើលប្រភេទរង",
+        showId: "លេខសម្គាល់",
+        showName: "ឈ្មោះ",
+        showCategory: "ប្រភេទ",
+        showCreated: "បង្កើតនៅ",
+        showUpdated: "កែចុងក្រោយ",
+        showEdit: "កែ",
+        showBack: "ត្រឡប់",
+        showEditTooltip: "កែប្រភេទរងនេះ",
+        showBackTooltip: "ត្រឡប់ទៅបញ្ជី",
+    },
+};

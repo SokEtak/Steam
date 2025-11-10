@@ -705,71 +705,71 @@
                 enableSorting: false,
                 enableHiding: true,
             },
-            ...(isSuperLibrarian
-                ? [
-                    {
-                        accessorKey: 'Posted By',
-                        header: ({ column }) => {
-                            const filterValue = (column.getFilterValue() || '') as string;
-                            const [isPostedByDropdownOpen, setIsPostedByDropdownOpen] = useState(false);
-
-                            return (
-                                <div className="flex items-center space-x-2">
-                                    ចែកចាយដោយ
-                                    <DropdownMenu open={isPostedByDropdownOpen} onOpenChange={setIsPostedByDropdownOpen}>
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 data-[state=open]:bg-accent">
-                                                            {/*<FilterIcon className={`h-4 w-4 ${filterValue ? 'text-blue-500' : 'text-gray-400'}`} />*/}
-                                                            <span className="sr-only">Open filter menu</span>
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                </TooltipTrigger>
-                                                <TooltipContent>Filter by Posted By</TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
-                                        <DropdownMenuContent align="start" className="w-[180px] p-2">
-                                            <Select
-                                                value={filterValue}
-                                                onValueChange={(value) => {
-                                                    column.setFilterValue(value === 'All' ? '' : value);
-                                                    setIsPostedByDropdownOpen(false);
-                                                }}
-                                            >
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder="Select User" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="All">All Users</SelectItem>
-                                                    {availableUsers.map((userName) => (
-                                                        <SelectItem key={userName} value={userName}>
-                                                            {userName}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </div>
-                            );
-                        },
-                        cell: ({ row }) => <div className="px-3">{row.original.user?.name || 'N/A'}</div>,
-                        filterFn: (row, columnId, filterValue) => {
-                            const userName = row.original.user?.name?.toLowerCase() || '';
-                            return filterValue === '' || userName.includes(String(filterValue).toLowerCase());
-                        },
-                        sortingFn: (rowA, rowB) => {
-                            const nameA = rowA.original.user?.name?.toLowerCase() || '';
-                            const nameB = rowB.original.user?.name?.toLowerCase() || '';
-                            return nameA.localeCompare(nameB);
-                        },
-                        enableSorting: true,
-                        enableHiding: true,
-                    },
-                ]
-                : []),
+            // ...(isSuperLibrarian
+            //     ? [
+            //         {
+            //             accessorKey: 'Posted By',
+            //             header: ({ column }) => {
+            //                 const filterValue = (column.getFilterValue() || '') as string;
+            //                 const [isPostedByDropdownOpen, setIsPostedByDropdownOpen] = useState(false);
+            //
+            //                 return (
+            //                     <div className="flex items-center space-x-2">
+            //                         ចែកចាយដោយ
+            //                         <DropdownMenu open={isPostedByDropdownOpen} onOpenChange={setIsPostedByDropdownOpen}>
+            //                             <TooltipProvider>
+            //                                 <Tooltip>
+            //                                     <TooltipTrigger asChild>
+            //                                         <DropdownMenuTrigger asChild>
+            //                                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0 data-[state=open]:bg-accent">
+            //                                                 {/*<FilterIcon className={`h-4 w-4 ${filterValue ? 'text-blue-500' : 'text-gray-400'}`} />*/}
+            //                                                 <span className="sr-only">Open filter menu</span>
+            //                                             </Button>
+            //                                         </DropdownMenuTrigger>
+            //                                     </TooltipTrigger>
+            //                                     <TooltipContent>Filter by Posted By</TooltipContent>
+            //                                 </Tooltip>
+            //                             </TooltipProvider>
+            //                             <DropdownMenuContent align="start" className="w-[180px] p-2">
+            //                                 <Select
+            //                                     value={filterValue}
+            //                                     onValueChange={(value) => {
+            //                                         column.setFilterValue(value === 'All' ? '' : value);
+            //                                         setIsPostedByDropdownOpen(false);
+            //                                     }}
+            //                                 >
+            //                                     <SelectTrigger className="w-full">
+            //                                         <SelectValue placeholder="Select User" />
+            //                                     </SelectTrigger>
+            //                                     <SelectContent>
+            //                                         <SelectItem value="All">All Users</SelectItem>
+            //                                         {availableUsers.map((userName) => (
+            //                                             <SelectItem key={userName} value={userName}>
+            //                                                 {userName}
+            //                                             </SelectItem>
+            //                                         ))}
+            //                                     </SelectContent>
+            //                                 </Select>
+            //                             </DropdownMenuContent>
+            //                         </DropdownMenu>
+            //                     </div>
+            //                 );
+            //             },
+            //             cell: ({ row }) => <div className="px-3">{row.original.user?.name || 'N/A'}</div>,
+            //             filterFn: (row, columnId, filterValue) => {
+            //                 const userName = row.original.user?.name?.toLowerCase() || '';
+            //                 return filterValue === '' || userName.includes(String(filterValue).toLowerCase());
+            //             },
+            //             sortingFn: (rowA, rowB) => {
+            //                 const nameA = rowA.original.user?.name?.toLowerCase() || '';
+            //                 const nameB = rowB.original.user?.name?.toLowerCase() || '';
+            //                 return nameA.localeCompare(nameB);
+            //             },
+            //             enableSorting: true,
+            //             enableHiding: true,
+            //         },
+            //     ]
+            //     : []),
             {
                 accessorKey: 'category',
                 header: ({ column }) => {
@@ -941,68 +941,68 @@
                 enableSorting: false,
                 enableHiding: true,
             },
-            ...(isSuperLibrarian
-                ? [
-                    {
-                        accessorKey: 'campus',
-                        header: ({ column }) => {
-                            const filterValue = (column.getFilterValue() || '') as string;
-                            const [isCampusDropdownOpen, setIsCampusDropdownOpen] = useState(false);
-
-                            return (
-                                <div className="flex items-center space-x-2">
-                                    <span>សាខា</span>
-                                    <DropdownMenu open={isCampusDropdownOpen} onOpenChange={setIsCampusDropdownOpen}>
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 data-[state=open]:bg-accent">
-                                                            {/*<FilterIcon className={`h-4 w-4 ${filterValue ? 'text-blue-500' : 'text-gray-400'}`} />*/}
-                                                            <span className="sr-only">Open filter menu</span>
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                </TooltipTrigger>
-                                                <TooltipContent>Filter by Campus</TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
-                                        <DropdownMenuContent align="start" className="w-[180px] p-2">
-                                            <Select
-                                                value={filterValue}
-                                                onValueChange={(value) => {
-                                                    column.setFilterValue(value === 'All' ? '' : value);
-                                                    setIsCampusDropdownOpen(false);
-                                                }}
-                                            >
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder="ជ្រើសរើសសាខា" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="All">គ្រប់សាខា</SelectItem>
-                                                    {availableCampuses
-                                                        .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
-                                                        .map((campus) => (
-                                                            <SelectItem key={campus.id} value={campus.name}>
-                                                                {campus.name || 'N/A'}
-                                                            </SelectItem>
-                                                        ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </div>
-                            );
-                        },
-                        cell: ({ row }) => <div className="px-2">{row.original.campus?.name || 'N/A'}</div>,
-                        filterFn: (row, columnId, filterValue) => {
-                            const campusName = row.original.campus?.name?.toLowerCase() || '';
-                            return filterValue === '' || campusName.includes(String(filterValue).toLowerCase());
-                        },
-                        enableSorting: true,
-                        enableHiding: true,
-                    },
-                ]
-                : []),
+            // ...(isSuperLibrarian
+            //     ? [
+            //         {
+            //             accessorKey: 'campus',
+            //             header: ({ column }) => {
+            //                 const filterValue = (column.getFilterValue() || '') as string;
+            //                 const [isCampusDropdownOpen, setIsCampusDropdownOpen] = useState(false);
+            //
+            //                 return (
+            //                     <div className="flex items-center space-x-2">
+            //                         <span>សាខា</span>
+            //                         <DropdownMenu open={isCampusDropdownOpen} onOpenChange={setIsCampusDropdownOpen}>
+            //                             <TooltipProvider>
+            //                                 <Tooltip>
+            //                                     <TooltipTrigger asChild>
+            //                                         <DropdownMenuTrigger asChild>
+            //                                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0 data-[state=open]:bg-accent">
+            //                                                 {/*<FilterIcon className={`h-4 w-4 ${filterValue ? 'text-blue-500' : 'text-gray-400'}`} />*/}
+            //                                                 <span className="sr-only">Open filter menu</span>
+            //                                             </Button>
+            //                                         </DropdownMenuTrigger>
+            //                                     </TooltipTrigger>
+            //                                     <TooltipContent>Filter by Campuses</TooltipContent>
+            //                                 </Tooltip>
+            //                             </TooltipProvider>
+            //                             <DropdownMenuContent align="start" className="w-[180px] p-2">
+            //                                 <Select
+            //                                     value={filterValue}
+            //                                     onValueChange={(value) => {
+            //                                         column.setFilterValue(value === 'All' ? '' : value);
+            //                                         setIsCampusDropdownOpen(false);
+            //                                     }}
+            //                                 >
+            //                                     <SelectTrigger className="w-full">
+            //                                         <SelectValue placeholder="ជ្រើសរើសសាខា" />
+            //                                     </SelectTrigger>
+            //                                     <SelectContent>
+            //                                         <SelectItem value="All">គ្រប់សាខា</SelectItem>
+            //                                         {availableCampuses
+            //                                             .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+            //                                             .map((campus) => (
+            //                                                 <SelectItem key={campus.id} value={campus.name}>
+            //                                                     {campus.name || 'N/A'}
+            //                                                 </SelectItem>
+            //                                             ))}
+            //                                     </SelectContent>
+            //                                 </Select>
+            //                             </DropdownMenuContent>
+            //                         </DropdownMenu>
+            //                     </div>
+            //                 );
+            //             },
+            //             cell: ({ row }) => <div className="px-2">{row.original.campus?.name || 'N/A'}</div>,
+            //             filterFn: (row, columnId, filterValue) => {
+            //                 const campusName = row.original.campus?.name?.toLowerCase() || '';
+            //                 return filterValue === '' || campusName.includes(String(filterValue).toLowerCase());
+            //             },
+            //             enableSorting: true,
+            //             enableHiding: true,
+            //         },
+            //     ]
+            //     : []),
             {
                 accessorKey: 'subcategory',
                 header: ({ column }) => {
@@ -1505,7 +1505,6 @@
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        {!isSuperLibrarian && (
                                             <Link href={route('books.create')} className="flex items-center gap-2">
                                                 <Button
                                                     className="h-8 cursor-pointer rounded-lg border-blue-300 bg-blue-400 text-black hover:bg-blue-600 dark:border-blue-500 dark:bg-gray-800 dark:text-blue-200 dark:hover:bg-blue-700"
@@ -1515,7 +1514,6 @@
                                                     <Plus className="h-4 w-4" />
                                                 </Button>
                                             </Link>
-                                        )}
                                     </TooltipTrigger>
                                     <TooltipContent className="rounded-xl bg-gradient-to-br from-blue-900 to-blue-600 text-white">
                                         <p>Add a new book</p>
@@ -1768,7 +1766,7 @@
                                                 <strong className="text-blue-600 dark:text-blue-300">ប្រភេទរង:</strong>{' '}
                                                 {rowModal.subcategory ? (
                                                     <Link
-                                                        href={route('subcategories.show', rowModal.subcategory.id)}
+                                                        href={route('subcategory.show', rowModal.subcategory.id)}
                                                         className="text-blue-500 underline hover:text-blue-700 dark:text-blue-200 dark:hover:text-blue-100"
                                                     >
                                                         {rowModal.subcategory.name}
@@ -1853,26 +1851,26 @@
                                             <p>
                                                 <strong className="text-blue-600 dark:text-blue-300">ចំនួនអ្នកទស្សានា:</strong> {rowModal.view || 0}
                                             </p>
-                                            {isSuperLibrarian && (
-                                                <>
-                                                    <p>
-                                                        <strong className="text-blue-600 dark:text-blue-300">ចែកចាយដោយ:</strong>{' '}
-                                                        {rowModal.user ? (
-                                                            <Link
-                                                                href={""}
-                                                                className="text-blue-500 underline hover:text-blue-700 dark:text-blue-200 dark:hover:text-blue-100"
-                                                            >
-                                                                {rowModal.user.name}
-                                                            </Link>
-                                                        ) : (
-                                                            'N/A'
-                                                        )}
-                                                    </p>
-                                                    <p>
-                                                        <strong className="text-blue-600 dark:text-blue-300">ទីតាំង:</strong> {rowModal.campus?.name || 'N/A'}
-                                                    </p>
-                                                </>
-                                            )}
+                                            {/*{isSuperLibrarian && (*/}
+                                            {/*    <>*/}
+                                            {/*        <p>*/}
+                                            {/*            <strong className="text-blue-600 dark:text-blue-300">ចែកចាយដោយ:</strong>{' '}*/}
+                                            {/*            {rowModal.user ? (*/}
+                                            {/*                <Link*/}
+                                            {/*                    href={""}*/}
+                                            {/*                    className="text-blue-500 underline hover:text-blue-700 dark:text-blue-200 dark:hover:text-blue-100"*/}
+                                            {/*                >*/}
+                                            {/*                    {rowModal.user.name}*/}
+                                            {/*                </Link>*/}
+                                            {/*            ) : (*/}
+                                            {/*                'N/A'*/}
+                                            {/*            )}*/}
+                                            {/*        </p>*/}
+                                            {/*        <p>*/}
+                                            {/*            <strong className="text-blue-600 dark:text-blue-300">ទីតាំង:</strong> {rowModal.campus?.name || 'N/A'}*/}
+                                            {/*        </p>*/}
+                                            {/*    </>*/}
+                                            {/*)}*/}
                                             <p>
                                                 <strong className="text-blue-600 dark:text-blue-300">បង្កើតឡើងនៅ:</strong>{' '}
                                                 {rowModal.created_at

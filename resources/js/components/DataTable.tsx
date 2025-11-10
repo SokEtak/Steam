@@ -22,18 +22,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-    DropdownMenu,
-    DropdownMenuCheckboxItem,
-    DropdownMenuContent,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Skeleton } from "@/components/ui/skeleton";
 import AppLayout from "@/layouts/app-layout";
 import { type BreadcrumbItem } from "@/types";
@@ -41,14 +30,10 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
     CheckCircle2Icon,
     Plus,
-    ArrowUpDown,
-    ArrowUp,
-    ArrowDown,
-    MoreHorizontal,
     ArrowLeft,
     ArrowRight,
-    ChevronDown,
-    X, Grid, Table2, Columns2
+    X,
+    Columns2,
 } from 'lucide-react';
 import {
     ColumnDef,
@@ -77,6 +62,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 
+// Interface definitions remain the same
 interface DataItem {
     id: number;
     code: string;
@@ -105,6 +91,7 @@ interface DataTableProps<T extends DataItem> {
     isSuperLibrarian?: boolean;
 }
 
+// Re-introducing the common styles for the dynamic color theme
 const commonStyles = {
     button: "rounded-lg text-sm transition-colors",
     text: "text-gray-800 dark:text-gray-100 text-sm",
@@ -113,7 +100,7 @@ const commonStyles = {
     outlineButton:
         "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-300 border-indigo-200 dark:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-800",
     gradientBg: "bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-indigo-900",
-    tooltipBg: "bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl",
+    tooltipBg: "bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl", // Kept for consistency if you add tooltips back
 };
 
 function DataTable<T extends DataItem>({
@@ -125,7 +112,6 @@ function DataTable<T extends DataItem>({
                                            routes,
                                            flash,
                                            modalFields,
-                                           tooltipFields,
                                            isSuperLibrarian = false,
                                        }: DataTableProps<T>) {
     const { processing } = useForm();
@@ -187,7 +173,7 @@ function DataTable<T extends DataItem>({
         if (flash?.message && flash?.type) setShowAlert(true);
         const timer = setTimeout(() => {
             setIsTableLoading(false);
-        }, 500);
+        }, 500); // Simulate loading
         return () => clearTimeout(timer);
     }, [flash, data]);
 
@@ -205,136 +191,117 @@ function DataTable<T extends DataItem>({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={title} />
-            <div className="p-4 sm:p-6 lg:p-5 xl:p-2">
-                <div className="flex flex-wrap items-center justify-between gap-4 py-4">
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Input
-                                        placeholder="ស្វែងរក"
-                                        value={globalFilter ?? ""}
-                                        onChange={(event) => setGlobalFilter(event.target.value)}
-                                        className={`${commonStyles.text} max-w-sm flex-grow sm:flex-grow-0 ${commonStyles.outlineButton} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400`}
-                                        disabled={isTableLoading || processing}
-                                        aria-label={`Search ${resourceName}`}
-                                    />
-                                </TooltipTrigger>
-                                <TooltipContent side="left" className={commonStyles.tooltipBg}>
-                                    Enter keywords to filter {resourceName}
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    </div>
+            <div className="p-4 sm:p-6 lg:p-8">
+                {/* Main Controls Header */}
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4 py-4">
+                    <Input
+                        // placeholder={`ស្វែងរក ${resourceName}...`}
+                        placeholder={`ស្វែងរក`}
+                        value={globalFilter ?? ""}
+                        onChange={(event) => setGlobalFilter(event.target.value)}
+                        className={`${commonStyles.text} max-w-sm w-full md:w-auto ${commonStyles.outlineButton} focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400`}
+                        disabled={isTableLoading || processing}
+                        aria-label={`Search ${resourceName}`}
+                    />
 
                     <div className="flex items-center gap-2">
-                        {!isSuperLibrarian && (
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Link href={routes.create}>
-                                            <Button
-                                                size="sm"
-                                                className={`${commonStyles.button} ${commonStyles.indigoButton}`}
-                                                disabled={isTableLoading || processing}
-                                                aria-label={`Add a new ${resourceName.slice(0, -1)}`}
-                                            >
-                                                <Plus className="h-4 w-4" />
-                                            </Button>
-                                        </Link>
-                                    </TooltipTrigger>
-                                    <TooltipContent side="top" className={commonStyles.tooltipBg}>
-                                        Add a new {resourceName.slice(0, -1)}
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                        )}
-
                         <DropdownMenu>
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                className={`${commonStyles.button} ${commonStyles.outlineButton}`}
-                                                disabled={isTableLoading || processing}
-                                                aria-label="Toggle column visibility"
-                                            >
-                                                {/*<ChevronDown className="ml-2 h-4 w-4" />*/}
-                                                <Columns2 className="h-4 w-4" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                    </TooltipTrigger>
-                                    <TooltipContent side="top" className={commonStyles.tooltipBg}>
-                                        Show or hide columns
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    className={`${commonStyles.button} ${commonStyles.outlineButton}`}
+                                    disabled={isTableLoading || processing}
+                                    aria-label="Toggle column visibility"
+                                >
+                                    <Columns2 className="h-4 w-4" />
+                                    {/*Columns*/}
+                                </Button>
+                            </DropdownMenuTrigger>
+
                             <DropdownMenuContent
-                                align="end"
+                                align="center"
                                 className={`${commonStyles.gradientBg} border-indigo-200 dark:border-indigo-600 rounded-xl`}
                             >
                                 {table
                                     .getAllColumns()
                                     .filter((column) => column.getCanHide())
                                     .map((column) => (
-                                        <DropdownMenuCheckboxItem
+                                        <DropdownMenuItem
                                             key={column.id}
-                                            className={`${commonStyles.text} capitalize`}
-                                            checked={column.getIsVisible()}
-                                            onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                                            disabled={isTableLoading || processing}
+                                            className="flex items-center justify-between px-3 py-2 capitalize cursor-pointer
+                                                       bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent"
+                                            onSelect={(e) => e.preventDefault()} // Prevent menu from closing
                                         >
-                                            {column.id.replace(/_/g, " ")}
-                                        </DropdownMenuCheckboxItem>
+                                            <span className={`${commonStyles.text} flex-1 flex items-center`}>
+                                              {column.id.replace(/_/g, " ")}
+                                            </span>
+
+                                            {/* Switch Button */}
+                                            <label className="relative inline-flex items-center cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    className="sr-only peer"
+                                                    checked={column.getIsVisible()}
+                                                    onChange={(e) => column.toggleVisibility(e.target.checked)}
+                                                    disabled={isTableLoading || processing}
+                                                />
+                                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-500 rounded-full peer dark:bg-gray-700 peer-checked:bg-indigo-600 transition-all"></div>
+                                                <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transform peer-checked:translate-x-5 transition-all"></div>
+                                            </label>
+                                        </DropdownMenuItem>
                                     ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
-                    </div>
 
-                    <div className="flex items-center justify-center">
-                        {isTableLoading ? (
-                            <Skeleton className="h-4 w-32" />
-                        ) : (
-                            <span className={commonStyles.text}>
-                                {`${table.getFilteredRowModel().rows.length} filtered out of ${data.length} ${resourceName}`}
-                            </span>
+                        {!isSuperLibrarian && (
+                            <Button
+                                asChild
+                                className={`${commonStyles.button} ${commonStyles.indigoButton}`}
+                                disabled={isTableLoading || processing}
+                                aria-label={`Add a new ${resourceName.slice(0, -1)}`}
+                            >
+                                <Link href={routes.create}>
+                                    <Plus className="h-4 w-4" />
+                                    {/*Add {resourceName.slice(0, -1)}*/}
+                                </Link>
+                            </Button>
                         )}
                     </div>
+
+
+
                 </div>
 
+                {/* Flash Alert */}
                 {showAlert && flash?.message && flash?.type && (
                     <Alert
-                        className={`mb-4 flex items-start justify-between ${commonStyles.gradientBg} border-indigo-200 dark:border-indigo-700 rounded-xl`}
+                        className={`mb-4 relative ${commonStyles.gradientBg} border-indigo-200 dark:border-indigo-700 rounded-xl`}
                         variant={flash.type === "error" ? "destructive" : "default"}
                     >
-                        <div className="flex gap-2">
-                            <CheckCircle2Icon
-                                className={`h-4 w-4 ${
-                                    flash.type === "error"
-                                        ? "text-red-600 dark:text-red-300"
-                                        : "text-indigo-600 dark:text-indigo-300"
-                                }`}
-                            />
-                            <div>
-                                <AlertTitle
-                                    className={`${
-                                        flash.type === "error"
-                                            ? "text-red-600 dark:text-red-300"
-                                            : "text-indigo-600 dark:text-indigo-300"
-                                    } text-sm`}
-                                >
-                                    {flash.type === "error" ? "Error" : "Notification"}
-                                </AlertTitle>
-                                <AlertDescription className="text-gray-600 dark:text-gray-300 text-sm">
-                                    {flash.message}
-                                </AlertDescription>
-                            </div>
-                        </div>
+                        <CheckCircle2Icon
+                            className={`h-4 w-4 ${
+                                flash.type === "error"
+                                    ? "text-red-600 dark:text-red-300"
+                                    : "text-indigo-600 dark:text-indigo-300"
+                            }`}
+                        />
+                        <AlertTitle
+                            className={`${
+                                flash.type === "error"
+                                    ? "text-red-600 dark:text-red-300"
+                                    : "text-indigo-600 dark:text-indigo-300"
+                            } text-sm`}
+                        >
+                            {flash.type === "error" ? "Error" : "Notification"}
+                        </AlertTitle>
+                        <AlertDescription className="text-gray-600 dark:text-gray-300 text-sm">
+                            {flash.message}
+                        </AlertDescription>
                         <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={handleCloseAlert}
-                            className={`${commonStyles.button} ${
+                            className={`absolute top-3 right-3 h-6 w-6 ${
                                 flash.type === "error"
                                     ? "text-red-600 dark:text-red-300 hover:text-red-800 dark:hover:text-red-100"
                                     : "text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-100"
@@ -347,13 +314,21 @@ function DataTable<T extends DataItem>({
                     </Alert>
                 )}
 
-                <div className="rounded-lg border-2 border-indigo-400 dark:border-indigo-500 overflow-hidden">
+                {/* Table Container */}
+                <div className="rounded-xl overflow-hidden shadow-lg transition-all border border-gray-200 dark:border-gray-700">
                     <Table>
                         <TableHeader>
                             {table.getHeaderGroups().map((headerGroup) => (
-                                <TableRow key={headerGroup.id} className="bg-indigo-50 dark:bg-indigo-900">
+                                <TableRow
+                                    key={headerGroup.id}
+                                    // Restoring the colorful gradient header
+                                    className="bg-gradient-to-r from-purple-200 via-pink-200 to-yellow-200 dark:from-purple-900 dark:via-pink-800 dark:to-yellow-900 border-b border-gray-300 dark:border-gray-700"
+                                >
                                     {headerGroup.headers.map((header) => (
-                                        <TableHead key={header.id} className="text-indigo-600 dark:text-indigo-300 text-sm">
+                                        <TableHead
+                                            key={header.id}
+                                            className="text-gray-800 dark:text-gray-100 text-sm font-semibold px-4 py-3"
+                                        >
                                             {header.isPlaceholder
                                                 ? null
                                                 : flexRender(header.column.columnDef.header, header.getContext())}
@@ -362,13 +337,15 @@ function DataTable<T extends DataItem>({
                                 </TableRow>
                             ))}
                         </TableHeader>
+
                         {isTableLoading ? (
                             <TableBody>
+                                {/* Skeleton loader rows */}
                                 {Array.from({ length: table.getState().pagination.pageSize }).map((_, index) => (
-                                    <TableRow key={index}>
+                                    <TableRow key={index} className="border-b border-gray-200 dark:border-gray-700">
                                         {columns.map((_, colIndex) => (
-                                            <TableCell key={colIndex}>
-                                                <Skeleton className="h-4 w-full" />
+                                            <TableCell key={colIndex} className="px-4 py-3">
+                                                <Skeleton className="h-4 w-full rounded-md bg-gray-200 dark:bg-gray-800" />
                                             </TableCell>
                                         ))}
                                     </TableRow>
@@ -378,39 +355,31 @@ function DataTable<T extends DataItem>({
                             <TableBody>
                                 {table.getRowModel().rows?.length ? (
                                     table.getRowModel().rows.map((row) => (
-                                        <TooltipProvider key={row.id}>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <TableRow
-                                                        key={row.id}
-                                                        className="hover:bg-indigo-50 dark:hover:bg-indigo-800 transition-colors cursor-pointer"
-                                                        onClick={() => {
-                                                            setRowModalOpen(true);
-                                                            setSelectedRow(row.original);
-                                                        }}
-                                                    >
-                                                        {row.getVisibleCells().map((cell) => (
-                                                            <TableCell
-                                                                key={cell.id}
-                                                                className={`${commonStyles.text} py-2`}
-                                                            >
-                                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                                            </TableCell>
-                                                        ))}
-                                                    </TableRow>
-                                                </TooltipTrigger>
-                                                <TooltipContent
-                                                    side="left"
-                                                    className={`${commonStyles.tooltipBg} max-w-md p-4 shadow-xl`}
+                                        <TableRow
+                                            key={row.id}
+                                            data-state={selectedRow?.id === row.original.id ? 'selected' : 'unselected'}
+                                            // Restoring colorful selection state
+                                            className={`
+                                                transition-colors duration-150 cursor-pointer
+                                                border-b border-gray-200 dark:border-gray-700
+                                                hover:bg-gray-100 dark:hover:bg-gray-800/60
+                                                data-[state='selected']:bg-purple-100 dark:data-[state='selected']:bg-purple-900/50
+                                                data-[state='selected']:hover:bg-purple-100/80 dark:data-[state='selected']:hover:bg-purple-900/40
+                                            `}
+                                            onClick={() => {
+                                                setRowModalOpen(true);
+                                                setSelectedRow(row.original);
+                                            }}
+                                        >
+                                            {row.getVisibleCells().map((cell) => (
+                                                <TableCell
+                                                    key={cell.id}
+                                                    className="px-4 py-3 text-gray-800 dark:text-gray-100 text-sm font-medium"
                                                 >
-                                                    <div className="space-y-2">
-                                                        {tooltipFields && (
-                                                            tooltipFields(row.original)
-                                                        )}
-                                                    </div>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
+                                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                </TableCell>
+                                            ))}
+                                        </TableRow>
                                     ))
                                 ) : (
                                     <TableRow>
@@ -428,10 +397,18 @@ function DataTable<T extends DataItem>({
                 </div>
 
                 {/* Pagination */}
-                <div className="flex justify-center gap-2 py-4">
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <div className="flex items-center space-x-2">
-                            <span className={`${commonStyles.text} whitespace-nowrap`}>ចំនួនសៀវភៅក្នុងមួយទំព័រ:</span>
+                <div className="flex items-center justify-between gap-4 py-4">
+                    <div className={`${commonStyles.text} text-sm`}>
+                        {isTableLoading ? (
+                            <Skeleton className="h-4 w-32" />
+                        ) : (
+                            `${table.getFilteredRowModel().rows.length} ${resourceName} found.`
+                        )}
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                            <span className={`${commonStyles.text} text-sm whitespace-nowrap`}></span>
                             <Select
                                 value={String(table.getState().pagination.pageSize)}
                                 onValueChange={(value) => {
@@ -448,66 +425,50 @@ function DataTable<T extends DataItem>({
                                 >
                                     <SelectValue placeholder={String(table.getState().pagination.pageSize)} />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className={`${commonStyles.gradientBg} border-indigo-200 dark:border-indigo-600`}>
                                     {[10, 20, 50, 100].map((pageSize) => (
-                                        <SelectItem key={pageSize} value={`${pageSize}`} className="text-sm">
+                                        <SelectItem key={pageSize} value={`${pageSize}`} className={`${commonStyles.text} text-sm`}>
                                             {pageSize}
                                         </SelectItem>
                                     ))}
                                     {table.getFilteredRowModel().rows.length > 0 && (
-                                        <SelectItem key="all" value="All" className="text-sm">
+                                        <SelectItem key="all" value="All" className={`${commonStyles.text} text-sm`}>
                                             ទាំងអស់
                                         </SelectItem>
                                     )}
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div className="flex items-center space-x-2">
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => table.previousPage()}
-                                            disabled={!table.getCanPreviousPage() || isTableLoading || processing}
-                                            className={`${commonStyles.button} ${commonStyles.outlineButton}`}
-                                            aria-label="Previous page"
-                                        >
-                                            <ArrowLeft className="h-4 w-4" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent side="left" className={commonStyles.tooltipBg}>
-                                        ទំព័រមុន
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => table.nextPage()}
-                                            disabled={!table.getCanNextPage() || isTableLoading || processing}
-                                            className={`${commonStyles.button} ${commonStyles.outlineButton}`}
-                                            aria-label="Next page"
-                                        >
-                                            <ArrowRight className="h-4 w-4" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent side="left" className={commonStyles.tooltipBg}>
-                                        ទំព័របន្ទាប់
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                        </div>
-                        <div className={commonStyles.text}>
+
+                        <div className={`${commonStyles.text} text-sm`}>
                             {isTableLoading ? (
                                 <Skeleton className="h-4 w-24" />
                             ) : (
                                 `ទំព័រ ${table.getState().pagination.pageIndex + 1} នៃ ${table.getPageCount() || 1}`
                             )}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => table.previousPage()}
+                                disabled={!table.getCanPreviousPage() || isTableLoading || processing}
+                                className={`${commonStyles.button} ${commonStyles.outlineButton}`}
+                                aria-label="Previous page"
+                            >
+                                <ArrowLeft className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => table.nextPage()}
+                                disabled={!table.getCanNextPage() || isTableLoading || processing}
+                                className={`${commonStyles.button} ${commonStyles.outlineButton}`}
+                                aria-label="Next page"
+                            >
+                                <ArrowRight className="h-4 w-4" />
+                            </Button>
                         </div>
                     </div>
                 </div>
@@ -524,13 +485,9 @@ function DataTable<T extends DataItem>({
                         </DialogHeader>
                         <div className="space-y-4 p-4">
                             <div className="grid grid-cols-1 gap-2">
-                                <p>
+                                <p className={commonStyles.text}>
                                     <strong className="font-semibold text-indigo-500 dark:text-indigo-300">ID:</strong>{" "}
                                     {selectedRow?.id || "N/A"}
-                                </p>
-                                <p>
-                                    <strong className="font-semibold text-indigo-500 dark:text-indigo-300">Code:</strong>{" "}
-                                    {selectedRow?.code || "N/A"}
                                 </p>
                                 {modalFields && selectedRow && modalFields(selectedRow)}
                             </div>

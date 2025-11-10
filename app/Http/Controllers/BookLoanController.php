@@ -12,6 +12,9 @@ use Inertia\Inertia;
 
 class BookLoanController extends Controller
 {
+    /**
+     * Display a listing of book loans.
+     */
     public function index()
     {
         $bookloans = BookLoan::with(['book', 'user'])
@@ -20,32 +23,34 @@ class BookLoanController extends Controller
 
         return Inertia::render('BookLoans/Index', [
             'bookloans' => $bookloans,
-
         ]);
     }
 
+    /**
+     * Show the form for creating a new book loan.
+     */
     public function create()
     {
-        if ($redirect = $this->shouldRedirectIfNotStudent()) {
+        if ($redirect = $this->shouldRedirectIfNotStaff()) {
             return $redirect;
         }
 
         return Inertia::render('BookLoans/Create', [
             'books' => Book::active('physical')->get(),
             'users' => $this->getLoanableUsers(),
-            'statuses' => ['processing', 'returned', 'canceled'], // Pass status options
+            'statuses' => ['processing', 'returned', 'canceled'],
         ]);
     }
 
-    public function store(BookLoanRequest $request)
+    /**
+     * Store a newly created book loan.
+     */
+    public function store(BookLoanRequest $request): RedirectResponse
     {
-        // Get validated data with extras
         $validated = $request->validatedWithExtras();
 
-        // Create the book loan
         BookLoan::create($validated);
 
-        // Update book availability since status is always processing
         Book::where('id', $validated['book_id'])->update(['is_available' => false]);
 
         return redirect()
@@ -53,6 +58,9 @@ class BookLoanController extends Controller
             ->with('message', 'Book loan created successfully.');
     }
 
+    /**
+     * Display the specified book loan.
+     */
     public function show(BookLoan $bookloan)
     {
         if ($this->isDeleted($bookloan)) {
@@ -64,13 +72,16 @@ class BookLoanController extends Controller
         ]);
     }
 
+    /**
+     * Show the form for editing a book loan.
+     */
     public function edit(BookLoan $bookloan)
     {
         if ($this->isDeleted($bookloan)) {
             return abort(404);
         }
 
-        if ($redirect = $this->shouldRedirectIfNotStudent()) {
+        if ($redirect = $this->shouldRedirectIfNotStaff()) {
             return $redirect;
         }
 
@@ -78,27 +89,32 @@ class BookLoanController extends Controller
             'loan' => $bookloan,
             'books' => Book::active(null)->get(),
             'users' => $this->getLoanableUsers(),
-            'statuses' => ['processing', 'returned', 'canceled'], // Pass status options
+            'statuses' => ['processing', 'returned', 'canceled'],
         ]);
     }
 
-    public function update(BookLoanRequest $request, BookLoan $bookloan)
+    /**
+     * Update the specified book loan.
+     */
+    public function update(BookLoanRequest $request, BookLoan $bookloan): RedirectResponse
     {
         $validated = $request->validatedWithExtras();
 
-        // Update the loan including status
         $bookloan->update($validated);
 
-        // Update book availability if loan is canceled or returned
-        in_array($bookloan->status, ['canceled', 'returned']) &&
-        Book::where('id', $bookloan->book_id)->update(['is_available' => true]);
+        if (in_array($bookloan->status, ['canceled', 'returned'])) {
+            Book::where('id', $bookloan->book_id)->update(['is_available' => true]);
+        }
 
         return redirect()
             ->route('bookloans.show', $bookloan)
             ->with('message', 'Book loan updated successfully.');
     }
 
-    public function destroy(BookLoan $bookloan)
+    /**
+     * Delete the specified book loan.
+     */
+    public function destroy(BookLoan $bookloan): RedirectResponse
     {
         return $this->handleBookLoanOperation(function () use ($bookloan) {
             $bookloan->is_deleted
@@ -111,6 +127,9 @@ class BookLoanController extends Controller
         }, 'delete');
     }
 
+    /**
+     * Handle book loan operations with error catching.
+     */
     private function handleBookLoanOperation(callable $operation, string $action): RedirectResponse
     {
         try {
@@ -122,25 +141,35 @@ class BookLoanController extends Controller
         }
     }
 
-    // 🔁 Reusable helper methods
-
-    protected function shouldRedirectIfNotStudent()
+    /**
+     * Redirect if the user is not a staff member.
+     */
+    protected function shouldRedirectIfNotStaff(): ?RedirectResponse
     {
-        return Auth::check() && Auth::user()->role_id != 2
+        return Auth::check() && !Auth::user()->hasRole('staff')
             ? redirect()->route('bookloans.index')
             : null;
     }
 
-    protected function userCampusId()
+    /**
+     * Get the user's campus ID.
+     */
+    protected function userCampusId(): ?int
     {
         return Auth::user()->campus_id;
     }
 
-    protected function isDeleted(BookLoan $bookloan)
+    /**
+     * Check if the book loan is deleted.
+     */
+    protected function isDeleted(BookLoan $bookloan): bool
     {
         return $bookloan->is_deleted === 1;
     }
 
+    /**
+     * Get users eligible for loans in the current campus.
+     */
     protected function getLoanableUsers()
     {
         return User::loaners($this->userCampusId())->get()->toArray();

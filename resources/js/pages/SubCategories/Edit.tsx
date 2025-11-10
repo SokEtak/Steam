@@ -27,6 +27,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { CheckCircle2Icon, X, ChevronDown } from "lucide-react";
+import { translations } from "@/utils/translations/subcategory/subcategory-edit";
 
 interface Category {
     id: number;
@@ -44,43 +45,6 @@ interface SubcategoriesEditProps {
     categories: Category[];
     lang?: "kh" | "en";
 }
-
-const translations = {
-    kh: {
-        title: "កែសម្រួលប្រភេទរង",
-        subcategoryName: "ឈ្មោះប្រភេទរង",
-        subcategoryNameTooltip: "កែសម្រួលឈ្មោះប្រភេទរង",
-        subcategoryNamePlaceholder: "បញ្ចូលឈ្មោះប្រភេទរង",
-        category: "ប្រភេទ",
-        categoryTooltip: "ស្វែងរក និងជ្រើសរើសប្រភេទមេសម្រាប់ប្រភេទរងនេះ",
-        categoryPlaceholder: "ជ្រើសរើសប្រភេទ",
-        categoryNone: "គ្មាន",
-        categoryEmpty: "រកមិនឃើញប្រភេទទេ",
-        update: "ធ្វើបច្ចុប្បន្នភាព",
-        updating: "កំពុងធ្វើបច្ចុប្បន្នភាព...",
-        updateTooltip: "រក្សាទុកការផ្លាស់ប្តូរទៅប្រភេទរង",
-        cancel: "បោះបង់",
-        cancelTooltip: "ត្រឡប់ទៅបញ្ជីប្រភេទរង",
-        error: "កំហុស",
-    },
-    en: {
-        title: "Edit Subcategory",
-        subcategoryName: "Subcategory Name",
-        subcategoryNameTooltip: "Edit the name of the subcategory",
-        subcategoryNamePlaceholder: "Enter subcategory name",
-        category: "Category",
-        categoryTooltip: "Search and select the parent category for this subcategory",
-        categoryPlaceholder: "Select a category",
-        categoryNone: "None",
-        categoryEmpty: "No categories found",
-        update: "Update",
-        updating: "Updating...",
-        updateTooltip: "Save changes to the subcategory",
-        cancel: "Cancel",
-        cancelTooltip: "Return to the subcategories list",
-        error: "Error",
-    },
-};
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -123,11 +87,11 @@ export default function SubcategoriesEdit({ subcategory, categories, lang = "kh"
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t.title} />
+            <Head title={t.editTitle} />
             <div className="min-h-screen p-6 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-                <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-8">
+                <div className="max-w-1xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-8">
                     <h1 className="text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-8">
-                        {t.title}
+                        {t.editTitle}
                     </h1>
                     {showErrorAlert && Object.keys(errors).length > 0 && (
                         <Alert className="mb-6 bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-700 rounded-lg">
@@ -181,7 +145,7 @@ export default function SubcategoriesEdit({ subcategory, categories, lang = "kh"
                                         />
                                     </TooltipTrigger>
                                     <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                        {t.subcategoryNameTooltip}
+                                        {t.editSubcategoryNameTooltip}
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
@@ -220,7 +184,10 @@ export default function SubcategoriesEdit({ subcategory, categories, lang = "kh"
                                                     <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                                                 </Button>
                                             </PopoverTrigger>
-                                            <PopoverContent className="w-full p-0 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg">
+                                            <PopoverContent className="w-full p-0 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg"
+                                                            side="bottom"
+                                                            align="start"
+                                                            sideOffset={2}>
                                                 <Command>
                                                     <CommandInput placeholder={t.categoryPlaceholder} className="h-10" />
                                                     <CommandList>

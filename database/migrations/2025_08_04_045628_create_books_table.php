@@ -17,7 +17,9 @@ return new class extends Migration
             $table->string('description')->nullable();
             $table->integer('page_count');
             $table->string('publisher');
+            $table->year('published_at')->nullable()->change();
             $table->enum('language', ['kh', 'en'])->default('kh');
+            $table->enum('program', ['Cambodia', 'American'])->nullable();
             $table->year('published_at')->nullable();//publish year
             $table->string('cover')->nullable();
             $table->string('pdf_url')->nullable();
@@ -34,6 +36,8 @@ return new class extends Migration
             $table->foreignId('subcategory_id')->nullable()->constrained('sub_categories')->nullOnDelete();
             $table->foreignId('shelf_id')->nullable()->constrained('shelves')->nullOnDelete();
             $table->foreignId('subject_id')->nullable()->constrained('subjects')->nullOnDelete();
+            $table->foreignId('campus_id')->nullable()->constrained('campuses')->cascadeOnDelete();
+            $table->foreignId('bookcase_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignId('grade_id')->nullable()->constrained('grades')->nullOnDelete();
             $table->tinyInteger('is_deleted')->default(0);
             $table->timestamps();

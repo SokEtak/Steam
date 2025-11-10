@@ -116,7 +116,7 @@ class UpdateBookRequest extends FormRequest
             'bookcase_id.exists' => 'Selected bookcase is invalid.',
             'grade_id.exists' => 'Selected grade is invalid.',
             'subject_id.exists' => 'Selected subject is invalid.',
-            'campus_id.required_if' => 'Campus is required for physical books.',
+            'campus_id.required_if' => 'Campuses is required for physical books.',
             'campus_id.exists' => 'Selected campus is invalid.',
             'published_at.integer' => 'The published year must be a valid number.',
             'published_at.digits' => 'The published year must be exactly 4 digits.',

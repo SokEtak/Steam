@@ -41,3 +41,34 @@ export interface User {
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
 }
+
+export interface Campus {
+    id: number;
+    name: string;
+}
+
+export interface Building {
+    id: number;
+    campus_id: number;
+    name: string;
+    code: string;
+    floors: number;
+    created_at: string;
+    updated_at: string;
+    campus: Campus;
+}
+
+export interface Paginated<T> {
+    data: T[];
+    current_page: number;
+    last_page: number;
+    next_page_url: string | null;
+    prev_page_url: string | null;
+    total?: number;
+    per_page?: number;
+}
+
+export interface Flash {
+    message?: string;
+    type?: "success" | "error";
+}

@@ -177,7 +177,7 @@ export default function Register({ campus }: { campus: { id: number; name: strin
                             <InputError message={errors.password_confirmation} className="text-red-600 dark:text-red-400" />
                         </div>
 
-                        {/* Campus */}
+                        {/* Campuses */}
                         <div className="grid gap-2">
                             <Label htmlFor="campus_id" className="text-gray-900 dark:text-gray-100 font-semibold">Campus</Label>
                             <Select

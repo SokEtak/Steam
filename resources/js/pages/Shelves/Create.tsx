@@ -27,6 +27,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { CheckCircle2Icon, X, ChevronDown } from "lucide-react";
+import { translations } from "@/utils/translations/shelf/shelf-create";
 
 interface Bookcase {
     id: number;
@@ -41,52 +42,13 @@ interface ShelvesCreateProps {
     lang?: "kh" | "en";
 }
 
-const translations = {
-    kh: {
-        title: "បង្កើតធ្នើរសៀវភៅ",
-        shelfCode: "លេខកូដធ្នើរសៀវភៅ",
-        shelfCodeTooltip: "បញ្ចូលលេខកូដសម្រាប់ធ្នើរសៀវភៅថ្មី",
-        shelfCodePlaceholder: "បញ្ចូលលេខកូដធ្នើរសៀវភៅ",
-        bookcase: "ទូសៀវភៅ",
-        bookcaseTooltip: "ស្វែងរក និងជ្រើសរើសទូសៀវភៅសម្រាប់ធ្នើរនេះ",
-        bookcasePlaceholder: "ជ្រើសរើសទូសៀវភៅ",
-        bookcaseNone: "គ្មាន",
-        bookcaseEmpty: "រកមិនឃើញទូសៀវភៅទេ",
-        create: "បង្កើត",
-        creating: "កំពុងបង្កើត...",
-        createTooltip: "រក្សាទុកធ្នើរសៀវភៅថ្មី",
-        cancel: "បោះបង់",
-        cancelTooltip: "ត្រឡប់ទៅបញ្ជីធ្នើរសៀវភៅ",
-        error: "កំហុស",
-        notification: "ការជូនដំណឹង",
-    },
-    en: {
-        title: "Create Shelf",
-        shelfCode: "Shelf Code",
-        shelfCodeTooltip: "Enter the code for the new shelf",
-        shelfCodePlaceholder: "Enter shelf code",
-        bookcase: "Bookcase",
-        bookcaseTooltip: "Search and select the bookcase for this shelf",
-        bookcasePlaceholder: "Select a bookcase",
-        bookcaseNone: "None",
-        bookcaseEmpty: "No bookcases found",
-        create: "Create",
-        creating: "Creating...",
-        createTooltip: "Save the new shelf",
-        cancel: "Cancel",
-        cancelTooltip: "Return to the shelves list",
-        error: "Error",
-        notification: "Notification",
-    },
-};
-
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: "ធ្នើរសៀវភៅ",
+        title: translations.kh.indexTitle || "ធ្នើរសៀវភៅ", // Fallback if indexTitle is not defined yet
         href: route("shelves.index"),
     },
     {
-        title: "បង្កើត",
+        title: translations.kh.createTitle,
         href: "",
     },
 ];
@@ -125,11 +87,11 @@ export default function ShelvesCreate({ bookcases, flash, lang = "kh" }: Shelves
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t.title} />
+            <Head title={t.createTitle} />
             <div className="min-h-screen p-6 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
                 <div className="max-w-1xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-8">
                     <h1 className="text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-8">
-                        {t.title}
+                        {t.createTitle}
                     </h1>
                     {showSuccessAlert && flash?.message && (
                         <Alert className="mb-6 bg-blue-50 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-700 rounded-lg">
@@ -138,7 +100,7 @@ export default function ShelvesCreate({ bookcases, flash, lang = "kh" }: Shelves
                                     <CheckCircle2Icon className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                                     <div>
                                         <AlertTitle className="text-blue-600 dark:text-blue-400 font-semibold">
-                                            {t.notification}
+                                            {t.createNotification}
                                         </AlertTitle>
                                         <AlertDescription className="text-blue-600 dark:text-blue-400">
                                             {flash.message}
@@ -162,7 +124,7 @@ export default function ShelvesCreate({ bookcases, flash, lang = "kh" }: Shelves
                                     <CheckCircle2Icon className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
                                     <div>
                                         <AlertTitle className="text-red-600 dark:text-red-400 font-semibold">
-                                            {t.error}
+                                            {t.createError}
                                         </AlertTitle>
                                         <AlertDescription className="text-red-600 dark:text-red-400">
                                             {Object.values(errors).join(", ")}
@@ -185,7 +147,7 @@ export default function ShelvesCreate({ bookcases, flash, lang = "kh" }: Shelves
                                 htmlFor="code"
                                 className="text-sm font-medium text-gray-700 dark:text-gray-300"
                             >
-                                {t.shelfCode}
+                                {t.createShelfCode}
                             </label>
                             <TooltipProvider>
                                 <Tooltip>
@@ -195,7 +157,7 @@ export default function ShelvesCreate({ bookcases, flash, lang = "kh" }: Shelves
                                             maxLength={10}
                                             value={data.code}
                                             onChange={(e) => setData("code", e.target.value)}
-                                            placeholder={t.shelfCodePlaceholder}
+                                            placeholder={t.createShelfCodePlaceholder}
                                             className={`w-full px-4 py-2 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border ${
                                                 errors.code
                                                     ? "border-red-500 dark:border-red-400"
@@ -207,7 +169,7 @@ export default function ShelvesCreate({ bookcases, flash, lang = "kh" }: Shelves
                                         />
                                     </TooltipTrigger>
                                     <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                        {t.shelfCodeTooltip}
+                                        {t.createShelfCodeTooltip}
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
@@ -222,7 +184,7 @@ export default function ShelvesCreate({ bookcases, flash, lang = "kh" }: Shelves
                                 htmlFor="bookcase_id"
                                 className="text-sm font-medium text-gray-700 dark:text-gray-300"
                             >
-                                {t.bookcase}
+                                {t.createBookcase}
                             </label>
                             <TooltipProvider>
                                 <Tooltip>
@@ -242,15 +204,18 @@ export default function ShelvesCreate({ bookcases, flash, lang = "kh" }: Shelves
                                                 >
                                                     {data.bookcase_id !== "none"
                                                         ? bookcases.find((bookcase) => bookcase.id.toString() === data.bookcase_id)?.code
-                                                        : t.bookcasePlaceholder}
+                                                        : t.createBookcasePlaceholder}
                                                     <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                                                 </Button>
                                             </PopoverTrigger>
-                                            <PopoverContent className="w-full p-0 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg">
+                                            <PopoverContent className="w-full p-0 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg"
+                                                            side="bottom"
+                                                            align="start"
+                                                            sideOffset={2}>
                                                 <Command>
-                                                    <CommandInput placeholder={t.bookcasePlaceholder} className="h-10" />
+                                                    <CommandInput placeholder={t.createBookcasePlaceholder} className="h-10" />
                                                     <CommandList>
-                                                        <CommandEmpty>{t.bookcaseEmpty}</CommandEmpty>
+                                                        <CommandEmpty>{t.createBookcaseEmpty}</CommandEmpty>
                                                         <CommandGroup>
                                                             <CommandItem
                                                                 value="none"
@@ -259,7 +224,7 @@ export default function ShelvesCreate({ bookcases, flash, lang = "kh" }: Shelves
                                                                     setOpenBookcase(false);
                                                                 }}
                                                             >
-                                                                {t.bookcaseNone}
+                                                                {t.createBookcaseNone}
                                                             </CommandItem>
                                                             {bookcases.map((bookcase) => (
                                                                 <CommandItem
@@ -280,7 +245,7 @@ export default function ShelvesCreate({ bookcases, flash, lang = "kh" }: Shelves
                                         </Popover>
                                     </TooltipTrigger>
                                     <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                        {t.bookcaseTooltip}
+                                        {t.createBookcaseTooltip}
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
@@ -316,12 +281,12 @@ export default function ShelvesCreate({ bookcases, flash, lang = "kh" }: Shelves
                                                 className="bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-300 border-gray-300 dark:border-gray-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 px-6 py-2 rounded-lg transition-all duration-300 ease-in-out"
                                                 disabled={processing}
                                             >
-                                                {t.cancel}
+                                                {t.createCancel}
                                             </Button>
                                         </Link>
                                     </TooltipTrigger>
                                     <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                        {t.cancelTooltip}
+                                        {t.createCancelTooltip}
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>

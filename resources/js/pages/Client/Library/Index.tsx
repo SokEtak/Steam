@@ -420,11 +420,11 @@ export default function Index() {
                 <header className="flex flex-col border-b border-gray-100 dark:border-gray-800 pb-4 gap-4 px-2 sm:flex-row sm:items-center sm:justify-between sm:pb-4">
                     <div className="flex items-center justify-between w-full sm:w-auto">
                         <div className="flex items-center space-x-4 sm:space-x-6 min-w-max">
-                            <Link href="/" className="flex items-center space-x-3">
+                            <Link href="/" className="flex items-center">
                                 <img
                                     src="/images/DIS(no back).png"
                                     alt={t.language === 'en' ? 'Logo' : 'រូបសញ្ញា'}
-                                    className="h-12 sm:h-14 w-14 sm:w-14 object-fit"
+                                    className="h-12 sm:h-14 w-auto sm:w-auto object-fill"
                                 />
                             </Link>
                         </div>

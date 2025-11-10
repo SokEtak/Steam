@@ -19,7 +19,7 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
-        // Eager load the 'campus' and 'role' relationships
+        // Eager load the 'campus' and 'pms' relationships
         $user = $request->user()->load(['campus:id,name', 'role:id,name']);
         $userProps = $user->toArray();
         return Inertia::render('settings/profile', [

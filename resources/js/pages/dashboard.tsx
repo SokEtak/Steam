@@ -17,8 +17,21 @@ import {
     SidebarProvider,
     SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import * as Tooltip from '@radix-ui/react-tooltip';
+
+interface SharedData {
+    auth: {
+        user: { name: string; email: string; roles: string[] } | null;
+    };
+    bookStats: {
+        ebookCount: number;
+        physicalBookCount: number;
+        missingBookCount: number;
+        deletedBookCount: number;
+        bookLoansCount: number;
+    };
+}
 
 function DashboardCard({ title, value, Icon, tooltipContent, cardColor, iconColor }) {
     return (
@@ -48,7 +61,9 @@ function DashboardCard({ title, value, Icon, tooltipContent, cardColor, iconColo
     );
 }
 
-export default function Page({ bookStats, role_id }) {
+export default function Page({ bookStats }: SharedData) {
+    const { auth } = usePage<SharedData>().props;
+
     const dashboardCards = [
         {
             title: 'Total E-Books Available',
@@ -93,20 +108,6 @@ export default function Page({ bookStats, role_id }) {
             iconColor: 'text-yellow-600 dark:text-yellow-400',
         },
         {
-            title: 'Total Deleted Books',
-            value: bookStats.deletedBookCount,
-            Icon: Trash2,
-            actionUrl: '/admin/library/books?type=delBook',
-            tooltipContent: 'View all deleted books',
-            cardColor: {
-                bg: 'bg-red-100 dark:bg-red-900/50',
-                border: 'border-red-300 dark:border-red-700',
-                tooltipBg: 'bg-red-600 dark:bg-red-400',
-                tooltipArrow: 'fill-red-600 dark:fill-red-400',
-            },
-            iconColor: 'text-red-600 dark:text-red-400',
-        },
-        {
             title: 'Total Books on Loan(Processing)',
             value: bookStats.bookLoansCount,
             Icon: Book,
@@ -121,10 +122,10 @@ export default function Page({ bookStats, role_id }) {
             iconColor: 'text-purple-600 dark:text-purple-400',
         },
     ].filter(card => {
-        // Show all cards for role_id = 3
-        if (role_id === 3) return true;
-        // Show all except deleted books for role_id = 2
-        if (role_id === 2 && card.title !== 'Total Deleted Books') return true;
+        // Show all cards for admin pms
+        if (auth.user?.roles.includes('admin')) return true;
+        // Show all except deleted books for staff pms
+        if (auth.user?.roles.includes('staff') && card.title !== 'Total Deleted Books') return true;
         // Other roles are blocked by backend (403)
         return false;
     });
@@ -140,7 +141,7 @@ export default function Page({ bookStats, role_id }) {
                         <Breadcrumb>
                             <BreadcrumbList>
                                 <BreadcrumbItem className="hidden md:block">
-                                    Dashboard
+                                    ផ្ទាំងកិច្ចការ
                                 </BreadcrumbItem>
                             </BreadcrumbList>
                         </Breadcrumb>
