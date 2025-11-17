@@ -17,7 +17,7 @@ class Asset extends Model
         'purchase_date', 'warranty_until', 'cost',
         'condition', 'status',
         'current_department_id', 'current_room_id',
-        'custodian_user_id', 'notes',
+        'custodian_user_id', 'notes'
     ];
 
     protected $casts = [

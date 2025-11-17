@@ -100,9 +100,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     url: route("books.index"),
                     icon: Book,
                     iconColor: "text-green-500",
-                    // items: [ // <-- sub-item added here
-                    //     { title: "Book Subitem", url: "/" },
-                    // ],
+                    items: [
+                        { title: "Book Subitem", url: "/" },
+                    ],
                 },
                 { title: "Book Loans", url: route("bookloans.index"), icon: BookOpenCheck, iconColor: "text-blue-500" },
                 { title: "Categories", url: route("categories.index"), icon: Layers, iconColor: "text-purple-500" },

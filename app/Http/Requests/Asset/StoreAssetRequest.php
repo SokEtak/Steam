@@ -26,7 +26,7 @@ class StoreAssetRequest extends FormRequest
                     return $query->where('asset_category_id', $this->asset_category_id);
                 }),
             ],
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048', // 2MB max
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // 5 MB max
             'model'              => 'nullable|string|max:255',
             'purchase_order_id'  => 'nullable|integer|exists:purchase_orders,id',
             'supplier_id'        => 'nullable|integer|exists:suppliers,id',

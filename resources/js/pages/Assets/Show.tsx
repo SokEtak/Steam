@@ -1,4 +1,3 @@
-// resources/js/Pages/Assets/Show.tsx
 'use client';
 
 import { Badge } from '@/components/ui/badge';

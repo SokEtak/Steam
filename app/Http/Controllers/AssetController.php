@@ -131,6 +131,7 @@ class AssetController extends Controller
 
     public function show(Asset $asset): Response
     {
+//        dd($asset->toArray());
         $asset->load([
             'category', 'subCategory', 'purchaseOrder', 'supplier',
             'department', 'room', 'custodian',
@@ -166,12 +167,36 @@ class AssetController extends Controller
     {
         $data = $request->validated();
 
-        if ($request->hasFile('image')) {
-            // Delete old image
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
+            // Delete old image if exists
             if ($asset->image) {
-                Storage::disk('public')->delete($asset->image);
+                $oldPath = str_replace('/storage/', 'public/', $asset->image);
+                if (Storage::exists($oldPath)) {
+                    Storage::delete($oldPath);
+                }
             }
-            $data['image'] = $request->file('image')->store('assets', 'public');
+
+            // Same upload logic as store()
+            $imageFile = $request->file('image');
+            $allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+            if (!in_array($imageFile->getMimeType(), $allowedMimes)) {
+                return back()->with('flash', ['error' => 'Invalid image format.']);
+            }
+
+            $extension = $imageFile->getClientOriginalExtension();
+            $sanitizedTag = preg_replace('/[^A-Za-z0-9\-_]/', '', $validated['asset_tag']);
+            $filename = "assets/{$sanitizedTag}.{$extension}";
+            $counter = 1;
+            while (Storage::disk('public')->exists($filename)) {
+                $filename = "assets/{$sanitizedTag}({$counter}).{$extension}";
+                $counter++;
+            }
+
+            $path = $imageFile->storeAs('', $filename, 'public');
+            $validated['image'] = Storage::disk('public')->url($path);
+        } else {
+            // Keep existing image if no new file
+            $validated['image'] = $asset->image;
         }
 
         $asset->update($data);

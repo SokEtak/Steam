@@ -93,6 +93,12 @@ export const translations = {
         poNumber: "PO Number",
         poSupplier: "Supplier",
         poCost: "PO Cost",
+
+        imageLabel: 'Asset Image',
+        changeImage: 'Change image',
+        removeImage: 'Remove image',
+        uploadImage: 'Click to upload or drag & drop',
+        dropHere: 'Drop image here',
     },
 
     kh: {
@@ -188,5 +194,11 @@ export const translations = {
         poNumber: "លេខ PO",
         poSupplier: "អ្នកផ្គត់ផ្គង់",
         poCost: "តម្លៃ PO",
+
+        imageLabel: 'រូបភាពទ្រព្យសម្បត្តិ',
+        changeImage: 'ផ្លាស់ប្តូររូបភាព',
+        removeImage: 'លុបរូបភាព',
+        uploadImage: 'ចុចដើម្បីបញ្ចូល ឬអូសមកទម្លាក់',
+        dropHere: 'ទម្លាក់រូបភាពនៅទីនេះ',
     }
 };

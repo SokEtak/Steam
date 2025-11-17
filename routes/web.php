@@ -77,7 +77,7 @@ Route::get('/e-library', [LibraryController::class, 'globalEbooks'])
 
 // Show Library (Single Book View)
 Route::get('/library/{book}', [LibraryController::class, 'show'])
-    ->middleware(['auth', 'throttle:5,2'])
+    ->middleware(['auth', 'throttle:20,2'])
     ->name('library.show');
 
 require __DIR__.'/settings.php';

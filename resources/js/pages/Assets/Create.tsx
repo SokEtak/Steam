@@ -42,7 +42,7 @@ export default function AssetsCreate({
                                          users,
                                          purchaseOrders = [],
                                          flash,
-                                         lang = 'en'
+                                         lang = 'kh'
                                      }: Props) {
     const trans = translations[lang] ?? translations.en;
 
@@ -63,6 +63,7 @@ export default function AssetsCreate({
         custodian_user_id: '',
         notes: '',
         purchase_order_id: '',
+        image: null as File | null,// <-- NEW
     });
 
     const [showSuccess, setShowSuccess] = useState(!!flash?.message);
@@ -97,19 +98,41 @@ export default function AssetsCreate({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Convert all IDs to numbers
-        const payload = {
-            ...data,
-            asset_category_id: data.asset_category_id ? Number(data.asset_category_id) : null,
-            asset_subcategory_id: data.asset_subcategory_id ? Number(data.asset_subcategory_id) : null,
-            current_department_id: data.current_department_id ? Number(data.current_department_id) : null,
-            current_room_id: data.current_room_id ? Number(data.current_room_id) : null,
-            custodian_user_id: data.custodian_user_id ? Number(data.custodian_user_id) : null,
-            cost: data.cost ? parseFloat(data.cost) : null,
-        };
+        const formData = new FormData();
+
+        // Append all text fields
+        Object.entries(data).forEach(([key, value]) => {
+            if (value !== null && value !== '') {
+                if (key === 'image' && value instanceof File) {
+                    formData.append(key, value);
+                } else if (key !== 'image') {
+                    formData.append(key, String(value));
+                }
+            }
+        });
+
+        // Convert IDs to numbers (only for non-null)
+        const idFields = [
+            'asset_category_id',
+            'asset_subcategory_id',
+            'current_department_id',
+            'current_room_id',
+            'custodian_user_id',
+            'purchase_order_id',
+        ];
+        idFields.forEach(field => {
+            if (data[field]) {
+                formData.set(field, String(Number(data[field])));
+            }
+        });
+
+        if (data.cost) {
+            formData.set('cost', String(parseFloat(data.cost)));
+        }
 
         post(route('assets.store'), {
-            data: payload,
+            data: formData,
+            forceFormData: true, // ← Critical for file uploads
             onSuccess: () => {
                 reset();
                 setIsDirty(false);
@@ -121,6 +144,7 @@ export default function AssetsCreate({
         if (isDirty) setShowLeaveDialog(true);
         else router.visit(route('assets.index'));
     };
+
 
     // THIS IS THE ONLY LINE YOU NEED TO CHANGE
     const filteredSubcategories = useMemo(() => {

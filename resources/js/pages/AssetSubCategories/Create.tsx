@@ -118,7 +118,7 @@ export default function AssetSubCategoriesCreate({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={t.createTitle} />
             <div className="min-h-screen p-6 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-                <div className="max-w-xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-8">
+                <div className="max-w-1xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-8">
                     <h1 className="text-3xl font-semibold mb-8">{t.createTitle}</h1>
 
                     {/* Success Alert */}
