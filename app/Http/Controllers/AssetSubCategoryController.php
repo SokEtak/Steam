@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Request\AssetSubCategory\StoreAssetSubCategoryRequest;
+use App\Http\Requests\AssetSubCategory\StoreAssetSubCategoryRequest;
 use App\Http\Requests\AssetSubCategory\UpdateAssetSubCategoryRequest;
 use App\Models\AssetCategory;
 use App\Models\AssetSubCategory;
-use Inertia\Inertia;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class AssetSubCategoryController extends Controller
 {

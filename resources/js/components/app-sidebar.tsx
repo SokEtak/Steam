@@ -125,7 +125,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 { title: "Assets", url: route("assets.index"), icon: Package, iconColor: "text-orange-700" },
                 { title: "Asset Categories", url: route("asset-categories.index"), icon: PackageSearch, iconColor: "text-teal-700" },
                 { title: "Asset SubCategories", url: route("asset-sub-categories.index"), icon: PackageSearch, iconColor: "text-purple-700" },
-                { title: "Allocations", url: route("campuses.index"), icon: Share2, iconColor: "text-pink-600" },
+                { title: "Asset Transactions", url: route("asset-transactions.index"), icon: Share2, iconColor: "text-pink-600" },
                 { title: "Suppliers", url: route("suppliers.index"), icon: Truck, iconColor: "text-yellow-700" },
                 { title: "Purchase Orders", url: route("purchase-orders.index"), icon: NotepadText, iconColor: "text-gray-700" },
                 { title: "Maintenance Records", url: route("campuses.index"), icon: Wrench, iconColor: "text-red-600" },

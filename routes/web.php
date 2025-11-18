@@ -3,6 +3,7 @@
 use App\Http\Controllers\AssetCategoryController;
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\AssetSubCategoryController;
+use App\Http\Controllers\AssetTransactionController;
 use App\Http\Controllers\BookcaseController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\BookLoanController;
@@ -55,6 +56,7 @@ Route::middleware(['auth', 'verified', 'is_account_activated','role:staff|admin'
             'suppliers'=>SupplierController::class,
             'purchase-orders'=>PurchaseOrderController::class,
             'assets'=>AssetController::class,
+            'asset-transactions'=>AssetTransactionController::class,
         ]);
     });
 
