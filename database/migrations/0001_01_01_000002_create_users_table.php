@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('google_id')->nullable()->unique();
             $table->string('facebook_id')->nullable()->unique();
+            $table->string('github_id')->nullable()->after('google_id');//enable it for production-ready
             $table->string('name');
             $table->string('avatar')->nullable();
             $table->string('email')->unique();

@@ -10,7 +10,6 @@ class UpdateSchoolRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
-        // return auth()->user()?->hasRole('super-librarian');
     }
 
     public function rules(): array

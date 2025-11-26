@@ -56,9 +56,9 @@ const commonStyles = {
 export default function BuildingsShow({
                                           building,
                                           isSuperLibrarian = false,
-                                          lang = "en",
+                                          lang = "kh",
                                       }: BuildingsShowProps) {
-    const t = translations[lang] ?? translations.en;
+    const t = translations["kh"];
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t.indexTitle ?? "Buildings", href: route("buildings.index") },
@@ -121,7 +121,7 @@ export default function BuildingsShow({
                                     </strong>{" "}
                                     {new Date(building.created_at).toLocaleDateString(
                                         lang === "kh" ? "km-KH" : "en-US",
-                                        { year: "numeric", month: "long", day: "numeric" }
+                                        { year: "numeric", month: "long", day: "numeric",hour:"numeric",minute:"numeric",second:"numeric", hour12: false }
                                     )}
                                 </div>
 
@@ -132,7 +132,7 @@ export default function BuildingsShow({
                                     </strong>{" "}
                                     {new Date(building.updated_at).toLocaleDateString(
                                         lang === "kh" ? "km-KH" : "en-US",
-                                        { year: "numeric", month: "long", day: "numeric" }
+                                        { year: "numeric", month: "long", day: "numeric",hour:"numeric",minute:"numeric",second:"numeric", hour12: false }
                                     )}
                                 </div>
                             </CardContent>

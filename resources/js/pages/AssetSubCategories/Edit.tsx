@@ -49,16 +49,16 @@ interface AssetSubCategoriesEditProps {
     assetSubCategory: AssetSubCategory;
     assetCategories: AssetCategory[];
     flash?: { message?: string };
-    lang?: "kh" | "en";
 }
 
 export default function AssetSubCategoriesEdit({
                                                    assetSubCategory,
                                                    assetCategories,
                                                    flash,
-                                                   lang = "en",
                                                }: AssetSubCategoriesEditProps) {
-    const t = translations[lang] || translations.en;
+
+    // FORCE KHMER
+    const t = translations.kh;
 
     const initialFormData = {
         asset_category_id: assetSubCategory.asset_category_id.toString(),
@@ -72,13 +72,13 @@ export default function AssetSubCategoriesEdit({
     const [showLeaveDialog, setShowLeaveDialog] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
 
-    // Track form changes
+    // Detect unsaved changes
     useEffect(() => {
         const hasChanges = Object.keys(data).some(k => data[k] !== initialFormData[k]);
         setIsDirty(hasChanges);
     }, [data]);
 
-    // Prevent accidental navigation
+    // Stop window close
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
             if (isDirty) {
@@ -90,13 +90,13 @@ export default function AssetSubCategoriesEdit({
         return () => window.removeEventListener("beforeunload", handleBeforeUnload);
     }, [isDirty]);
 
-    // Show alerts
+    // Alerts
     useEffect(() => {
         setShowErrorAlert(Object.keys(errors).length > 0);
         if (flash?.message) setShowSuccessAlert(true);
     }, [errors, flash?.message]);
 
-    // Selected category name
+    // Selected Category Name
     const selectedCategoryName = useMemo(() => {
         if (!data.asset_category_id) return null;
         return assetCategories.find(c => c.id.toString() === data.asset_category_id)?.name ?? null;
@@ -114,8 +114,8 @@ export default function AssetSubCategoriesEdit({
     };
 
     const handleCancel = () => {
-        reset(); // Reverts form data to initialFormData
-        setShowErrorAlert(false); // Optional: also hide errors on cancel
+        reset();
+        setShowErrorAlert(false);
     };
 
     const breadcrumbs = [
@@ -160,7 +160,7 @@ export default function AssetSubCategoriesEdit({
 
                     <form onSubmit={handleSubmit} className="space-y-6">
 
-                        {/* Category - Searchable */}
+                        {/* Category */}
                         <div className="space-y-2">
                             <label><span className="text-red-500">*</span> {t.editCategory}</label>
                             <Popover open={openCategory} onOpenChange={setOpenCategory}>
@@ -219,10 +219,10 @@ export default function AssetSubCategoriesEdit({
                             <Button
                                 type="submit"
                                 disabled={
-                                    processing || // Disable if processing
-                                    !isDirty || // Disable if no changes made
-                                    !data.name.trim() || // Disable if name is empty
-                                    !data.asset_category_id // Disable if category is not selected
+                                    processing ||
+                                    !isDirty ||
+                                    !data.name.trim() ||
+                                    !data.asset_category_id
                                 }
                             >
                                 {processing ? t.editUpdating : t.editUpdate}
@@ -239,22 +239,21 @@ export default function AssetSubCategoriesEdit({
                         <AlertDialogContent>
                             <AlertDialogHeader>
                                 <AlertDialogTitle>
-                                    {lang === "kh" ? "តើអ្នកប្រាកដទេ?" : "Are you sure?"}
+                                    {"តើអ្នកប្រាកដទេ?"}
                                 </AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    {lang === "kh"
-                                        ? "អ្នកមានការផ្លាស់ប្តូរដែលមិនបានរក្សាទុក។"
-                                        : "You have unsaved changes."}
+                                    {"អ្នកមានការផ្លាស់ប្តូរដែលមិនបានរក្សាទុក។"}
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                                 <AlertDialogCancel>{t.editCancel}</AlertDialogCancel>
                                 <AlertDialogAction onClick={() => router.visit(route("asset-sub-categories.index"))}>
-                                    {lang === "kh" ? "ចាកចេញ" : "Leave"}
+                                    {"ចាកចេញ"}
                                 </AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
+
                 </div>
             </div>
         </AppLayout>

@@ -120,14 +120,32 @@ function DataTable<T extends DataItem>({
     const [isTableLoading, setIsTableLoading] = useState(true);
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
-        columns.reduce((acc, col) => {
-            if (col.id && col.enableHiding !== false) {
-                acc[col.id] = true;
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() => {
+        const initial: VisibilityState = {};
+
+        columns.forEach((col) => {
+            const id = col.id ?? col.accessorKey;
+
+            // If no ID → skip
+            if (!id) return;
+
+            // If column cannot be hidden → always visible
+            if (col.enableHiding === false) {
+                initial[id] = true;
+                return;
             }
-            return acc;
-        }, {} as VisibilityState)
-    );
+
+            // USE defaultHidden ONLY IF PROVIDED
+            if ("defaultHidden" in col && col.defaultHidden === true) {
+                initial[id] = false; // hidden
+            } else {
+                initial[id] = true; // visible (same as before)
+            }
+        });
+
+        return initial;
+    });
+
     const [pagination, setPagination] = useState<PaginationState>({
         pageIndex: 0,
         pageSize: 10,

@@ -137,7 +137,7 @@ const getColumns = (
                                     <TooltipContent>{t.indexEditTooltip}</TooltipContent>
                                 </Tooltip>
 
-                                {isSuperLibrarian && (
+                                {/*{isSuperLibrarian && (*/}
                                     <Tooltip>
                                         <TooltipTrigger asChild>
                                             <Button
@@ -155,7 +155,7 @@ const getColumns = (
                                         </TooltipTrigger>
                                         <TooltipContent>{t.indexDeleteTooltip}</TooltipContent>
                                     </Tooltip>
-                                )}
+                                {/*)}*/}
                             </TooltipProvider>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -166,7 +166,7 @@ const getColumns = (
             accessorKey: 'id',
             header: ({ column }) => sortableHeader(column, t.indexId),
             cell: ({ row }) => (
-                <Link href={route('rooms.show', row.original.id)} className="hover:underline">
+                <Link href={route('rooms.show', row.original.id)} className="hover:underline px-8">
                     {row.getValue('id')}
                 </Link>
             ),
@@ -175,18 +175,29 @@ const getColumns = (
             accessorKey: 'name',
             header: ({ column }) => sortableHeader(column, t.indexName),
             cell: ({ row }) => (
-                <Link href={route('rooms.show', row.original.id)} className="hover:underline">
+                <Link href={route('rooms.show', row.original.id)} className="hover:underline px-4">
                     {row.getValue('name')}
                 </Link>
             ),
         },
         {
-            accessorKey: 'room_number',
+            accessorKey: "room_number",
             header: ({ column }) => sortableHeader(column, t.indexRoomNumber),
+            cell: ({ row }) => (
+                <span className="px-7">
+            {row.getValue("room_number")}
+        </span>
+            ),
         },
+
         {
-            accessorKey: 'floor',
+            accessorKey: "floor",
             header: ({ column }) => sortableHeader(column, t.indexFloor),
+            cell: ({ row }) => (
+                <span className="px-6 font-semibold">
+            {row.getValue("floor")}
+        </span>
+            ),
         },
         {
             accessorKey: 'building.name',
@@ -261,9 +272,9 @@ export default function RoomsIndex({
                                        filters = {},
                                        flash,
                                        isSuperLibrarian = false,
-                                       lang = 'en'
+                                       lang = 'kh'
                                    }: RoomsIndexProps) {
-    const t = translations[lang] || translations.en;
+    const t = translations["kh"];
     const { processing } = useForm();
 
     const [search, setSearch] = useState(filters.search || '');

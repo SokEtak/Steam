@@ -49,9 +49,9 @@ export default function RoomsCreate({
                                         buildings,
                                         departments,
                                         flash,
-                                        lang = "en",
+                                        lang = "kh",
                                     }: RoomsCreateProps) {
-    const t = translations[lang] || translations.en;
+    const t = translations["kh"];
 
     const initialFormData = {
         campus_id: "none",
@@ -272,7 +272,6 @@ export default function RoomsCreate({
                             {errors.building_id && <p className="text-red-500 text-sm">{errors.building_id}</p>}
                         </div>
 
-                        {/* Department (Optional) */}
                         {/* Department (REQUIRED) */}
                         <div className="space-y-2">
                             <label><span className="text-red-500">*</span> {t.createDepartment}</label>

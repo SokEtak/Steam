@@ -200,12 +200,10 @@ export const NavMain = React.memo(
                                                                         >
                                                                             {SubIcon && (
                                                                                 <SubIcon
-                                                                                    className={`${
-                                                                                        sub.iconColor
-                                                                                    } ${
+                                                                                    className={`size-4 shrink-0 ${
                                                                                         isSubActive
                                                                                             ? "text-white"
-                                                                                            : ""
+                                                                                            : sub.iconColor // FIX: Directly use iconColor when inactive
                                                                                     }`}
                                                                                 />
                                                                             )}
@@ -228,12 +226,10 @@ export const NavMain = React.memo(
                                                                         >
                                                                             {SubIcon && (
                                                                                 <SubIcon
-                                                                                    className={`${
-                                                                                        sub.iconColor
-                                                                                    } ${
+                                                                                    className={`size-4 shrink-0 ${
                                                                                         isSubActive
                                                                                             ? "text-white"
-                                                                                            : ""
+                                                                                            : sub.iconColor
                                                                                     }`}
                                                                                 />
                                                                             )}

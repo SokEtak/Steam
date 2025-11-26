@@ -209,13 +209,6 @@ export default function AssetsCreate({
                         )}
 
                         <form onSubmit={handleSubmit} className="space-y-6">
-                            {/*/!* ADD THIS DEBUG LINE *!/*/}
-                            {/*<div className="bg-yellow-100 p-3 rounded text-xs font-mono">*/}
-                            {/*    Category ID: <strong>{data.asset_category_id || '—'}</strong> |*/}
-                            {/*    Subcats: <strong>{filteredSubcategories.length}</strong>*/}
-                            {/*    {filteredSubcategories.length > 0 && ` → ${filteredSubcategories[0].name}`}*/}
-                            {/*</div>*/}
-
                             <AssetForm
                                 key={`form-${data.asset_category_id || 'init'}`}
                                 data={data}

@@ -47,9 +47,9 @@ const commonStyles = {
 const getColumns = (
     processing: boolean,
     isSuperLibrarian: boolean,
-    lang: 'kh' | 'en' = 'en'
+    lang: 'kh' | 'en' = 'kh'
 ): ColumnDef<Department>[] => {
-    const t = translations[lang] || translations.en;
+    const t = translations["kh"];
 
     return [
         // === ACTIONS ===
@@ -211,10 +211,7 @@ const getColumns = (
             sortingFn: 'alphanumeric',
             // The cell still receives the full row, so we can safely read `campus.name`
             cell: ({ row }) => (
-                <Link
-                    href={route('campuses.show', row.original.campus.id)}
-                    className={commonStyles.link}
-                >
+                <Link href={route('campuses.show', row.original.campus.id)} className={`${commonStyles.link} px-3.5`}>
                     {row.original.campus.name}
                 </Link>
             ),
@@ -279,11 +276,11 @@ const getColumns = (
             cell: ({ row }) => {
                 const head = row.original.head;
                 return head ? (
-                    <Link href={route('users.show', head.id)} className={commonStyles.link}>
+                    <Link href={route('users.show', head.id)} className={`${commonStyles.link} px-8`}>
                         {head.name}
                     </Link>
                 ) : (
-                    <span className="text-gray-400">—</span>
+                    <span className="text-gray-400">N/A</span>
                 );
             },
         },
@@ -294,7 +291,7 @@ export default function DepartmentsIndex({
                                              departments,
                                              flash,
                                              isSuperLibrarian = false,
-                                             lang = 'en',
+                                             lang = 'kh',
                                          }: DepartmentsIndexProps) {
     const t = translations[lang] || translations.en;
     const { processing } = useForm();

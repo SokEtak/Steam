@@ -19,7 +19,19 @@ export const translations = {
         indexDeleteTooltip: "Delete",
         indexDeleteConfirm: "Are you sure you want to delete this PO?",
 
-        // === Create Page ===
+        // === Status Filter (New!) ===
+        indexAllStatuses: "All Statuses",
+        filterByStatus: "Filter by Status",
+        clearFilter: "Clear Filter",
+
+        // === Status Badges ===
+        status_draft: "Draft",
+        status_sent: "Sent",
+        status_confirmed: "Confirmed",
+        status_received: "Received",
+        status_cancelled: "Cancelled",
+
+        // === Create/Edit/Show Pages ===
         createTitle: "Create Purchase Order",
         createBreadcrumb: "Create",
         po_number: "PO Number",
@@ -28,18 +40,12 @@ export const translations = {
         order_date: "Order Date",
         total_amount: "Total Amount",
         status: "Status",
-        status_draft: "Draft",
-        status_sent: "Sent",
-        status_confirmed: "Confirmed",
-        status_received: "Received",
-        status_cancelled: "Cancelled",
         createCreate: "Create",
         createCreating: "Creating...",
         createCancel: "Cancel",
         createNotification: "Purchase order created successfully.",
         createError: "Please fix the errors below.",
 
-        // === Edit Page ===
         editTitle: "Edit Purchase Order",
         editBreadcrumb: "Edit",
         editNamePlaceholder: "e.g., PO-2025-001",
@@ -49,9 +55,8 @@ export const translations = {
         editNotification: "Purchase order updated successfully.",
         editError: "Please fix the errors below.",
 
-        // === Show Page ===
         showTitle: "View Purchase Order",
-        showBack: "Back to List",
+        showBack: "Back",
         showEdit: "Edit",
         showPoNumber: "PO Number",
         showSupplier: "Supplier",
@@ -67,7 +72,7 @@ export const translations = {
         // === Index Page ===
         indexTitle: "បញ្ជាទិញ",
         indexId: "លេខសម្គាល់",
-        indexPoNumber: "លេខ PO",
+        indexPoNumber: "លេខបញ្ជាទិញ",
         indexSupplier: "អ្នកផ្គត់ផ្គង់",
         indexOrderDate: "កាលបរិច្ឆេទ",
         indexTotalAmount: "សរុប",
@@ -81,28 +86,34 @@ export const translations = {
         indexDeleteTooltip: "លុប",
         indexDeleteConfirm: "តើអ្នកប្រាកដទេ?",
 
-        // === Create Page ===
+        // === Status Filter (New!) ===
+        indexAllStatuses: "ស្ថានភាពទាំងអស់",
+        filterByStatus: "ត្រងតាមស្ថានភាព",
+        clearFilter: "លុបតម្រង",
+
+        // === Status Badges ===
+        status_draft: "ព្រៀង",
+        status_sent: "បានផ្ញើ",
+        status_confirmed: "បានបញ្ជាក់",
+        status_received: "បានទទួល",
+        status_cancelled: "បានលុបចោល",
+
+        // === Create/Edit/Show Pages ===
         createTitle: "បង្កើតបញ្ជាទិញ",
         createBreadcrumb: "បង្កើត",
-        po_number: "លេខ PO",
+        po_number: "លេខកូដបញ្ជាទិញ",
         poNumberPlaceholder: "ឧ. PO-2025-001",
         supplier_id: "អ្នកផ្គត់ផ្គង់",
         order_date: "កាលបរិច្ឆេទ",
         total_amount: "សរុប",
         status: "ស្ថានភាព",
-        status_draft: "សារពត៌មាន",
-        status_sent: "បានផ្ញើ",
-        status_confirmed: "បានបញ្ជាក់",
-        status_received: "បានទទួល",
-        status_cancelled: "បានលុបចោល",
         createCreate: "បង្កើត",
         createCreating: "កំពុងបង្កើត...",
         createCancel: "បោះបង់",
         createNotification: "បានបង្កើត PO ដោយជោគជ័យ។",
         createError: "សូមកែកំហុសខាងក្រោម។",
 
-        // === Edit Page ===
-        editTitle: "កែបញ្ជាទិញ",
+        editTitle: "កែប្រែការបញ្ជាទិញ",
         editBreadcrumb: "កែ",
         editNamePlaceholder: "ឧ. PO-2025-001",
         editUpdate: "កែ",
@@ -111,9 +122,8 @@ export const translations = {
         editNotification: "បានកែ PO ដោយជោគជ័យ។",
         editError: "សូមកែកំហុសខាងក្រោម។",
 
-        // === Show Page ===
         showTitle: "មើលបញ្ជាទិញ",
-        showBack: "ត្រឡប់ទៅបញ្ជី",
+        showBack: "ត្រឡប់",
         showEdit: "កែ",
         showPoNumber: "លេខ PO",
         showSupplier: "អ្នកផ្គត់ផ្គង់",

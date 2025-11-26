@@ -43,9 +43,9 @@ const commonStyles = {
 export default function DepartmentsShow({
                                             department,
                                             isSuperLibrarian = false,
-                                            lang = "en",
+                                            lang = "kh",
                                         }: DepartmentsShowProps) {
-    const t = translations[lang] ?? translations.en;
+    const t = translations["kh"];
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t.indexTitle ?? "Departments", href: route("departments.index") },

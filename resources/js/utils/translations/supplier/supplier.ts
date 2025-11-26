@@ -46,8 +46,8 @@ export const translations = {
         editError: "Please fix the errors below.",
 
         // === Show Page ===
-        showTitle: "View Supplier",
-        showBack: "Back to List",
+        showTitle: "View",
+        showBack: "Back",
     },
 
     kh: {
@@ -85,10 +85,10 @@ export const translations = {
         createError: "សូមកែកំហុសខាងក្រោម។",
 
         // === Edit Page ===
-        editTitle: "កែអ្នកផ្គត់ផ្គង់",
-        editBreadcrumb: "កែ",
+        editTitle: "កែប្រែអ្នកផ្គត់ផ្គង់",
+        editBreadcrumb: "កែប្រែ",
         editNamePlaceholder: "ឧ. ក្រុមហ៊ុន អេស៊ីម",
-        editUpdate: "កែ",
+        editUpdate: "កែប្រែ",
         editUpdating: "កំពុងកែ...",
         editCancel: "បោះបង់",
         editNotification: "បានកែអ្នកផ្គត់ផ្គង់ដោយជោគជ័យ។",
@@ -96,7 +96,7 @@ export const translations = {
 
         // === Show Page ===
         showTitle: "មើលអ្នកផ្គត់ផ្គង់",
-        showBack: "ត្រឡប់ទៅបញ្ជី",
+        showBack: "ត្រឡប់",
     },
 } as const;
 

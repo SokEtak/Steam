@@ -42,7 +42,7 @@ export default function SchoolsEdit({
                                         isSuperLibrarian = false,
                                         lang = "kh",
                                     }: SchoolsEditProps) {
-    const t = translations[lang] || translations.en;
+    const t = translations["kh"];
 
     const { data, setData, put, processing, errors } = useForm({
         name: school.name ?? "",

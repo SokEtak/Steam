@@ -49,7 +49,7 @@ export default function AssetsEdit({
                                        users,
                                        purchaseOrders = [],
                                        flash,
-                                       lang = 'en'
+                                       lang = 'kh'
                                    }: Props) {
     const trans = translations[lang] ?? translations.en;
 

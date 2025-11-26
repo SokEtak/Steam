@@ -6,7 +6,13 @@ import { type BreadcrumbItem } from "@/types";
 import { Head, useForm, Link } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
     Tooltip,
@@ -14,7 +20,23 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { CheckCircle2Icon, X } from "lucide-react";
+
+// **Missing imports for Popover and Command**
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "@/components/ui/command";
+
+import { CheckCircle2Icon, X, ChevronDown, Package } from "lucide-react";
 import { translations } from "@/utils/translations/campus/campus";
 
 interface School {
@@ -29,7 +51,7 @@ interface CampusesCreateProps {
 }
 
 export default function CampusesCreate({ schools, flash, lang = "kh" }: CampusesCreateProps) {
-    const t = translations[lang] || translations.en;
+    const t = translations["kh"];
 
     const { data, setData, post, processing, errors, reset } = useForm({
         school_id: "",
@@ -41,6 +63,8 @@ export default function CampusesCreate({ schools, flash, lang = "kh" }: Campuses
         website: "",
     });
 
+    const [openSchool, setOpenSchool] = useState(false);
+    const [selectedSchoolName, setSelectedSchoolName] = useState<string | null>(null);
     const [showErrorAlert, setShowErrorAlert] = useState(false);
     const [showSuccessAlert, setShowSuccessAlert] = useState(!!flash?.message);
 
@@ -130,43 +154,51 @@ export default function CampusesCreate({ schools, flash, lang = "kh" }: Campuses
 
                     <form onSubmit={handleSubmit} className="space-y-6">
 
-                        {/* School - REQUIRED */}
+                        {/* School - REQUIRED (Popover/Command version) */}
                         <div className="space-y-2">
-                            <label htmlFor="school_id" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                <RequiredLabel>{t.createSchool}</RequiredLabel>
-                            </label>
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Select
-                                            value={data.school_id}
-                                            onValueChange={(v) => setData("school_id", v)}
-                                            disabled={processing}
-                                        >
-                                            <SelectTrigger
-                                                id="school_id"
-                                                className={`w-full ${errors.school_id ? "border-red-500 dark:border-red-400" : ""}`}
-                                            >
-                                                <SelectValue placeholder={t.createSchoolPlaceholder} />
-                                            </SelectTrigger>
-                                            <SelectContent>
+                            <label><span className="text-red-500">*</span> {t.createSchool}</label>
+
+                            <Popover open={openSchool} onOpenChange={setOpenSchool}>
+                                <PopoverTrigger asChild>
+                                    <Button variant="outline" className="w-full justify-between">
+                                        {selectedSchoolName ?? t.createSchoolPlaceholder}
+                                        <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="p-0 w-full" align="start">
+                                    <Command>
+                                        <CommandInput placeholder={t.createSchoolPlaceholder} />
+                                        <CommandList>
+                                            <CommandEmpty>
+                                                {schools.length === 0
+                                                    ? "មិនមានទិន្នន័យ។"
+                                                    : "រកមិនឃើញសាលាដែលផ្គូផ្គង"}
+                                            </CommandEmpty>
+                                            <CommandGroup>
                                                 {schools.map((s) => (
-                                                    <SelectItem key={s.id} value={String(s.id)}>
+                                                    <CommandItem
+                                                        key={s.id}
+                                                        value={s.name}
+                                                        onSelect={() => {
+                                                            setData("school_id", s.id.toString());
+                                                            setOpenSchool(false);
+                                                        }}
+                                                    >
+                                                        <Package className="mr-2 h-4 w-4 text-indigo-600" />
                                                         {s.name}
-                                                    </SelectItem>
+                                                    </CommandItem>
                                                 ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </TooltipTrigger>
-                                    <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                        {t.createSchoolTooltip}
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
+
                             {errors.school_id && (
-                                <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.school_id}</p>
+                                <p className="text-red-500 text-sm">{errors.school_id}</p>
                             )}
                         </div>
+
 
                         {/* Name - REQUIRED */}
                         <div className="space-y-2">

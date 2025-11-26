@@ -28,10 +28,6 @@ class BookcaseController extends Controller
      */
     public function create()
     {
-        if ($redirect = $this->shouldRedirectIfNotStaff()) {
-            return $redirect;
-        }
-
         return Inertia::render('Bookcases/Create');
     }
 
@@ -50,9 +46,6 @@ class BookcaseController extends Controller
      */
     public function show(Bookcase $bookcase)
     {
-        if ($redirect = $this->shouldRedirectIfNotStaff()) {
-            return $redirect;
-        }
 
         $bookcase = Bookcase::forCurrentCampusWithBooks()->findOrFail($bookcase->id);
 
@@ -71,10 +64,6 @@ class BookcaseController extends Controller
             return abort(404, 'Not Found.');
         }
 
-        if ($redirect = $this->shouldRedirectIfNotStaff()) {
-            return $redirect;
-        }
-
         return Inertia::render('Bookcases/Edit', [
             'bookcase' => $bookcase,
             'flash' => ['message' => session('message')],
@@ -91,15 +80,5 @@ class BookcaseController extends Controller
         ]));
 
         return redirect()->route('bookcases.index')->with('message', 'Bookcase updated successfully.');
-    }
-
-    /**
-     * Redirect if the user is not a staff member.
-     */
-    protected function shouldRedirectIfNotStaff(): ?RedirectResponse
-    {
-        return Auth::check() && !Auth::user()->hasRole('staff')
-            ? redirect()->route('bookcases.index')
-            : null;
     }
 }

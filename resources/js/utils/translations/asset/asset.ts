@@ -99,12 +99,30 @@ export const translations = {
         removeImage: 'Remove image',
         uploadImage: 'Click to upload or drag & drop',
         dropHere: 'Drop image here',
+
+        // ── PLACEHOLDERS (NEW) ─────────────────────
+        assetTagPlaceholder: "e.g. LAP-00123",
+        assetNamePlaceholder: "e.g. MacBook Pro 16-inch",
+        serialNumberPlaceholder: "Enter serial number",
+        modelPlaceholder: "e.g. M2 Pro, Dell XPS 15",
+        costPlaceholder: "0.00",
+        notesPlaceholder: "Additional notes, specifications, accessories...",
+
+        // ── DROPDOWN PLACEHOLDERS (NEW) ─────────────────
+        categoryPlaceholder: "Select a category...",
+        subcategoryPlaceholder: "Select a subcategory (optional)",
+        purchaseOrderPlaceholder: "Search PO number or supplier...",
+        conditionPlaceholder: "Select condition",
+        statusPlaceholder: "Select status",
+        departmentPlaceholder: "Select department (optional)",
+        roomPlaceholder: "Select room (optional)",
+        custodianPlaceholder: "Select custodian (optional)",
     },
 
     kh: {
         // ── GLOBAL ─────────────────────────────────────
         back: "ត្រឡប់",
-        edit: "កែ",
+        edit: "កែប្រែ",
         delete: "លុប",
         view: "មើល",
         cancel: "បោះបង់",
@@ -132,8 +150,8 @@ export const translations = {
         deleteConfirm: "លុបទ្រព្យនេះជាអចិន្ត្រៃយ៍មែនទេ?",
 
         // ── SHOW PAGE ──────────────────────────────────
-        assetDetails: "ព័ត៌មានទ្រព្យ",
-        backToAssets: "ត្រឡប់ទៅទ្រព្យ",
+        assetDetails: "ព័ត៌មានរបស់រទ្រព្យ",
+        backToAssets: "ត្រឡប់",
         serialNumber: "លេខស៊េរី",
         model: "ម៉ូដែល",
         status: "ស្ថានភាព",
@@ -153,7 +171,7 @@ export const translations = {
         leaveDesc: "មានការផ្លាស់ប្តូរមិនទាន់រក្សាទុក",
         createButton: "បង្កើតទ្រព្យ",
 
-        editAsset: "កែទ្រព្យ",
+        editAsset: "កែប្រែពត៌មានរបស់ទ្រព្យ",
         updateSuccess: "កែទ្រព្យជោគជ័យ!",
         updateButton: "រក្សាទុក",
 
@@ -200,5 +218,23 @@ export const translations = {
         removeImage: 'លុបរូបភាព',
         uploadImage: 'ចុចដើម្បីបញ្ចូល ឬអូសមកទម្លាក់',
         dropHere: 'ទម្លាក់រូបភាពនៅទីនេះ',
+
+        // ── PLACEHOLDERS ───────────────────
+        assetTagPlaceholder: "ឧ. LAP-00123",
+        assetNamePlaceholder: "ឧ. MacBook Pro 16 អ៊ីញ",
+        serialNumberPlaceholder: "បញ្ចូលលេខស៊េរី",
+        modelPlaceholder: "ឧ. M2 Pro, Dell XPS 15",
+        costPlaceholder: "0.00",
+        notesPlaceholder: "កំណត់ចំណាំបន្ថែម លក្ខណៈជាក់លាក់ គ្រឿងបន្លាស់...",
+
+        // ── DROPDOWN PLACEHOLDERS ───────────────
+        categoryPlaceholder: "ជ្រើសប្រភេទ...",
+        subcategoryPlaceholder: "ជ្រើសប្រភេទរង (ស្រេចចិត្ត)",
+        purchaseOrderPlaceholder: "ស្វែងរកលេខ PO ឬអ្នកផ្គត់ផ្គង់...",
+        conditionPlaceholder: "ជ្រើសស្ថានភាព",
+        statusPlaceholder: "ជ្រើសស្ថានភាព",
+        departmentPlaceholder: "ជ្រើសនាយកដ្ឋាន (ស្រេចចិត្ត)",
+        roomPlaceholder: "ជ្រើសបន្ទប់ (ស្រេចចិត្ត)",
+        custodianPlaceholder: "ជ្រើសអ្នកទទួលខុសត្រូវ (ស្រេចចិត្ត)",
     }
 };

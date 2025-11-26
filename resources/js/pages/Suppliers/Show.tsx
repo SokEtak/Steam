@@ -23,7 +23,7 @@ interface SuppliersShowProps {
     lang?: "kh" | "en";
 }
 
-export default function SuppliersShow({ supplier, lang = "en" }: SuppliersShowProps) {
+export default function SuppliersShow({ supplier, lang = "kh" }: SuppliersShowProps) {
     const t = translations[lang] || translations.en;
 
     return (

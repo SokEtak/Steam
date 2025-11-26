@@ -61,9 +61,9 @@ export default function RoomsEdit({
                                       buildings,
                                       departments,
                                       flash,
-                                      lang = "en",
+                                      lang = "kh",
                                   }: RoomsEditProps) {
-    const t = translations[lang] || translations.en;
+    const t = translations["kh"];
 
     const initialFormData = {
         campus_id: room.building.campus_id.toString(),

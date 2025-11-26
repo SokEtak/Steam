@@ -24,8 +24,8 @@ interface RoomsShowProps {
     lang?: "kh" | "en";
 }
 
-export default function RoomsShow({ room, isSuperLibrarian = false, lang = "en" }: RoomsShowProps) {
-    const t = translations[lang] || translations.en;
+export default function RoomsShow({ room, isSuperLibrarian = false, lang = "kh" }: RoomsShowProps) {
+    const t = translations["kh"];
 
     return (
         <AppLayout breadcrumbs={[

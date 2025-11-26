@@ -108,26 +108,29 @@ export default function AssetForm({
             {/* ──────── BASIC INFO ──────── */}
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <Label>
+                    <Label className="mb-2">
                         {trans.assetTagLabel} <span className="text-red-500">*</span>
                     </Label>
-                    <Input value={data.asset_tag || ''} onChange={(e) => setData('asset_tag', e.target.value)} />
+                    <Input
+                        placeholder={trans.assetTagPlaceholder}
+                        value={data.asset_tag || ''}
+                        onChange={(e) => setData('asset_tag', e.target.value)}
+                    />
                     {errors.asset_tag && <p className="text-sm text-red-500">{errors.asset_tag}</p>}
                 </div>
 
                 <div>
-                    <Label>
+                    <Label className="mb-2">
                         {trans.assetNameLabel} <span className="text-red-500">*</span>
                     </Label>
-                    <Input value={data.name || ''} onChange={(e) => setData('name', e.target.value)} />
+                    <Input placeholder={trans.assetNamePlaceholder} value={data.name || ''} onChange={(e) => setData('name', e.target.value)} />
                     {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
                 </div>
             </div>
-
             {/* ──────── CATEGORY / SUBCATEGORY ──────── */}
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <Label>
+                    <Label className="mb-2">
                         {trans.categoryLabel} <span className="text-red-500">*</span>
                     </Label>
                     <SearchableSelect
@@ -140,38 +143,40 @@ export default function AssetForm({
                             });
                         }}
                         options={categoryOptions}
-                        placeholder="Select a category..."
+                        placeholder={trans.categoryPlaceholder}
                     />
                 </div>
 
                 <div>
-                    <Label>{trans.subcategoryLabel}</Label>
+                    <Label className="mb-2">{trans.subcategoryLabel}</Label>
                     <SearchableSelect
                         value={data.asset_subcategory_id || ''}
                         onValueChange={(v) => setData('asset_subcategory_id', v || null)}
                         options={subcategoryOptions}
-                        placeholder="Select a subcategory..."
+                        placeholder={trans.subcategoryPlaceholder}
                         emptyPlaceholder={data.asset_category_id ? trans.noSubcategories : trans.selectCategoryFirst}
                     />
                 </div>
             </div>
-
             {/* ──────── SERIAL / MODEL ──────── */}
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <Label>{trans.serialNumberLabel}</Label>
-                    <Input value={data.serial_number || ''} onChange={(e) => setData('serial_number', e.target.value)} />
+                    <Label className="mb-2">{trans.serialNumberLabel}</Label>
+                    <Input
+                        placeholder={trans.serialNumberPlaceholder}
+                        value={data.serial_number || ''}
+                        onChange={(e) => setData('serial_number', e.target.value)}
+                    />
                 </div>
 
                 <div>
-                    <Label>{trans.modelLabel}</Label>
-                    <Input value={data.model || ''} onChange={(e) => setData('model', e.target.value)} />
+                    <Label className="mb-2">{trans.modelLabel}</Label>
+                    <Input placeholder={trans.modelPlaceholder} value={data.model || ''} onChange={(e) => setData('model', e.target.value)} />
                 </div>
             </div>
-
             {/* ──────── PURCHASE ORDER ──────── */}
             <div>
-                <Label>{trans.purchaseOrderLabel}</Label>
+                <Label className="mb-2">{trans.purchaseOrderLabel}</Label>
                 <SearchableSelect
                     value={data.purchase_order_id || ''}
                     onValueChange={(v) => {
@@ -183,42 +188,45 @@ export default function AssetForm({
                         value: String(po.id),
                         label: `${po.po_number}${po.supplier ? ` — ${po.supplier.name}` : ''}`,
                     }))}
-                    placeholder={trans.searchPO}
+                    placeholder={trans.purchaseOrderPlaceholder}
                     emptyPlaceholder={trans.noPOs}
                 />
                 {errors.purchase_order_id && <p className="text-sm text-red-500 mt-1">{errors.purchase_order_id}</p>}
             </div>
-
             {/* ──────── DATES ──────── */}
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <Label>
+                    <Label className={'mb-2'}>
                         {trans.purchaseDateLabel} <span className="text-red-500">*</span>
                     </Label>
                     <Input type="date" value={data.purchase_date || ''} onChange={(e) => setData('purchase_date', e.target.value)} />
                 </div>
 
                 <div>
-                    <Label>{trans.warrantyUntilLabel}</Label>
+                    <Label className={'mb-2'}>{trans.warrantyUntilLabel}</Label>
                     <Input type="date" value={data.warranty_until || ''} onChange={(e) => setData('warranty_until', e.target.value)} />
                 </div>
             </div>
-
             {/* ──────── COST ──────── */}
             <div>
-                <Label>
+                <Label className="mb-2">
                     {trans.costLabel} <span className="text-red-500">*</span>
                 </Label>
-                <Input type="number" step="0.01" value={data.cost || ''} onChange={(e) => setData('cost', e.target.value)} />
+                <Input
+                    type="number"
+                    step="0.01"
+                    placeholder={trans.costPlaceholder}
+                    value={data.cost || ''}
+                    onChange={(e) => setData('cost', e.target.value)}
+                />
             </div>
-
             {/* ──────── CONDITION / STATUS ──────── */}
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <Label>{trans.conditionLabel}</Label>
-                    <Select value={data.condition} onValueChange={(v) => setData('condition', v)}>
+                    <Label className="mb-2">{trans.conditionLabel}</Label>
+                    <Select value={data.condition || ''} onValueChange={(v) => setData('condition', v)}>
                         <SelectTrigger>
-                            <SelectValue />
+                            <SelectValue placeholder={trans.conditionPlaceholder} />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="new">{trans.conditionNew}</SelectItem>
@@ -228,10 +236,10 @@ export default function AssetForm({
                 </div>
 
                 <div>
-                    <Label>{trans.statusLabel}</Label>
-                    <Select value={data.status} onValueChange={(v) => setData('status', v)}>
+                    <Label className="mb-2">{trans.statusLabel}</Label>
+                    <Select value={data.status || ''} onValueChange={(v) => setData('status', v)}>
                         <SelectTrigger>
-                            <SelectValue />
+                            <SelectValue placeholder={trans.statusPlaceholder} />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="available">{trans.statusAvailable}</SelectItem>
@@ -244,50 +252,49 @@ export default function AssetForm({
                     </Select>
                 </div>
             </div>
-
             {/* ──────── DEPARTMENT / ROOM ──────── */}
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <Label>{trans.departmentLabel}</Label>
+                    <Label className="mb-2">{trans.departmentLabel}</Label>
                     <SearchableSelect
                         value={data.current_department_id || ''}
                         onValueChange={(v) => setData('current_department_id', v || null)}
                         options={departmentOptions}
-                        placeholder="Select a department..."
+                        placeholder={trans.departmentPlaceholder}
                     />
                 </div>
 
                 <div>
-                    <Label>{trans.roomLabel}</Label>
+                    <Label className="mb-2">{trans.roomLabel}</Label>
                     <SearchableSelect
                         value={data.current_room_id || ''}
                         onValueChange={(v) => setData('current_room_id', v || null)}
                         options={roomOptions}
-                        placeholder="Select a room..."
+                        placeholder={trans.roomPlaceholder}
                     />
                 </div>
             </div>
 
             {/* ──────── CUSTODIAN ──────── */}
             <div>
-                <Label>{trans.custodianLabel}</Label>
+                <Label className="mb-2">{trans.custodianLabel}</Label>
                 <SearchableSelect
                     value={data.custodian_user_id || ''}
                     onValueChange={(v) => setData('custodian_user_id', v || null)}
                     options={userOptions}
-                    placeholder="Select a custodian..."
+                    placeholder={trans.custodianPlaceholder}
                 />
             </div>
-
             {/* ──────── NOTES ──────── */}
             <div>
-                <Label>{trans.notesLabel}</Label>
-                <Textarea value={data.notes || ''} onChange={(e) => setData('notes', e.target.value)} rows={4} />
+                <Label className="mb-2">{trans.notesLabel}</Label>
+                <Textarea placeholder={trans.notesPlaceholder} value={data.notes || ''} onChange={(e) => setData('notes', e.target.value)} rows={4} />
             </div>
-
             {/* ──────────────────────── IMAGE UPLOAD (NEW) ──────────────────────── */}
             <div className="space-y-3">
-                <Label htmlFor="image-upload">{trans.imageLabel}</Label>
+                <Label className={'mb-2'} htmlFor="image-upload">
+                    {trans.imageLabel}
+                </Label>
 
                 {/* Hidden native input */}
                 <input
@@ -306,13 +313,13 @@ export default function AssetForm({
                             <img
                                 src={typeof data.image === 'string' ? data.image : URL.createObjectURL(data.image)}
                                 alt="Asset preview"
-                                className="h-64 w-64 rounded-lg object-cover shadow-md transition-transform group-hover:scale-[1.02] cursor-pointer"
+                                className="h-64 w-64 cursor-pointer rounded-lg object-cover shadow-md transition-transform group-hover:scale-[1.02]"
                                 onClick={openFilePicker}
                             />
 
                             {/* Hover overlay */}
-                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                <p className="text-white font-medium text-sm flex items-center gap-1">
+                            <div className="bg-opacity-0 group-hover:bg-opacity-30 absolute inset-0 flex items-center justify-center rounded-lg bg-black opacity-0 transition-all group-hover:opacity-100">
+                                <p className="flex items-center gap-1 text-sm font-medium text-white">
                                     <ImageIcon className="h-4 w-4" />
                                     {trans.changeImage}
                                 </p>
@@ -325,7 +332,7 @@ export default function AssetForm({
                                     e.stopPropagation();
                                     removeImage();
                                 }}
-                                className="absolute top-3 right-3 rounded-full bg-red-500 p-2 text-white shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400"
+                                className="absolute top-3 right-3 rounded-full bg-red-500 p-2 text-white opacity-0 shadow-lg transition-all group-hover:opacity-100 hover:bg-red-600 focus:ring-2 focus:ring-red-400 focus:outline-none"
                                 aria-label={trans.removeImage}
                             >
                                 <X className="h-4 w-4" />
@@ -334,7 +341,7 @@ export default function AssetForm({
 
                         {/* File name + size (only for new files) */}
                         {typeof data.image !== 'string' && (
-                            <p className="mt-2 text-xs text-gray-600 text-center max-w-xs truncate">
+                            <p className="mt-2 max-w-xs truncate text-center text-xs text-gray-600">
                                 {data.image.name} ({(data.image.size / 1024).toFixed(1)} KB)
                             </p>
                         )}
@@ -346,19 +353,10 @@ export default function AssetForm({
                         onDragOver={handleDrag}
                         onDrop={handleDrop}
                         onClick={openFilePicker}
-                        className={`
-              relative flex flex-col items-center justify-center
-              w-full max-w-md p-8 mx-auto
-              border-2 border-dashed rounded-xl
-              transition-all duration-200 cursor-pointer
-              ${dragActive ? 'border-blue-500 bg-blue-50 shadow-inner' : 'border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100'}
-              ${errors.image ? 'border-red-400 bg-red-50' : ''}
-            `}
+                        className={`relative mx-auto flex w-full max-w-md cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 transition-all duration-200 ${dragActive ? 'border-blue-500 bg-blue-50 shadow-inner' : 'border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100'} ${errors.image ? 'border-red-400 bg-red-50' : ''} `}
                     >
-                        <Upload className={`h-10 w-10 mb-3 transition-colors ${dragActive ? 'text-blue-600' : 'text-gray-400'}`} />
-                        <p className="text-sm font-medium text-gray-700">
-                            {dragActive ? trans.dropHere : trans.uploadImage}
-                        </p>
+                        <Upload className={`mb-3 h-10 w-10 transition-colors ${dragActive ? 'text-blue-600' : 'text-gray-400'}`} />
+                        <p className="text-sm font-medium text-gray-700">{dragActive ? trans.dropHere : trans.uploadImage}</p>
                         <p className="mt-1 text-xs text-gray-500">PNG, JPG, GIF, WEBP up to 5 MB</p>
                         <span className="sr-only">Upload image</span>
                     </div>
@@ -366,7 +364,7 @@ export default function AssetForm({
 
                 {/* Validation error */}
                 {errors.image && (
-                    <p className="text-sm text-red-600 flex items-center gap-1">
+                    <p className="flex items-center gap-1 text-sm text-red-600">
                         <X className="h-4 w-4" />
                         {errors.image}
                     </p>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm, Link, router } from "@inertiajs/react";
+import { useForm, Link } from "@inertiajs/react";
 import AppLayout from "@/layouts/app-layout";
 import { Head } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
@@ -15,11 +15,9 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { CheckCircle2Icon, X } from "lucide-react";
-import { translations } from "@/utils/translations/asset-category/asset-category";
 
 interface AssetCategoriesCreateProps {
     flash?: { message?: string; type?: "success" | "error" };
-    lang?: "kh" | "en";
 }
 
 const commonStyles = {
@@ -33,11 +31,9 @@ const commonStyles = {
     error: "text-red-500 dark:text-red-400 text-sm mt-1",
 };
 
-export default function AssetCategoriesCreate({
-                                                  flash,
-                                                  lang = "kh",
-                                              }: AssetCategoriesCreateProps) {
-    const t = translations[lang] || translations.en;
+export default function AssetCategoriesCreate({ flash }: AssetCategoriesCreateProps) {
+
+    // Removed translations
     const { data, setData, post, processing, errors, reset } = useForm({
         name: "",
     });
@@ -70,18 +66,19 @@ export default function AssetCategoriesCreate({
     };
 
     const breadcrumbs = [
-        { title: t.indexTitle, href: route("asset-categories.index") },
-        { title: t.createBreadcrumb, href: "" },
+        { title: "ប្រភេទទ្រព្យសម្បត្តិ", href: route("asset-categories.index") },
+        { title: "បង្កើតថ្មី", href: "" },
     ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t.createTitle} />
+            <Head title="បង្កើតប្រភេទទ្រព្យសម្បត្តិថ្មី" />
             <div className={`p-6 lg:p-4 ${commonStyles.gradientBg} min-h-screen`}>
                 <div className="max-w-1xl mx-auto">
                     <div className={`${commonStyles.card} p-6 lg:p-8`}>
+
                         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-50 tracking-tight mb-8">
-                            {t.createTitle}
+                            បង្កើតប្រភេទទ្រព្យសម្បត្តិថ្មី
                         </h1>
 
                         {/* Success Alert */}
@@ -92,7 +89,7 @@ export default function AssetCategoriesCreate({
                                         <CheckCircle2Icon className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
                                         <div>
                                             <AlertTitle className="text-green-600 dark:text-green-400 font-semibold">
-                                                {t.createNotification}
+                                                ប្រតិបត្តិការជោគជ័យ
                                             </AlertTitle>
                                             <AlertDescription className="text-green-600 dark:text-green-400">
                                                 {flash.message}
@@ -103,7 +100,6 @@ export default function AssetCategoriesCreate({
                                         onClick={handleCloseAlert}
                                         className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 bg-transparent hover:bg-green-100 dark:hover:bg-green-800/50 p-1 rounded-full"
                                         disabled={processing}
-                                        aria-label="Close alert"
                                     >
                                         <X className="h-5 w-5" />
                                     </Button>
@@ -119,7 +115,7 @@ export default function AssetCategoriesCreate({
                                         <CheckCircle2Icon className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
                                         <div>
                                             <AlertTitle className="text-red-600 dark:text-red-400 font-semibold">
-                                                {t.createError}
+                                                បរាជ័យក្នុងការបញ្ចូលទិន្នន័យ
                                             </AlertTitle>
                                             <AlertDescription className="text-red-600 dark:text-red-400">
                                                 {Object.values(errors).join(", ")}
@@ -130,7 +126,6 @@ export default function AssetCategoriesCreate({
                                         onClick={handleCloseAlert}
                                         className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 bg-transparent hover:bg-red-100 dark:hover:bg-red-800/50 p-1 rounded-full"
                                         disabled={processing}
-                                        aria-label="Close error alert"
                                     >
                                         <X className="h-5 w-5" />
                                     </Button>
@@ -139,13 +134,12 @@ export default function AssetCategoriesCreate({
                         )}
 
                         <form onSubmit={handleSubmit} className="space-y-6">
+
                             <div>
-                                <Label
-                                    htmlFor="name"
-                                    className="text-base text-gray-900 dark:text-gray-50"
-                                >
-                                    <span className="text-red-500">*</span> {t.createName}
+                                <Label htmlFor="name" className="text-base text-gray-900 dark:text-gray-50">
+                                    <span className="text-red-500">*</span> ឈ្មោះប្រភេទទ្រព្យសម្បត្តិ
                                 </Label>
+
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
@@ -154,26 +148,24 @@ export default function AssetCategoriesCreate({
                                                 maxLength={255}
                                                 value={data.name}
                                                 onChange={(e) => setData("name", e.target.value)}
-                                                placeholder={t.createNamePlaceholder}
+                                                placeholder="បញ្ចូលឈ្មោះប្រភេទទ្រព្យសម្បត្តិ"
                                                 className={`${commonStyles.input} mt-2`}
                                                 disabled={processing}
-                                                aria-invalid={!!errors.name}
-                                                aria-describedby={errors.name ? "name-error" : undefined}
                                             />
                                         </TooltipTrigger>
                                         <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                            {t.createNameTooltip}
+                                            សូមបញ្ចូលឈ្មោះប្រភេទទ្រព្យសម្បត្តិ
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
+
                                 {errors.name && (
-                                    <p id="name-error" className={commonStyles.error}>
-                                        {errors.name}
-                                    </p>
+                                    <p className={commonStyles.error}>{errors.name}</p>
                                 )}
                             </div>
 
                             <div className="flex justify-end space-x-4 mt-8">
+
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
@@ -182,11 +174,11 @@ export default function AssetCategoriesCreate({
                                                 disabled={processing}
                                                 className={`${commonStyles.button} ${commonStyles.indigoButton} px-6 py-2.5`}
                                             >
-                                                {processing ? t.createCreating : t.createCreate}
+                                                {processing ? "កំពុងបង្កើត..." : "បង្កើតថ្មី"}
                                             </Button>
                                         </TooltipTrigger>
                                         <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                            {t.createCreateTooltip}
+                                            បញ្ជាក់ទិន្នន័យសម្រាប់បង្កើតថ្មី
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
@@ -200,16 +192,18 @@ export default function AssetCategoriesCreate({
                                                     className={`${commonStyles.button} ${commonStyles.outlineButton} px-6 py-2.5`}
                                                     disabled={processing}
                                                 >
-                                                    {t.createCancel}
+                                                    បោះបង់
                                                 </Button>
                                             </Link>
                                         </TooltipTrigger>
                                         <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                            {t.createCancelTooltip}
+                                            ត្រឡប់ទៅបញ្ជីប្រភេទទ្រព្យសម្បត្តិ
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
+
                             </div>
+
                         </form>
                     </div>
                 </div>

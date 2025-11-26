@@ -14,7 +14,6 @@ class SchoolController extends Controller
         $schools = School::select('id','name','code','email','contact','address','website')
             ->orderBy('name')
             ->paginate(10);
-
         return Inertia::render('Schools/Index', [
             'schools' => $schools,
             'flash'   => session('flash'),

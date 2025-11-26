@@ -27,7 +27,7 @@ interface SuppliersEditProps {
     lang?: "kh" | "en";
 }
 
-export default function SuppliersEdit({ supplier, flash, lang = "en" }: SuppliersEditProps) {
+export default function SuppliersEdit({ supplier, flash, lang = "kh" }: SuppliersEditProps) {
     const t = translations[lang] || translations.en;
 
     const initialFormData = {

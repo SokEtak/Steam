@@ -33,7 +33,7 @@ const statusConfig = {
     cancelled: { color: 'text-red-600', bg: 'bg-red-100 text-red-800' },
 };
 
-export default function PurchaseOrdersShow({ purchaseOrder, lang = "en" }: Props) {
+export default function PurchaseOrdersShow({ purchaseOrder, lang = "kh" }: Props) {
     const t = translations[lang] || translations.en;
     const status = purchaseOrder.status as keyof typeof statusConfig;
     const statusStyle = statusConfig[status];

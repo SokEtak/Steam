@@ -3,8 +3,6 @@
 import DataTable from '@/components/DataTable';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { translations } from '@/utils/translations/asset/asset';
 import { Link, router } from '@inertiajs/react';
@@ -92,7 +90,7 @@ export default function AssetsIndex({
     subcategories = [],
     flash,
     isSuperLibrarian = false,
-    lang = 'en',
+    lang = 'kh',
 }: AssetsIndexProps) {
     const trans = translations[lang] ?? translations.en;
 
@@ -187,10 +185,21 @@ export default function AssetsIndex({
             },
 
             // ── ID ───────────────────────────────────────────
-            { accessorKey: 'id', header: ({ column }) => sortableHeader(column, trans.id) },
+            {
+                accessorKey: 'id',
+                header: ({ column }) => (
+                    <div className="px-4 text-center">
+                        {sortableHeader(column, trans.id)}
+                    </div>
+                ),
+                cell: ({ row }) => (
+                    <div className="px-15">
+                        {row.getValue('id')}
+                    </div>
+                ),
+            },
 
             // ── PO ───────────────────────────────────────────
-            // Inside columns array
             {
                 header: trans.purchaseOrder,
                 cell: ({ row }) => {
@@ -203,7 +212,7 @@ export default function AssetsIndex({
                             {po.po_number}
                         </Link>
                     ) : (
-                        <span className="text-gray-400">—</span>
+                        <span className="text-gray-400 px-8">N/A</span>
                     );
                 },
             },
@@ -220,7 +229,19 @@ export default function AssetsIndex({
             },
 
             // ── Name ──────────────────────────────────────────
-            { accessorKey: 'name', header: ({ column }) => sortableHeader(column, trans.name) },
+            {
+                accessorKey: 'name',
+                header: ({ column }) => (
+                    <div className="px-4">
+                        {sortableHeader(column, trans.name)}
+                    </div>
+                ),
+                cell: ({ row }) => (
+                    <div className="px-1">
+                        {row.getValue('name')}
+                    </div>
+                ),
+            },
 
             // ── Category (linked) ─────────────────────────────
             {
@@ -229,7 +250,7 @@ export default function AssetsIndex({
                 cell: ({ row }) => {
                     const cat = row.original.category;
                     return cat ? (
-                        <Link href={route('asset-categories.show', cat.id)} className="px-3 text-blue-600 hover:underline">
+                        <Link href={route('asset-categories.show', cat.id)} className="text-blue-600 hover:underline">
                             {cat.name}
                         </Link>
                     ) : (
@@ -251,7 +272,7 @@ export default function AssetsIndex({
                             {sub.name}
                         </Link>
                     ) : (
-                        <span className="text-gray-400">—</span>
+                        <span className="text-gray-400 px-4">N/A</span>
                     );
                 },
             },
@@ -260,7 +281,7 @@ export default function AssetsIndex({
             {
                 accessorKey: 'cost',
                 header: ({ column }) => sortableHeader(column, trans.cost),
-                cell: ({ row }) => <span className="px-3">${Number(row.original.cost).toFixed(2)}</span>,
+                cell: ({ row }) => <span className="px-3 text-green-600">${Number(row.original.cost).toFixed(2)}</span>,
             },
             {
                 accessorKey: 'created_at',
@@ -305,56 +326,6 @@ export default function AssetsIndex({
             }}
             flash={flash}
             isSuperLibrarian={isSuperLibrarian}
-            extraTopContent={
-                <div className="flex flex-wrap items-end gap-4">
-                    {/* Global search */}
-                    <div>
-                        <label className="text-sm">{trans.searchPlaceholder}</label>
-                        <Input
-                            placeholder={trans.searchPlaceholder}
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="mt-1 w-64"
-                        />
-                    </div>
-
-                    {/* Category filter */}
-                    <div>
-                        <label className="text-sm">{trans.filterCategory}</label>
-                        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                            <SelectTrigger className="mt-1 w-48">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="">{trans.allCategories}</SelectItem>
-                                {categories.map((cat) => (
-                                    <SelectItem key={cat.id} value={cat.id.toString()}>
-                                        {cat.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Subcategory filter (only when a category is selected) */}
-                    <div>
-                        <label className="text-sm">{trans.filterSubcategory}</label>
-                        <Select value={subcategoryFilter} onValueChange={setSubcategoryFilter} disabled={!categoryFilter}>
-                            <SelectTrigger className="mt-1 w-48">
-                                <SelectValue placeholder={trans.allSubcategories} />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="">{trans.allSubcategories}</SelectItem>
-                                {availableSubcategories.map((sub) => (
-                                    <SelectItem key={sub.id} value={sub.id.toString()}>
-                                        {sub.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
-            }
         />
     );
 }

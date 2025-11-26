@@ -65,16 +65,16 @@ const getColumns = (
                 return (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
+                            <Button variant="ghost" className="h-8 w-8">
                                 <MoreHorizontal className="h-4 w-4" />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="center">
+                        <DropdownMenuContent align="center" className={""}>
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
                                         <Link href={route('suppliers.show', supplier.id)}>
-                                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                            <Button variant="ghost" className="h-8 w-8">
                                                 <Eye className="h-4 w-4" />
                                             </Button>
                                         </Link>
@@ -85,7 +85,7 @@ const getColumns = (
                                 <Tooltip>
                                     <TooltipTrigger asChild>
                                         <Link href={route('suppliers.edit', supplier.id)}>
-                                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                            <Button variant="ghost" className="h-8 w-8">
                                                 <Pencil className="h-4 w-4" />
                                             </Button>
                                         </Link>
@@ -93,7 +93,7 @@ const getColumns = (
                                     <TooltipContent>{t.indexEditTooltip}</TooltipContent>
                                 </Tooltip>
 
-                                {isSuperLibrarian && (
+                                {/*{isSuperLibrarian && (*/}
                                     <Tooltip>
                                         <TooltipTrigger asChild>
                                             <Button
@@ -110,7 +110,7 @@ const getColumns = (
                                         </TooltipTrigger>
                                         <TooltipContent>{t.indexDeleteTooltip}</TooltipContent>
                                     </Tooltip>
-                                )}
+                                {/*)}*/}
                             </TooltipProvider>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -168,7 +168,7 @@ export default function SuppliersIndex({
                                            filters = {},
                                            flash,
                                            isSuperLibrarian = false,
-                                           lang = 'en'
+                                           lang = 'kh'
                                        }: SuppliersIndexProps) {
     const t = translations[lang] || translations.en;
 

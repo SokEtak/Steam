@@ -45,82 +45,71 @@ const commonStyles = {
 const getColumns = (
     processing: boolean,
     isSuperLibrarian: boolean,
-    lang: "kh" | "en" = "en"
+    lang: "kh" | "en" = "kh"
 ): ColumnDef<Building>[] => {
-    const t = translations[lang] || translations.en;
+    const t = translations["kh"];
 
     return [
         {
-            id: "actions",
-            enableHiding: false,
-            enableGlobalFilter: false,
-            enableSorting: false,
+            id: 'actions',
             cell: ({ row }) => {
-                const b = row.original;
+                const building = row.original;
                 return (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className={`${commonStyles.button} h-8 w-8 p-0`}>
+                            <Button variant="ghost" className="h-8 w-8">
                                 <MoreHorizontal className="h-4 w-4" />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="center" className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-indigo-900 rounded-xl p-1">
-                            <div className="flex flex-col items-center gap-1 px-1 py-1">
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Link href={route("buildings.show", b.id)}>
-                                                <Button variant="ghost" className="h-4 w-4 p-0">
-                                                    <Eye className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />
-                                                </Button>
-                                            </Link>
-                                        </TooltipTrigger>
-                                        <TooltipContent side="right" className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
-                                            {t.indexViewTooltip}
-                                        </TooltipContent>
-                                    </Tooltip>
+                        <DropdownMenuContent align="center" className={""}>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Link href={route('buildings.show', building.id)}>
+                                            <Button variant="ghost" className="h-8 w-8">
+                                                <Eye className="h-4 w-4" />
+                                            </Button>
+                                        </Link>
+                                    </TooltipTrigger>
+                                    <TooltipContent>{t.indexViewTooltip}</TooltipContent>
+                                </Tooltip>
 
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Link href={route("buildings.edit", b.id)}>
-                                                <Button variant="ghost" className="h-4 w-4 p-0" disabled={processing}>
-                                                    <Pencil className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />
-                                                </Button>
-                                            </Link>
-                                        </TooltipTrigger>
-                                        <TooltipContent side="right" className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
-                                            {t.indexEditTooltip}
-                                        </TooltipContent>
-                                    </Tooltip>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Link href={route('buildings.edit', building.id)}>
+                                            <Button variant="ghost" className="h-8 w-8">
+                                                <Pencil className="h-4 w-4" />
+                                            </Button>
+                                        </Link>
+                                    </TooltipTrigger>
+                                    <TooltipContent>{t.indexEditTooltip}</TooltipContent>
+                                </Tooltip>
 
-                                    {isSuperLibrarian && (
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button
-                                                    variant="ghost"
-                                                    className="h-4 w-4 p-0"
-                                                    disabled={processing}
-                                                    onClick={() => {
-                                                        if (confirm(t.indexDeleteTooltip)) {
-                                                            router.delete(route("buildings.destroy", b.id));
-                                                        }
-                                                    }}
-                                                >
-                                                    <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent side="right" className="bg-gradient-to-br from-blue-900 to-indigo-600 text-white rounded-xl">
-                                                {t.indexDeleteTooltip}
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    )}
-                                </TooltipProvider>
-                            </div>
+                                {/*{isSuperLibrarian && (*/}
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            variant="ghost"
+                                            className="h-8 w-8 p-0 text-red-600"
+                                            onClick={() => {
+                                                if (confirm(t.indexDeleteConfirm)) {
+                                                    router.delete(route('buildings.destroy', building.id));
+                                                }
+                                            }}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>{t.indexDeleteTooltip}</TooltipContent>
+                                </Tooltip>
+                                {/*)}*/}
+                            </TooltipProvider>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 );
             },
         },
+
         {
             accessorKey: "id",
             header: ({ column }) => (
@@ -133,15 +122,22 @@ const getColumns = (
                     {{
                         asc: <ArrowUp className="ml-2 h-4 w-4" />,
                         desc: <ArrowDown className="ml-2 h-4 w-4" />,
-                    }[column.getIsSorted() as string] ?? <ArrowUpDown className="ml-2 h-4 w-4" />}
+                    }[column.getIsSorted() as string] ?? (
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                    )}
                 </Button>
             ),
             cell: ({ row }) => (
-                <Link href={route("buildings.show", row.original.id)} className={`${commonStyles.text} px-4 hover:underline`}>
+                <Link
+                    href={route("buildings.show", row.original.id)}
+                    className={`${commonStyles.text} px-4 hover:underline`}
+                >
                     {row.getValue("id")}
                 </Link>
             ),
         },
+
+
         {
             accessorKey: "campus.name",
             header: ({ column }) => (
@@ -205,9 +201,9 @@ const getColumns = (
                 </Button>
             ),
             cell: ({ row }) => (
-                <span className="font-semibold">{row.getValue("floors")}</span>
+                <span className="font-semibold px-8">{row.getValue("floors")}</span>
             ),
-            sortingFn: "basic", // Ensures numeric sorting
+            sortingFn: "basic",
         },
     ];
 };
@@ -216,9 +212,9 @@ export default function BuildingsIndex({
                                            buildings,
                                            flash,
                                            isSuperLibrarian = false,
-                                           lang = "en",
+                                           lang = "kh",
                                        }: BuildingsIndexProps) {
-    const t = translations[lang] || translations.en;
+    const t = translations["kh"];
     const { processing } = useForm();
     const columns = useMemo(
         () => getColumns(processing, isSuperLibrarian, lang),

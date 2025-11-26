@@ -17,7 +17,7 @@ interface SuppliersCreateProps {
     lang?: "kh" | "en";
 }
 
-export default function SuppliersCreate({ flash, lang = "en" }: SuppliersCreateProps) {
+export default function SuppliersCreate({ flash, lang = "kh" }: SuppliersCreateProps) {
     const t = translations[lang] || translations.en;
 
     const { data, setData, post, processing, errors, reset } = useForm({

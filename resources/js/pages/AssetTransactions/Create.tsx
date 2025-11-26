@@ -13,7 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { CheckCircle2Icon, X, ChevronDown, Package, User, Building, DoorOpen, ArrowRight } from "lucide-react";
-import { translations } from "@/utils/translations/asset-transaction/asset-transaction";
 import { useForm } from '@inertiajs/react';
 
 interface Asset { id: number; name: string; }
@@ -27,17 +26,22 @@ interface AssetTransactionsCreateProps {
     departments: Department[];
     rooms: Room[];
     flash?: { message?: string };
-    lang?: "kh" | "en";
 }
 
 export default function AssetTransactionsCreate({
-                                                    assets, users, departments, rooms, flash, lang = "en"
+                                                    assets, users, departments, rooms, flash
                                                 }: AssetTransactionsCreateProps) {
-    const t = translations[lang] || translations.en;
 
     const initialFormData = {
-        asset_id: "", type: "", performed_by: "", performed_at: new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Phnom_Penh' }).slice(0, 16),
-        from_department_id: "", to_department_id: "", from_room_id: "", to_room_id: "", note: ""
+        asset_id: "",
+        type: "",
+        performed_by: "",
+        performed_at: new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Phnom_Penh' }).slice(0, 16),
+        from_department_id: "",
+        to_department_id: "",
+        from_room_id: "",
+        to_room_id: "",
+        note: ""
     };
 
     const { data, setData, post, processing, errors, reset } = useForm(initialFormData);
@@ -95,49 +99,58 @@ export default function AssetTransactionsCreate({
 
     return (
         <AppLayout breadcrumbs={[
-            { title: t.indexTitle, href: route("asset-transactions.index") },
-            { title: t.createBreadcrumb, href: "" },
+            { title: "ការផ្លាស់ប្តូរទ្រព្យសកម្ម", href: route("asset-transactions.index") },
+            { title: "បង្កើតថ្មី", href: "" },
         ]}>
-            <Head title={t.createTitle} />
+            <Head title="បង្កើតការផ្លាស់ប្តូរទ្រព្យសកម្ម" />
+
             <div className="min-h-screen p-6 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
                 <div className="max-w-1xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-8">
-                    <h1 className="text-3xl font-semibold mb-8 text-center">{t.createTitle}</h1>
+                    <h1 className="text-3xl font-semibold mb-8 text-center">
+                        បង្កើតការផ្លាស់ប្តូរទ្រព្យសកម្ម
+                    </h1>
 
-                    {/* Alerts */}
+                    {/* សារ Success / Error */}
                     {showSuccessAlert && flash?.message && (
                         <Alert className="mb-6 bg-blue-50 dark:bg-blue-900/50 border-blue-200">
                             <CheckCircle2Icon className="h-5 w-5 text-blue-600" />
-                            <div><AlertTitle>{t.createNotification}</AlertTitle><AlertDescription>{flash.message}</AlertDescription></div>
+                            <div>
+                                <AlertTitle>ជោគជ័យ!</AlertTitle>
+                                <AlertDescription>{flash.message}</AlertDescription>
+                            </div>
                             <Button onClick={() => setShowSuccessAlert(false)} variant="ghost" size="icon"><X /></Button>
                         </Alert>
                     )}
                     {showErrorAlert && Object.keys(errors).length > 0 && (
                         <Alert className="mb-6 bg-red-50 dark:bg-red-900/50 border-red-200">
                             <CheckCircle2Icon className="h-5 w-5 text-red-600" />
-                            <div><AlertTitle>{t.createError}</AlertTitle><AlertDescription>{Object.values(errors).join(", ")}</AlertDescription></div>
+                            <div>
+                                <AlertTitle>មានបញ្ហា</AlertTitle>
+                                <AlertDescription>{Object.values(errors).join(", ")}</AlertDescription>
+                            </div>
                             <Button onClick={() => setShowErrorAlert(false)} variant="ghost" size="icon"><X /></Button>
                         </Alert>
                     )}
 
                     <form onSubmit={handleSubmit} className="space-y-10">
 
-                        {/* Top Row: Asset, Type, Performed By, Date */}
+                        {/* ជួរខាងលើ */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Asset */}
+                            {/* ទ្រព្យសកម្ម */}
                             <div className="space-y-2">
-                                <label><span className="text-red-500">*</span> {t.createAsset}</label>
+                                <label><span className="text-red-500">*</span> ទ្រព្យសកម្ម</label>
                                 <Popover open={openAsset} onOpenChange={setOpenAsset}>
                                     <PopoverTrigger asChild>
                                         <Button variant="outline" role="combobox" className="w-full justify-between">
-                                            {selectedNames.asset || t.createAssetPlaceholder}
+                                            {selectedNames.asset || "ជ្រើសរើសទ្រព្យសកម្ម"}
                                             <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-full p-0" align={"start"}>
+                                    <PopoverContent className="w-full p-0" align="start">
                                         <Command>
-                                            <CommandInput placeholder={t.createAssetPlaceholder} />
+                                            <CommandInput placeholder="ស្វែងរកទ្រព្យសកម្ម..." />
                                             <CommandList>
-                                                <CommandEmpty>No asset found.</CommandEmpty>
+                                                <CommandEmpty>រកមិនឃើញទេ</CommandEmpty>
                                                 <CommandGroup>
                                                     {assets.map(asset => (
                                                         <CommandItem key={asset.id} value={asset.name} onSelect={() => {
@@ -156,37 +169,41 @@ export default function AssetTransactionsCreate({
                                 {errors.asset_id && <p className="text-red-500 text-sm">{errors.asset_id}</p>}
                             </div>
 
-                            {/* Type */}
+                            {/* ប្រភេទ */}
                             <div className="space-y-2">
-                                <label><span className="text-red-500">*</span> {t.createType}</label>
+                                <label><span className="text-red-500">*</span> ប្រភេទ</label>
                                 <Select value={data.type} onValueChange={(v) => setData("type", v)}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder={t.createTypePlaceholder} />
+                                        <SelectValue placeholder="ជ្រើសរើសប្រភេទ" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {Object.entries(t.types).map(([key, label]) => (
-                                            <SelectItem key={key} value={key}>{label}</SelectItem>
-                                        ))}
+                                        <SelectItem value="received">ទទួល</SelectItem>
+                                        <SelectItem value="allocated">ចែកចាយ</SelectItem>
+                                        <SelectItem value="returned">ប្រគល់វិញ</SelectItem>
+                                        <SelectItem value="transfer">ផ្ទេរ</SelectItem>
+                                        <SelectItem value="maintenance_start">ចាប់ផ្ដើមជួសជុល</SelectItem>
+                                        <SelectItem value="maintenance_end">បញ្ចប់ជួសជុល</SelectItem>
+                                        <SelectItem value="disposed">បោះចោល</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 {errors.type && <p className="text-red-500 text-sm">{errors.type}</p>}
                             </div>
 
-                            {/* Performed By */}
+                            {/* អ្នកធ្វើការ */}
                             <div className="space-y-2">
-                                <label><span className="text-red-500">*</span> {t.createPerformedBy}</label>
+                                <label><span className="text-red-500">*</span> អ្នកធ្វើការ</label>
                                 <Popover open={openPerformer} onOpenChange={setOpenPerformer}>
                                     <PopoverTrigger asChild>
                                         <Button variant="outline" role="combobox" className="w-full justify-between">
-                                            {selectedNames.performer || t.createPerformedByPlaceholder}
+                                            {selectedNames.performer || "ជ្រើសរើសអ្នកធ្វើការ"}
                                             <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-full p-0" align={"start"}>
+                                    <PopoverContent className="w-full p-0" align="start">
                                         <Command>
-                                            <CommandInput placeholder={t.createPerformedByPlaceholder} />
+                                            <CommandInput placeholder="ស្វែងរកអ្នកប្រើប្រាស់..." />
                                             <CommandList>
-                                                <CommandEmpty>No user found.</CommandEmpty>
+                                                <CommandEmpty>រកមិនឃើញទេ</CommandEmpty>
                                                 <CommandGroup>
                                                     {users.map(user => (
                                                         <CommandItem key={user.id} value={user.name} onSelect={() => {
@@ -205,48 +222,48 @@ export default function AssetTransactionsCreate({
                                 {errors.performed_by && <p className="text-red-500 text-sm">{errors.performed_by}</p>}
                             </div>
 
-                            {/* Performed At */}
+                            {/* កាលបរិច្ឆេទនិងម៉ោង */}
                             <div className="space-y-2">
-                                <label><span className="text-red-500">*</span> {t.createPerformedAt}</label>
+                                <label><span className="text-red-500">*</span> កាលបរិច្ឆេទនិងម៉ោង</label>
                                 <Input type="datetime-local" value={data.performed_at} onChange={e => setData("performed_at", e.target.value)} />
                                 {errors.performed_at && <p className="text-red-500 text-sm">{errors.performed_at}</p>}
                             </div>
                         </div>
 
-                        {/* From → To Section - Perfectly Balanced */}
+                        {/* ពី → ទៅ */}
                         <div className="relative">
-                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
                                 <div className="bg-indigo-100 dark:bg-indigo-900/30 rounded-full p-3">
                                     <ArrowRight className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                {/* FROM */}
+                                {/* ពី (FROM) */}
                                 <div className="bg-gradient-to-br from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 rounded-2xl p-6 border border-red-200 dark:border-red-800">
-                                    <h3 className="text-xl font-bold text-red-700 dark:text-red-400 mb-6 text-center">{t.createFrom}</h3>
+                                    <h3 className="text-xl font-bold text-red-700 dark:text-red-400 mb-6 text-center">ពី</h3>
                                     <div className="space-y-6">
                                         <div className="space-y-2">
-                                            <label className="text-sm font-medium">{t.createDepartment}</label>
+                                            <label className="text-sm font-medium">នាយកដ្ឋាន</label>
                                             <Popover open={openFromDept} onOpenChange={setOpenFromDept}>
                                                 <PopoverTrigger asChild>
                                                     <Button variant="outline" role="combobox" className="w-full justify-between">
-                                                        {selectedNames.fromDept || t.createSelectDepartment}
+                                                        {selectedNames.fromDept || "ជ្រើសរើសនាយកដ្ឋាន"}
                                                         <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                                                     </Button>
                                                 </PopoverTrigger>
-                                                <PopoverContent className="w-full p-0" align={"start"}>
+                                                <PopoverContent className="w-full p-0" align="start">
                                                     <Command>
-                                                        <CommandInput placeholder="Search department..." />
+                                                        <CommandInput placeholder="ស្វែងរកនាយកដ្ឋាន..." />
                                                         <CommandList>
-                                                            <CommandEmpty>No department found.</CommandEmpty>
+                                                            <CommandEmpty>រកមិនឃើញទេ</CommandEmpty>
                                                             <CommandGroup>
                                                                 {departments.map(dept => (
                                                                     <CommandItem key={dept.id} value={dept.name} onSelect={() => {
                                                                         setData("from_department_id", dept.id.toString());
                                                                         setOpenFromDept(false);
                                                                     }}>
-                                                                        <Building className="mr-2 h-4 w-4" />
+                                                                        <Building className="mr-2 h-4 w-4 text-red-600" />
                                                                         {dept.name}
                                                                     </CommandItem>
                                                                 ))}
@@ -258,26 +275,26 @@ export default function AssetTransactionsCreate({
                                         </div>
 
                                         <div className="space-y-2">
-                                            <label className="text-sm font-medium">{t.createRoom}</label>
+                                            <label className="text-sm font-medium">បន្ទប់</label>
                                             <Popover open={openFromRoom} onOpenChange={setOpenFromRoom}>
                                                 <PopoverTrigger asChild>
                                                     <Button variant="outline" role="combobox" className="w-full justify-between">
-                                                        {selectedNames.fromRoom || t.createSelectRoom}
+                                                        {selectedNames.fromRoom || "ជ្រើសរើសបន្ទប់"}
                                                         <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                                                     </Button>
                                                 </PopoverTrigger>
-                                                <PopoverContent className="w-full p-0" align={"start"}>
+                                                <PopoverContent className="w-full p-0" align="start">
                                                     <Command>
-                                                        <CommandInput placeholder="Search room..." />
+                                                        <CommandInput placeholder="ស្វែងរកបន្ទប់..." />
                                                         <CommandList>
-                                                            <CommandEmpty>No room found.</CommandEmpty>
+                                                            <CommandEmpty>រកមិនឃើញទេ</CommandEmpty>
                                                             <CommandGroup>
                                                                 {rooms.map(room => (
                                                                     <CommandItem key={room.id} value={room.name} onSelect={() => {
                                                                         setData("from_room_id", room.id.toString());
                                                                         setOpenFromRoom(false);
                                                                     }}>
-                                                                        <DoorOpen className="mr-2 h-4 w-4" />
+                                                                        <DoorOpen className="mr-2 h-4 w-4 text-red-600" />
                                                                         {room.name}
                                                                     </CommandItem>
                                                                 ))}
@@ -290,31 +307,31 @@ export default function AssetTransactionsCreate({
                                     </div>
                                 </div>
 
-                                {/* TO */}
+                                {/* ទៅ (TO) */}
                                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-6 border border-green-200 dark:border-green-800">
-                                    <h3 className="text-xl font-bold text-green-700 dark:text-green-400 mb-6 text-center">{t.createTo}</h3>
+                                    <h3 className="text-xl font-bold text-green-700 dark:text-green-400 mb-6 text-center">ទៅ</h3>
                                     <div className="space-y-6">
                                         <div className="space-y-2">
-                                            <label className="text-sm font-medium">{t.createDepartment}</label>
+                                            <label className="text-sm font-medium">នាយកដ្ឋាន</label>
                                             <Popover open={openToDept} onOpenChange={setOpenToDept}>
                                                 <PopoverTrigger asChild>
                                                     <Button variant="outline" role="combobox" className="w-full justify-between">
-                                                        {selectedNames.toDept || t.createSelectDepartment}
+                                                        {selectedNames.toDept || "ជ្រើសរើសនាយកដ្ឋាន"}
                                                         <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                                                     </Button>
                                                 </PopoverTrigger>
-                                                <PopoverContent className="w-full p-0" align={"start"}>
+                                                <PopoverContent className="w-full p-0" align="start">
                                                     <Command>
-                                                        <CommandInput placeholder="Search department..." />
+                                                        <CommandInput placeholder="ស្វែងរកនាយកដ្ឋាន..." />
                                                         <CommandList>
-                                                            <CommandEmpty>No department found.</CommandEmpty>
+                                                            <CommandEmpty>រកមិនឃើញទេ</CommandEmpty>
                                                             <CommandGroup>
                                                                 {departments.map(dept => (
                                                                     <CommandItem key={dept.id} value={dept.name} onSelect={() => {
                                                                         setData("to_department_id", dept.id.toString());
                                                                         setOpenToDept(false);
                                                                     }}>
-                                                                        <Building className="mr-2 h-4 w-4" />
+                                                                        <Building className="mr-2 h-4 w-4 text-green-600" />
                                                                         {dept.name}
                                                                     </CommandItem>
                                                                 ))}
@@ -326,26 +343,26 @@ export default function AssetTransactionsCreate({
                                         </div>
 
                                         <div className="space-y-2">
-                                            <label className="text-sm font-medium">{t.createRoom}</label>
+                                            <label className="text-sm font-medium">បន្ទប់</label>
                                             <Popover open={openToRoom} onOpenChange={setOpenToRoom}>
                                                 <PopoverTrigger asChild>
                                                     <Button variant="outline" role="combobox" className="w-full justify-between">
-                                                        {selectedNames.toRoom || t.createSelectRoom}
+                                                        {selectedNames.toRoom || "ជ្រើសរើសបន្ទប់"}
                                                         <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                                                     </Button>
                                                 </PopoverTrigger>
-                                                <PopoverContent className="w-full p-0" align={"start"}>
+                                                <PopoverContent className="w-full p-0" align="start">
                                                     <Command>
-                                                        <CommandInput placeholder="Search room..." />
+                                                        <CommandInput placeholder="ស្វែងរកបន្ទប់..." />
                                                         <CommandList>
-                                                            <CommandEmpty>No room found.</CommandEmpty>
+                                                            <CommandEmpty>រកមិនឃើញទេ</CommandEmpty>
                                                             <CommandGroup>
                                                                 {rooms.map(room => (
                                                                     <CommandItem key={room.id} value={room.name} onSelect={() => {
                                                                         setData("to_room_id", room.id.toString());
                                                                         setOpenToRoom(false);
                                                                     }}>
-                                                                        <DoorOpen className="mr-2 h-4 w-4" />
+                                                                        <DoorOpen className="mr-2 h-4 w-4 text-green-600" />
                                                                         {room.name}
                                                                     </CommandItem>
                                                                 ))}
@@ -360,46 +377,46 @@ export default function AssetTransactionsCreate({
                             </div>
                         </div>
 
-                        {/* Note */}
+                        {/* កំណត់ចំណាំ */}
                         <div className="space-y-2">
-                            <label>{t.createNote}</label>
+                            <label>កំណត់ចំណាំ</label>
                             <Textarea
                                 value={data.note}
                                 onChange={e => setData("note", e.target.value)}
-                                placeholder={t.createNotePlaceholder}
+                                placeholder="បញ្ចូលកំណត់ចំណាំបន្ថែម (មិនបង្ខំ)"
                                 rows={4}
                                 className="resize-none"
                             />
                         </div>
 
-                        {/* Buttons */}
+                        {/* ប៊ូតុង */}
                         <div className="flex justify-end gap-4 pt-8">
                             <Button
                                 type="submit"
                                 size="lg"
                                 disabled={processing || !data.asset_id || !data.type || !data.performed_by}
                             >
-                                {processing ? t.createCreating : t.createCreate}
+                                {processing ? "កំពុងបង្កើត..." : "បង្កើត"}
                             </Button>
                             <Button variant="outline" size="lg" onClick={handleCancel} disabled={processing}>
-                                {t.createCancel}
+                                បោះបង់
                             </Button>
                         </div>
                     </form>
 
-                    {/* Leave Dialog */}
+                    {/* បញ្ជាក់មុនចាកចេញ */}
                     <AlertDialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
                         <AlertDialogContent>
                             <AlertDialogHeader>
-                                <AlertDialogTitle>{lang === "kh" ? "ចាកចេញដោយមិនរក្សាទុក?" : "Leave without saving?"}</AlertDialogTitle>
+                                <AlertDialogTitle>ចាកចេញដោយមិនរក្សាទុក?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    {lang === "kh" ? "អ្នកមានការផ្លាស់ប្តូរដែលមិនបានរក្សាទុក។" : "You have unsaved changes."}
+                                    អ្នកមានការបំពេញដែលមិនបានរក្សាទុក។ តើអ្នកប្រាកដទេ?
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                                <AlertDialogCancel>{t.createCancel}</AlertDialogCancel>
+                                <AlertDialogCancel>បន្តបំពេញ</AlertDialogCancel>
                                 <AlertDialogAction onClick={() => router.visit(route("asset-transactions.index"))}>
-                                    {lang === "kh" ? "ចាកចេញ" : "Leave"}
+                                    ចាកចេញ
                                 </AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>

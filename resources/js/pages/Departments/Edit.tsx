@@ -64,9 +64,9 @@ export default function DepartmentsEdit({
                                             buildings,
                                             users,
                                             flash,
-                                            lang = "en",
+                                            lang = "kh",
                                         }: DepartmentsEditProps) {
-    const t = translations[lang] || translations.en;
+    const t = translations["kh"];
 
     const initialFormData = {
         campus_id: String(department.campus_id),

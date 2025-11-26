@@ -1,7 +1,6 @@
 export const translations = {
     en: {
-        // Index
-        indexTitle: "Asset Sub-Categories",
+        indexTitle: "Sub-Categories",
         indexId: "ID",
         indexName: "Name",
         indexCategory: "Category",
@@ -21,14 +20,14 @@ export const translations = {
         createCategory: "Category",
         createCategoryPlaceholder: "Select a category...",
         createCategoryEmpty: "No categories found.",
-        createCategoryNoMatch: "No category found.", // <-- Added
+        createCategoryNoMatch: "No category found.",
         createName: "Sub-Category Name",
         createNamePlaceholder: "e.g., Laptop Accessories",
         createCreate: "Create",
         createCreating: "Creating...",
         createCancel: "Cancel",
-        createNotification: "Success", // <-- Added
-        createError: "Validation Error", // <-- Added
+        createNotification: "Success",
+        createError: "Validation Error",
 
         // Edit
         editTitle: "Edit Sub-Category",
@@ -36,14 +35,14 @@ export const translations = {
         editCategory: "Category",
         editCategoryPlaceholder: "Select a category...",
         editCategoryEmpty: "No categories found.",
-        editCategoryNoMatch: "No category found.", // <-- Added
+        editCategoryNoMatch: "No category found.",
         editName: "Sub-Category Name",
         editNamePlaceholder: "e.g., Laptop Accessories",
         editUpdate: "Update",
         editUpdating: "Updating...",
         editCancel: "Cancel",
-        editNotification: "Success", // <-- Added
-        editError: "Validation Error", // <-- Added
+        editNotification: "Success",
+        editError: "Validation Error",
 
         // Show
         showTitle: "View Sub-Category",
@@ -79,14 +78,14 @@ export const translations = {
         createCategory: "ប្រភេទ",
         createCategoryPlaceholder: "ជ្រើសរើសប្រភេទ...",
         createCategoryEmpty: "រកមិនឃើញប្រភេទ។",
-        createCategoryNoMatch: "រកមិនឃើញប្រភេទ។", // <-- Added
+        createCategoryNoMatch: "រកមិនឃើញប្រភេទ។",
         createName: "ឈ្មោះប្រភេទរង",
         createNamePlaceholder: "ឧ. គ្រឿងបន្លាស់កុំព្យូទ័រ",
         createCreate: "បង្កើត",
         createCreating: "កំពុងបង្កើត...",
         createCancel: "បោះបង់",
-        createNotification: "ជោគជ័យ", // <-- Added
-        createError: "កំហុសក្នុងការបញ្ជាក់", // <-- Added
+        createNotification: "ជោគជ័យ",
+        createError: "កំហុសក្នុងការបញ្ជាក់",
 
         // Edit
         editTitle: "កែប្រភេទរង",

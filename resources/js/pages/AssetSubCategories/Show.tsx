@@ -1,13 +1,27 @@
 "use client";
 
 import AppLayout from "@/layouts/app-layout";
-import { Head, router } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Pencil, ArrowLeft } from "lucide-react";
 import { Link } from "@inertiajs/react";
-import { translations } from "@/utils/translations/asset-sub-category/asset-sub-category";
+
+// Hard-coded Khmer translations for this page
+const t = {
+    indexTitle: "ក្រុមអចលនទ្រព្យរង",
+    showTitle: "ព័ត៌មានលម្អិតក្រុមអចលនទ្រព្យរង",
+    showId: "លេខសម្គាល់",
+    showName: "ឈ្មោះក្រុមអចលនទ្រព្យរង",
+    showCategory: "ប្រភេទក្រុម",
+    showCreated: "បានបង្កើតនៅថ្ងៃ",
+    showUpdated: "បានកែប្រែចុងក្រោយ",
+    showEdit: "កែប្រែ",
+    showEditTooltip: "កែប្រែព័ត៌មានក្រុមអចលនទ្រព្យរងនេះ",
+    showBack: "ត្រឡប់ក្រោយ",
+    showBackTooltip: "ត្រឡប់ទៅបញ្ជីក្រុមអចលនទ្រព្យរង",
+};
 
 interface AssetSubCategory {
     id: number;
@@ -19,7 +33,6 @@ interface AssetSubCategory {
 
 interface AssetSubCategoriesShowProps {
     assetSubCategory: AssetSubCategory;
-    lang?: "kh" | "en";
 }
 
 const commonStyles = {
@@ -30,9 +43,7 @@ const commonStyles = {
     outlineButton: "bg-transparent text-indigo-500 border-2 border-indigo-400 hover:bg-indigo-50 shadow-sm",
 };
 
-export default function AssetSubCategoriesShow({ assetSubCategory, lang = "en" }: AssetSubCategoriesShowProps) {
-    const t = translations[lang] || translations.en;
-
+export default function AssetSubCategoriesShow({ assetSubCategory }: AssetSubCategoriesShowProps) {
     return (
         <AppLayout breadcrumbs={[
             { title: t.indexTitle, href: route("asset-sub-categories.index") },

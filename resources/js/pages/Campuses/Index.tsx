@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Link, useForm } from "@inertiajs/react";
+import { Link, router, useForm } from '@inertiajs/react';
 import {
     Eye,
     Pencil,
@@ -74,7 +74,7 @@ const getColumns = (
     isSuperLibrarian: boolean,
     lang: "kh" | "en" = "kh"
 ): ColumnDef<Campus>[] => {
-    const t = translations[lang] || translations.en;
+    const t = translations["kh"];
 
     return [
         // Actions
@@ -105,23 +105,10 @@ const getColumns = (
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
-                                            <Link href={route("campuses.show", campus.id)}>
-                                                <Button variant="ghost" className="h-4 w-4 p-0">
-                                                    <Eye className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />
-                                                </Button>
-                                            </Link>
-                                        </TooltipTrigger>
-                                        <TooltipContent side="right" align="center" className={commonStyles.tooltipBg}>
-                                            {t.indexViewTooltip}
-                                        </TooltipContent>
-                                    </Tooltip>
-
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
                                             <Link href={route("campuses.edit", campus.id)}>
                                                 <Button
                                                     variant="ghost"
-                                                    className="h-4 w-4 p-0"
+                                                    className="h-4 w-4"
                                                     disabled={processing}
                                                 >
                                                     <Pencil className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />
@@ -133,27 +120,27 @@ const getColumns = (
                                         </TooltipContent>
                                     </Tooltip>
 
-                                    {isSuperLibrarian && (
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button
-                                                    variant="ghost"
-                                                    className="h-4 w-4 p-0"
-                                                    disabled={processing}
-                                                    onClick={() => {
-                                                        if (confirm(t.indexDeleteTooltip || "Delete this campus?")) {
-                                                            router.delete(route("campuses.destroy", campus.id));
-                                                        }
-                                                    }}
-                                                >
-                                                    <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent side="right" align="center" className={commonStyles.tooltipBg}>
-                                                {t.indexDeleteTooltip}
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    )}
+                                    {/*{isSuperLibrarian && (*/}
+                                    {/*    <Tooltip>*/}
+                                    {/*        <TooltipTrigger asChild>*/}
+                                    {/*            <Button*/}
+                                    {/*                variant="ghost"*/}
+                                    {/*                className="h-4 w-4 p-0"*/}
+                                    {/*                disabled={processing}*/}
+                                    {/*                onClick={() => {*/}
+                                    {/*                    if (confirm(t.indexDeleteTooltip || "Delete this campus?")) {*/}
+                                    {/*                        router.delete(route("campuses.destroy", campus.id));*/}
+                                    {/*                    }*/}
+                                    {/*                }}*/}
+                                    {/*            >*/}
+                                    {/*                <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />*/}
+                                    {/*            </Button>*/}
+                                    {/*        </TooltipTrigger>*/}
+                                    {/*        <TooltipContent side="right" align="center" className={commonStyles.tooltipBg}>*/}
+                                    {/*            {t.indexDeleteTooltip}*/}
+                                    {/*        </TooltipContent>*/}
+                                    {/*    </Tooltip>*/}
+                                    {/*)}*/}
                                 </TooltipProvider>
                             </div>
                         </DropdownMenuContent>
@@ -251,37 +238,47 @@ const getColumns = (
         {
             accessorKey: "email",
             header: t.indexEmail,
-            cell: ({ row }) => (
-                <a href={`mailto:${row.getValue("email")}`} className={commonStyles.link}>
-                    {row.getValue("email")}
-                </a>
-            ),
+            cell: ({ row }) => {
+                const email = row.getValue("email") as string;
+                if (!email) return <span className="text-gray-400 px-2">N/A</span>;
+                return (
+                    <a href={`mailto:${email}`} className={commonStyles.link}>
+                        {email}
+                    </a>
+                );
+            },
         },
 
         // Contact
         {
             accessorKey: "contact",
             header: t.indexContact,
-            cell: ({ row }) => (
-                <a href={`tel:${row.getValue("contact")}`} className={commonStyles.link}>
-                    {row.getValue("contact")}
-                </a>
-            ),
+            cell: ({ row }) => {
+                const contact = row.getValue("contact") as string;
+                if (!contact) return <span className="text-gray-400 px-4">N/A</span>;
+                return (
+                    <a href={`tel:${contact}`} className={commonStyles.link}>
+                        {contact}
+                    </a>
+                );
+            },
         },
 
         // Address
         {
             accessorKey: "address",
             header: t.indexAddress,
+            defaultHidden: true,
             cell: ({ row }) => {
                 const address = row.getValue("address") as string;
+                if (!address) return <span className="text-gray-400 px-5">N/A</span>;
                 return (
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <span className={`${commonStyles.text} ${commonStyles.truncate} block`}>
-                                    {address}
-                                </span>
+                        <span className={`${commonStyles.text} ${commonStyles.truncate} block`}>
+                            {address}
+                        </span>
                             </TooltipTrigger>
                             <TooltipContent className="max-w-md p-3 text-sm">
                                 <p className="whitespace-pre-wrap">{address}</p>
@@ -298,7 +295,7 @@ const getColumns = (
             header: t.indexWebsite,
             cell: ({ row }) => {
                 const website = row.getValue("website") as string | null;
-                if (!website) return <span className="text-gray-400">—</span>;
+                if (!website) return <span className="text-gray-400 px-4">N/A</span>;
                 return (
                     <a
                         href={website}
@@ -308,8 +305,8 @@ const getColumns = (
                     >
                         <ExternalLink className="h-3 w-3" />
                         <span className={commonStyles.truncate}>
-                            {website.replace(/^https?:\/\//, "")}
-                        </span>
+                    {website.replace(/^https?:\/\//, "")}
+                </span>
                     </a>
                 );
             },
@@ -323,7 +320,7 @@ export default function CampusesIndex({
                                           isSuperLibrarian = false,
                                           lang = "kh",
                                       }: CampusesIndexProps) {
-    const t = translations[lang] || translations.en;
+    const t = translations["kh"];
     const { processing } = useForm();
     const columns = useMemo(
         () => getColumns(processing, isSuperLibrarian, lang),

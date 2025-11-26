@@ -60,8 +60,8 @@ interface BuildingsEditProps {
     lang?: "kh" | "en";
 }
 
-export default function BuildingsEdit({ building, campuses, flash, lang = "en" }: BuildingsEditProps) {
-    const t = translations[lang] || translations.en;
+export default function BuildingsEdit({ building, campuses, flash, lang = "kh" }: BuildingsEditProps) {
+    const t = translations["kh"];
 
     const initialFormData = {
         campus_id: String(building.campus_id),

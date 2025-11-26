@@ -32,7 +32,7 @@ interface Props {
     lang?: "kh" | "en";
 }
 
-export default function PurchaseOrdersEdit({ purchase_order, suppliers, flash, lang = "en" }: Props) {
+export default function PurchaseOrdersEdit({ purchase_order, suppliers, flash, lang = "kh" }: Props) {
     const t = translations[lang] || translations.en;
 
     const { data, setData, put, processing, errors, reset, isDirty } = useForm({

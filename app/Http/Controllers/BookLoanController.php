@@ -31,10 +31,6 @@ class BookLoanController extends Controller
      */
     public function create()
     {
-        if ($redirect = $this->shouldRedirectIfNotStaff()) {
-            return $redirect;
-        }
-
         return Inertia::render('BookLoans/Create', [
             'books' => Book::active('physical')->get(),
             'users' => $this->getLoanableUsers(),
@@ -79,10 +75,6 @@ class BookLoanController extends Controller
     {
         if ($this->isDeleted($bookloan)) {
             return abort(404);
-        }
-
-        if ($redirect = $this->shouldRedirectIfNotStaff()) {
-            return $redirect;
         }
 
         return Inertia::render('BookLoans/Edit', [

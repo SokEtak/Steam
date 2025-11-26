@@ -1,110 +1,101 @@
+// src/utils/translations/asset-category/asset-category.ts
+
 export const translations = {
     en: {
-        // === Index Page ===
+        // Index Page
         indexTitle: "Asset Categories",
         indexId: "ID",
         indexName: "Name",
         indexSearch: "Search",
         indexSearchPlaceholder: "Search by name...",
-        indexDeleteConfirm: "Are you sure you want to delete this asset category?",
-        indexCreate: "Create Category",
-        indexNoData: "No asset categories found.",
-        indexLoading: "Loading...",
+        indexNoData: "No categories found.",
 
-        // === Create Page ===
-        createTitle: "Create Asset Category",
-        createBreadcrumb: "Create",
-        createName: "Category Name",
-        createNamePlaceholder: "e.g., Electronics",
-        createCreate: "Create",
-        createCreating: "Creating...",
-        createCancel: "Cancel",
-        createNotification: "Success",
-        createError: "Error",
-        createNameTooltip: "Enter a unique name for the asset category",
-        createCreateTooltip: "Save the new asset category",
-        createCancelTooltip: "Return to the list",
+        // Action Buttons & Tooltips (Dropdown Menu)
+        indexViewTooltip: "View",
+        indexEditTooltip: "Edit",
+        indexDeleteTooltip: "Delete",
+        indexDeleteConfirm: "Are you sure you want to delete this category?",
 
-        // === Edit Page ===
-        editTitle: "Edit Asset Category",
-        editBreadcrumb: "Edit",
-        editName: "Category Name",
-        editNamePlaceholder: "e.g., Electronics",
-        editUpdate: "Update",
-        editUpdating: "Updating...",
-        editCancel: "Cancel",
-        editNotification: "Success",
-        editError: "Error",
-        editNameTooltip: "Update the asset category name",
-        editUpdateTooltip: "Save changes",
-        editCancelTooltip: "Back to view",
-
-        // === Show Page ===
-        showTitle: "View Asset Category",
+        // Show Page
+        showTitle: "View Category",
         showId: "ID",
         showName: "Name",
         showCreated: "Created At",
         showUpdated: "Updated At",
         showEdit: "Edit",
         showBack: "Back",
-        showDelete: "Delete",
-        showDeleteConfirm: "Are you sure you want to delete this category?",
-        showBreadcrumb: "View Category",
-        showEditTooltip: "Edit this asset category",
-        showBackTooltip: "Return to asset categories list",
+        showEditTooltip: "Edit this category",
+        showBackTooltip: "Back to list",
+
+        // Create Page
+        createTitle: "Create Category",
+        createBreadcrumb: "Create",
+        createName: "Category Name",
+        createNamePlaceholder: "e.g., Electronics, Furniture, Vehicles",
+        createCreate: "Create",
+        createCreating: "Creating...",
+        createCancel: "Cancel",
+        createNotification: "Category created successfully",
+        createError: "Validation Error",
+
+        // Edit Page
+        editTitle: "Edit Category",
+        editBreadcrumb: "Edit",
+        editName: "Category Name",
+        editNamePlaceholder: "e.g., Electronics, Furniture, Vehicles",
+        editUpdate: "Update",
+        editUpdating: "Updating...",
+        editCancel: "Cancel",
+        editNotification: "Category updated successfully",
+        editError: "Validation Error",
     },
+
     kh: {
-        // === Index Page ===
-        indexTitle: "ប្រភេទទ្រព្យ",
+        // Index Page
+        indexTitle: "ប្រភេទទ្រព្យសម្បត្តិ",
         indexId: "លេខសម្គាល់",
         indexName: "ឈ្មោះ",
         indexSearch: "ស្វែងរក",
         indexSearchPlaceholder: "ស្វែងរកតាមឈ្មោះ...",
-        indexDeleteConfirm: "តើអ្នកប្រាកដជាចង់លុបប្រភេទទ្រព្យនេះមែនទេ?",
-        indexCreate: "បង្កើតប្រភេទ",
-        indexNoData: "រកមិនឃើញប្រភេទទ្រព្យ។",
-        indexLoading: "កំពុងផ្ទុក...",
+        indexNoData: "រកមិនឃើញប្រភេទទេ។",
 
-        // === Create Page ===
-        createTitle: "បង្កើតប្រភេទទ្រព្យ",
-        createBreadcrumb: "បង្កើត",
-        createName: "ឈ្មោះប្រភេទទ្រព្យ",
-        createNamePlaceholder: "ឧ. អេឡិចត្រូនិក",
-        createCreate: "បង្កើត",
-        createCreating: "កំពុងបង្កើត...",
-        createCancel: "បោះបង់",
-        createNotification: "ជោគជ័យ",
-        createError: "មានបញ្ហា",
-        createNameTooltip: "បញ្ចូលឈ្មោះប្រភេទទ្រព្យតែមួយគត់",
-        createCreateTooltip: "រក្សាទុកប្រភេទថ្មី",
-        createCancelTooltip: "ត្រឡប់ទៅបញ្ជី",
+        // Action Buttons & Tooltips (Dropdown Menu)
+        indexViewTooltip: "មើល",
+        indexEditTooltip: "កែ",
+        indexDeleteTooltip: "លុប",
+        indexDeleteConfirm: "តើអ្នកប្រាកដជាចង់លុបប្រភេទនេះមែនទេ?",
 
-        // === Edit Page ===
-        editTitle: "កែប្រភេទទ្រព្យ",
-        editBreadcrumb: "កែ",
-        editName: "ឈ្មោះប្រភេទទ្រព្យ",
-        editNamePlaceholder: "ឧ. អេឡិចត្រូនិក",
-        editUpdate: "កែ",
-        editUpdating: "កំពុងកែ...",
-        editCancel: "បោះបង់",
-        editNotification: "ជោគជ័យ",
-        editError: "មានបញ្ហា",
-        editNameTooltip: "កែឈ្មោះប្រភេទទ្រព្យ",
-        editUpdateTooltip: "រក្សាទុកការផ្លាស់ប្តូរ",
-        editCancelTooltip: "ត្រឡប់ទៅមើល",
-
-        // === Show Page ===
-        showTitle: "មើលប្រភេទទ្រព្យ",
+        // Show Page
+        showTitle: "មើលប្រភេទ",
         showId: "លេខសម្គាល់",
         showName: "ឈ្មោះ",
         showCreated: "បង្កើតនៅ",
         showUpdated: "កែចុងក្រោយ",
         showEdit: "កែ",
         showBack: "ត្រឡប់",
-        showDelete: "លុប",
-        showDeleteConfirm: "តើអ្នកប្រាកដជាចង់លុបប្រភេទនេះមែនទេ?",
-        showBreadcrumb: "មើលប្រភេទ",
-        showEditTooltip: "កែប្រភេទទ្រព្យនេះ",
-        showBackTooltip: "ត្រឡប់ទៅបញ្ជីប្រភេទទ្រព្យ",
+        showEditTooltip: "កែប្រភេទនេះ",
+        showBackTooltip: "ត្រឡប់ទៅបញ្ជី",
+
+        // Create Page
+        createTitle: "បង្កើតប្រភេទ",
+        createBreadcrumb: "បង្កើត",
+        createName: "ឈ្មោះប្រភេទ",
+        createNamePlaceholder: "ឧ. គ្រឿងអេឡិចត្រូនិក, គ្រឿងសង្ហារឹម, យានជំនិះ",
+        createCreate: "បង្កើត",
+        createCreating: "កំពុងបង្កើត...",
+        createCancel: "បោះបង់",
+        createNotification: "បង្កើតប្រភេទជោគជ័យ",
+        createError: "កំហុសក្នុងការបញ្ជាក់",
+
+        // Edit Page
+        editTitle: "កែប្រភេទ",
+        editBreadcrumb: "កែ",
+        editName: "ឈ្មោះប្រភេទ",
+        editNamePlaceholder: "ឧ. គ្រឿងអេឡិចត្រូនិក, គ្រឿងសង្ហារឹម, យានជំនិះ",
+        editUpdate: "កែ",
+        editUpdating: "កំពុងកែ...",
+        editCancel: "បោះបង់",
+        editNotification: "កែប្រភេទជោគជ័យ",
+        editError: "កំហុសក្នុងការបញ្ជាក់",
     },
 };

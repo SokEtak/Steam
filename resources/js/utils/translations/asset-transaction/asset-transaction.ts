@@ -13,9 +13,9 @@ export const translations = {
         indexPerformedBy: "Performed By",
         indexPerformedAt: "Performed At",
         indexId: "ID",
-        indexMovement: "Movement",                    // ← NEW
-        indexView: "View",                            // ← NEW
-        indexDelete: "Delete",                        // ← NEW
+        indexMovement: "Movement",
+        indexView: "View",
+        indexDelete: "Delete",
         indexViewTooltip: "View Details",
         indexDeleteTooltip: "Delete Transaction",
         indexDeleteConfirm: "Are you sure you want to delete this transaction?",
@@ -56,7 +56,7 @@ export const translations = {
         showTitle: "Transaction Details",
         showBack: "Back to List",
         showBackTooltip: "Back to transactions",
-        showCreated: "Created At",                    // ← Already used in Index table
+        showCreated: "Created At",
     },
     kh: {
         indexTitle: "ប្រតិបត្តិការទ្រព្យសម្បត្តិ",

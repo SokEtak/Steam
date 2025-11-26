@@ -47,9 +47,9 @@ class BookController extends Controller
      */
     public function create(Request $request)
     {
-        if ($redirect = $this->shouldRedirectIfNotStaff()) {
-            return $redirect;
-        }
+//        if ($redirect = $this->shouldRedirectIfNotStaff()) {
+//            return $redirect;
+//        }
 
         return Inertia::render('Books/Create', [
             'categories' => Category::all(['id', 'name']),

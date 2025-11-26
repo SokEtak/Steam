@@ -23,7 +23,7 @@ interface Props {
     lang?: "kh" | "en";
 }
 
-export default function PurchaseOrdersCreate({ suppliers, flash, lang = "en" }: Props) {
+export default function PurchaseOrdersCreate({ suppliers, flash, lang = "kh" }: Props) {
     const t = translations[lang] || translations.en;
 
     const { data, setData, post, processing, errors, reset } = useForm({

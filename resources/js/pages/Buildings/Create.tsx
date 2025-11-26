@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import AppLayout from "@/layouts/app-layout";
 import { type BreadcrumbItem } from "@/types";
-import { Head, useForm, Link, router } from "@inertiajs/react";
+import { Head, useForm, router } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -50,8 +50,8 @@ interface BuildingsCreateProps {
     lang?: "kh" | "en";
 }
 
-export default function BuildingsCreate({ campuses, flash, lang = "en" }: BuildingsCreateProps) {
-    const t = translations[lang] || translations.en;
+export default function BuildingsCreate({ campuses, flash, lang = "kh" }: BuildingsCreateProps) {
+    const t = translations["kh"];
 
     const initialFormData = {
         campus_id: "none",

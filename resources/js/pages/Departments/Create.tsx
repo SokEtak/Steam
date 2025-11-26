@@ -49,9 +49,9 @@ export default function DepartmentsCreate({
                                               buildings,
                                               users,
                                               flash,
-                                              lang = "en",
+                                              lang = "kh",
                                           }: DepartmentsCreateProps) {
-    const t = translations[lang] || translations.en;
+    const t = translations["kh"];
 
     const initialFormData = {
         campus_id: "none",

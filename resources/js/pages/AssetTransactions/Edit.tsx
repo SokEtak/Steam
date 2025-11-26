@@ -13,7 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { CheckCircle2Icon, X, ChevronDown, Package, User, Building, DoorOpen, ArrowRight } from "lucide-react";
-import { translations } from "@/utils/translations/asset-transaction/asset-transaction";
 import { useForm } from '@inertiajs/react';
 
 interface Asset { id: number; name: string; }
@@ -41,7 +40,6 @@ interface AssetTransactionsEditProps {
     departments: Department[];
     rooms: Room[];
     flash?: { message?: string };
-    lang?: "kh" | "en";
 }
 
 export default function AssetTransactionsEdit({
@@ -51,11 +49,9 @@ export default function AssetTransactionsEdit({
                                                   departments,
                                                   rooms,
                                                   flash,
-                                                  lang = "en"
                                               }: AssetTransactionsEditProps) {
-    const t = translations[lang] || translations.en;
 
-    // Format performed_at for datetime-local input
+    // បំលែងកាលបរិច្ឆេទអោយសមស្របជាមួយ input datetime-local
     const formatDateForInput = (dateStr: string) => {
         const date = new Date(dateStr);
         return date.toLocaleString('sv-SE', { timeZone: 'Asia/Phnom_Penh' }).slice(0, 16);
@@ -119,9 +115,7 @@ export default function AssetTransactionsEdit({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         put(route("asset-transactions.update", assetTransaction.id), {
-            onSuccess: () => {
-                setIsDirty(false);
-            },
+            onSuccess: () => setIsDirty(false),
             onError: () => setShowErrorAlert(true),
         });
     };
@@ -133,347 +127,329 @@ export default function AssetTransactionsEdit({
 
     return (
         <AppLayout breadcrumbs={[
-            { title: t.indexTitle, href: route("asset-transactions.index") },
+            { title: "ការផ្លាស់ប្តូរទ្រព្យសកម្ម", href: route("asset-transactions.index") },
             { title: `#${assetTransaction.id}`, href: route("asset-transactions.show", assetTransaction.id) },
-            { title: t.editBreadcrumb || "Edit", href: "" },
+            { title: "កែប្រែ", href: "" },
         ]}>
-            <Head title={`${t.editTitle || "Edit Transaction"} #${assetTransaction.id}`} />
+            <Head title={`កែប្រែការផ្លាស់ប្តូរ #${assetTransaction.id}`} />
 
             <div className="min-h-screen p-6 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
                 <div className="max-w-1xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-8">
                     <h1 className="text-3xl font-semibold mb-8 text-center">
-                        {t.editTitle || "Edit Transaction"} #{assetTransaction.id}
+                        កែប្រែការផ្លាស់ប្តូរ #{assetTransaction.id}
                     </h1>
 
-                    {/* Success/Error Alerts */}
+                    {/* សារ Success / Error */}
                     {showSuccessAlert && flash?.message && (
-                    <Alert className="mb-6 bg-blue-50 dark:bg-blue-900/50 border-blue-200">
-                    <CheckCircle2Icon className="h-5 w-5 text-blue-600" />
-                    <div>
-                        <AlertTitle>{t.createNotification}</AlertTitle>
-                        <AlertDescription>{flash.message}</AlertDescription>
-                    </div>
-                    <Button onClick={() => setShowSuccessAlert(false)} variant="ghost" size="icon"><X /></Button>
-                </Alert>
-                )}
-                {showErrorAlert && Object.keys(errors).length > 0 && (
-                    <Alert className="mb-6 bg-red-50 dark:bg-red-900/50 border-red-200">
-                        <CheckCircle2Icon className="h-5 w-5 text-red-600" />
-                        <div>
-                            <AlertTitle>{t.createError}</AlertTitle>
-                            <AlertDescription>{Object.values(errors).join(", ")}</AlertDescription>
-                        </div>
-                        <Button onClick={() => setShowErrorAlert(false)} variant="ghost" size="icon"><X /></Button>
-                    </Alert>
-                )}
+                        <Alert className="mb-6 bg-blue-50 dark:bg-blue-900/50 border-blue-200">
+                            <CheckCircle2Icon className="h-5 w-5 text-blue-600" />
+                            <div>
+                                <AlertTitle>ជោគជ័យ!</AlertTitle>
+                                <AlertDescription>{flash.message}</AlertDescription>
+                            </div>
+                            <Button onClick={() => setShowSuccessAlert(false)} variant="ghost" size="icon"><X /></Button>
+                        </Alert>
+                    )}
+                    {showErrorAlert && Object.keys(errors).length > 0 && (
+                        <Alert className="mb-6 bg-red-50 dark:bg-red-900/50 border-red-200">
+                            <CheckCircle2Icon className="h-5 w-5 text-red-600" />
+                            <div>
+                                <AlertTitle>មានបញ្ហា</AlertTitle>
+                                <AlertDescription>{Object.values(errors).join(", ")}</AlertDescription>
+                            </div>
+                            <Button onClick={() => setShowErrorAlert(false)} variant="ghost" size="icon"><X /></Button>
+                        </Alert>
+                    )}
 
-                <form onSubmit={handleSubmit} className="space-y-10">
+                    <form onSubmit={handleSubmit} className="space-y-10">
 
-                    {/* Top Row */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Asset */}
-                        <div className="space-y-2">
-                            <label><span className="text-red-500">*</span> {t.createAsset}</label>
-                            <Popover open={openAsset} onOpenChange={setOpenAsset}>
-                                <PopoverTrigger asChild>
-                                    <Button variant="outline" role="combobox" className="w-full justify-between">
-                                        {selectedNames.asset || t.createAssetPlaceholder}
-                                        <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-full p-0" align="start">
-                                    <Command>
-                                        <CommandInput placeholder={t.createAssetPlaceholder} />
-                                        <CommandList>
-                                            <CommandEmpty>No asset found.</CommandEmpty>
-                                            <CommandGroup>
-                                                {assets.map(asset => (
-                                                    <CommandItem key={asset.id} value={asset.name} onSelect={() => {
-                                                        setData("asset_id", asset.id.toString());
-                                                        setOpenAsset(false);
-                                                    }}>
-                                                        <Package className="mr-2 h-4 w-4" />
-                                                        {asset.name}
-                                                    </CommandItem>
-                                                ))}
-                                            </CommandGroup>
-                                        </CommandList>
-                                    </Command>
-                                </PopoverContent>
-                            </Popover>
-                            {errors.asset_id && <p className="text-red-500 text-sm">{errors.asset_id}</p>}
-                        </div>
+                        {/* ជួរខាងលើ */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* ទ្រព្យសកម្ម */}
+                            <div className="space-y-2">
+                                <label><span className="text-red-500">*</span> ទ្រព្យសកម្ម</label>
+                                <Popover open={openAsset} onOpenChange={setOpenAsset}>
+                                    <PopoverTrigger asChild>
+                                        <Button variant="outline" role="combobox" className="w-full justify-between">
+                                            {selectedNames.asset || "ជ្រើសរើសទ្រព្យសកម្ម"}
+                                            <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-full p-0" align="start">
+                                        <Command>
+                                            <CommandInput placeholder="ស្វែងរកទ្រព្យសកម្ម..." />
+                                            <CommandList>
+                                                <CommandEmpty>រកមិនឃើញទេ</CommandEmpty>
+                                                <CommandGroup>
+                                                    {assets.map(asset => (
+                                                        <CommandItem key={asset.id} value={asset.name} onSelect={() => {
+                                                            setData("asset_id", asset.id.toString());
+                                                            setOpenAsset(false);
+                                                        }}>
+                                                            <Package className="mr-2 h-4 w-4" />
+                                                            {asset.name}
+                                                        </CommandItem>
+                                                    ))}
+                                                </CommandGroup>
+                                            </CommandList>
+                                        </Command>
+                                    </PopoverContent>
+                                </Popover>
+                                {errors.asset_id && <p className="text-red-500 text-sm">{errors.asset_id}</p>}
+                            </div>
 
-                        {/* Type */}
-                        <div className="space-y-2">
-                            <label><span className="text-red-500">*</span> {t.createType}</label>
-                            <Select value={data.type} onValueChange={(v) => setData("type", v)}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder={t.createTypePlaceholder} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {Object.entries(t.types).map(([key, label]) => (
-                                        <SelectItem key={key} value={key}>{label}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {errors.type && <p className="text-red-500 text-sm">{errors.type}</p>}
-                        </div>
+                            {/* ប្រភេទ */}
+                            <div className="space-y-2">
+                                <label><span className="text-red-500">*</span> ប្រភេទ</label>
+                                <Select value={data.type} onValueChange={(v) => setData("type", v)}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="ជ្រើសរើសប្រភេទ" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="received">ទទួល</SelectItem>
+                                        <SelectItem value="allocated">ចែកចាយ</SelectItem>
+                                        <SelectItem value="returned">ប្រគល់វិញ</SelectItem>
+                                        <SelectItem value="transfer">ផ្ទេរ</SelectItem>
+                                        <SelectItem value="maintenance_start">ចាប់ផ្ដើមជួសជុល</SelectItem>
+                                        <SelectItem value="maintenance_end">បញ្ចប់ជួសជុល</SelectItem>
+                                        <SelectItem value="disposed">បោះចោល</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                {errors.type && <p className="text-red-500 text-sm">{errors.type}</p>}
+                            </div>
 
-                        {/* Performed By */}
-                        <div className="space-y-2">
-                            <label><span className="text-red-500">*</span> {t.createPerformedBy}</label>
-                            <Popover open={openPerformer} onOpenChange={setOpenPerformer}>
-                                <PopoverTrigger asChild>
-                                    <Button variant="outline" role="combobox" className="w-full justify-between">
-                                        {selectedNames.performer || t.createPerformedByPlaceholder}
-                                        <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-full p-0" align="start">
-                                    <Command>
-                                        <CommandInput placeholder={t.createPerformedByPlaceholder} />
-                                        <CommandList>
-                                            <CommandEmpty>No user found.</CommandEmpty>
-                                            <CommandGroup>
-                                                {users.map(user => (
-                                                    <CommandItem key={user.id} value={user.name} onSelect={() => {
-                                                        setData("performed_by", user.id.toString());
-                                                        setOpenPerformer(false);
-                                                    }}>
-                                                        <User className="mr-2 h-4 w-4" />
-                                                        {user.name}
-                                                    </CommandItem>
-                                                ))}
-                                            </CommandGroup>
-                                        </CommandList>
-                                    </Command>
-                                </PopoverContent>
-                            </Popover>
-                            {errors.performed_by && <p className="text-red-500 text-sm">{errors.performed_by}</p>}
-                        </div>
+                            {/* អ្នកធ្វើការ */}
+                            <div className="space-y-2">
+                                <label><span className="text-red-500">*</span> អ្នកធ្វើការ</label>
+                                <Popover open={openPerformer} onOpenChange={setOpenPerformer}>
+                                    <PopoverTrigger asChild>
+                                        <Button variant="outline" role="combobox" className="w-full justify-between">
+                                            {selectedNames.performer || "ជ្រើសរើសអ្នកធ្វើការ"}
+                                            <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-full p-0" align="start">
+                                        <Command>
+                                            <CommandInput placeholder="ស្វែងរកអ្នកប្រើប្រាស់..." />
+                                            <CommandList>
+                                                <CommandEmpty>រកមិនឃើញទេ</CommandEmpty>
+                                                <CommandGroup>
+                                                    {users.map(user => (
+                                                        <CommandItem key={user.id} value={user.name} onSelect={() => {
+                                                            setData("performed_by", user.id.toString());
+                                                            setOpenPerformer(false);
+                                                        }}>
+                                                            <User className="mr-2 h-4 w-4" />
+                                                            {user.name}
+                                                        </CommandItem>
+                                                    ))}
+                                                </CommandGroup>
+                                            </CommandList>
+                                        </Command>
+                                    </PopoverContent>
+                                </Popover>
+                                {errors.performed_by && <p className="text-red-500 text-sm">{errors.performed_by}</p>}
+                            </div>
 
-                        {/* Performed At */}
-                        <div className="space-y-2">
-                            <label><span className="text-red-500">*</span> {t.createPerformedAt}</label>
-                            <Input type="datetime-local" value={data.performed_at} onChange={e => setData("performed_at", e.target.value)} />
-                            {errors.performed_at && <p className="text-red-500 text-sm">{errors.performed_at}</p>}
-                        </div>
-                    </div>
-
-                    {/* From → To Section */}
-                    <div className="relative">
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <div className="bg-indigo-100 dark:bg-indigo-900/30 rounded-full p-3">
-                                <ArrowRight className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
+                            {/* កាលបរិច្ឆេទធ្វើការ */}
+                            <div className="space-y-2">
+                                <label><span className="text-red-500">*</span> កាលបរិច្ឆេទនិងម៉ោង</label>
+                                <Input type="datetime-local" value={data.performed_at} onChange={e => setData("performed_at", e.target.value)} />
+                                {errors.performed_at && <p className="text-red-500 text-sm">{errors.performed_at}</p>}
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            {/* FROM */}
-                            <div className="bg-gradient-to-br from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 rounded-2xl p-6 border border-red-200 dark:border-red-800">
-                                <h3 className="text-xl font-bold text-red-700 dark:text-red-400 mb-6 text-center">{t.createFrom}</h3>
-                                <div className="space-y-6">
-                                    {/* Department */}
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium">{t.createDepartment}</label>
-                                        <Popover open={openFromDept} onOpenChange={setOpenFromDept}>
-                                            <PopoverTrigger asChild>
-                                                <Button variant="outline" role="combobox" className="w-full justify-between">
-                                                    {selectedNames.fromDept || t.createSelectDepartment}
-                                                    <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-full p-0" align="start">
-                                                <Command>
-                                                    <CommandInput placeholder="Search department..." />
-                                                    <CommandList>
-                                                        <CommandEmpty>No department found.</CommandEmpty>
-                                                        <CommandGroup>
-                                                            {departments.map(dept => (
-                                                                <CommandItem
-                                                                    key={dept.id}
-                                                                    value={dept.name}
-                                                                    onSelect={() => {
+                        {/* ពី → ទៅ */}
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                                <div className="bg-indigo-100 dark:bg-indigo-900/30 rounded-full p-3">
+                                    <ArrowRight className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                {/* ពី (FROM) */}
+                                <div className="bg-gradient-to-br from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 rounded-2xl p-6 border border-red-200 dark:border-red-800">
+                                    <h3 className="text-xl font-bold text-red-700 dark:text-red-400 mb-6 text-center">ពី</h3>
+                                    <div className="space-y-6">
+
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium">នាយកដ្ឋាន</label>
+                                            <Popover open={openFromDept} onOpenChange={setOpenFromDept}>
+                                                <PopoverTrigger asChild>
+                                                    <Button variant="outline" role="combobox" className="w-full justify-between">
+                                                        {selectedNames.fromDept || "ជ្រើសរើសនាយកដ្ឋាន"}
+                                                        <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-full p-0" align="start">
+                                                    <Command>
+                                                        <CommandInput placeholder="ស្វែងរកនាយកដ្ឋាន..." />
+                                                        <CommandList>
+                                                            <CommandEmpty>រកមិនឃើញទេ</CommandEmpty>
+                                                            <CommandGroup>
+                                                                {departments.map(dept => (
+                                                                    <CommandItem key={dept.id} value={dept.name} onSelect={() => {
                                                                         setData("from_department_id", dept.id.toString());
                                                                         setOpenFromDept(false);
-                                                                    }}
-                                                                >
-                                                                    <Building className="mr-2 h-4 w-4 text-red-600 dark:text-red-400" />
-                                                                    {dept.name}
-                                                                </CommandItem>
-                                                            ))}
-                                                        </CommandGroup>
-                                                    </CommandList>
-                                                </Command>
-                                            </PopoverContent>
-                                        </Popover>
-                                    </div>
+                                                                    }}>
+                                                                        <Building className="mr-2 h-4 w-4 text-red-600" />
+                                                                        {dept.name}
+                                                                    </CommandItem>
+                                                                ))}
+                                                            </CommandGroup>
+                                                        </CommandList>
+                                                    </Command>
+                                                </PopoverContent>
+                                            </Popover>
+                                        </div>
 
-                                    {/* Room */}
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium">{t.createRoom}</label>
-                                        <Popover open={openFromRoom} onOpenChange={setOpenFromRoom}>
-                                            <PopoverTrigger asChild>
-                                                <Button variant="outline" role="combobox" className="w-full justify-between">
-                                                    {selectedNames.fromRoom || t.createSelectRoom}
-                                                    <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-full p-0" align="start">
-                                                <Command>
-                                                    <CommandInput placeholder="Search room..." />
-                                                    <CommandList>
-                                                        <CommandEmpty>No room found.</CommandEmpty>
-                                                        <CommandGroup>
-                                                            {rooms.map(room => (
-                                                                <CommandItem
-                                                                    key={room.id}
-                                                                    value={room.name}
-                                                                    onSelect={() => {
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium">បន្ទប់</label>
+                                            <Popover open={openFromRoom} onOpenChange={setOpenFromRoom}>
+                                                <PopoverTrigger asChild>
+                                                    <Button variant="outline" role="combobox" className="w-full justify-between">
+                                                        {selectedNames.fromRoom || "ជ្រើសរើសបន្ទប់"}
+                                                        <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-full p-0" align="start">
+                                                    <Command>
+                                                        <CommandInput placeholder="ស្វែងរកបន្ទប់..." />
+                                                        <CommandList>
+                                                            <CommandEmpty>រកមិនឃើញទេ</CommandEmpty>
+                                                            <CommandGroup>
+                                                                {rooms.map(room => (
+                                                                    <CommandItem key={room.id} value={room.name} onSelect={() => {
                                                                         setData("from_room_id", room.id.toString());
                                                                         setOpenFromRoom(false);
-                                                                    }}
-                                                                >
-                                                                    <DoorOpen className="mr-2 h-4 w-4 text-red-600 dark:text-red-400" />
-                                                                    {room.name}
-                                                                </CommandItem>
-                                                            ))}
-                                                        </CommandGroup>
-                                                    </CommandList>
-                                                </Command>
-                                            </PopoverContent>
-                                        </Popover>
+                                                                    }}>
+                                                                        <DoorOpen className="mr-2 h-4 w-4 text-red-600" />
+                                                                        {room.name}
+                                                                    </CommandItem>
+                                                                ))}
+                                                            </CommandGroup>
+                                                        </CommandList>
+                                                    </Command>
+                                                </PopoverContent>
+                                            </Popover>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* TO */}
-                            <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-6 border border-green-200 dark:border-green-800">
-                                <h3 className="text-xl font-bold text-green-700 dark:text-green-400 mb-6 text-center">{t.createTo}</h3>
-                                <div className="space-y-6">
-                                    {/* Department */}
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium">{t.createDepartment}</label>
-                                        <Popover open={openToDept} onOpenChange={setOpenToDept}>
-                                            <PopoverTrigger asChild>
-                                                <Button variant="outline" role="combobox" className="w-full justify-between">
-                                                    {selectedNames.toDept || t.createSelectDepartment}
-                                                    <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-full p-0" align="start">
-                                                <Command>
-                                                    <CommandInput placeholder="Search department..." />
-                                                    <CommandList>
-                                                        <CommandEmpty>No department found.</CommandEmpty>
-                                                        <CommandGroup>
-                                                            {departments.map(dept => (
-                                                                <CommandItem
-                                                                    key={dept.id}
-                                                                    value={dept.name}
-                                                                    onSelect={() => {
+                                {/* ទៅ (TO) */}
+                                <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-6 border border-green-200 dark:border-green-800">
+                                    <h3 className="text-xl font-bold text-green-700 dark:text-green-400 mb-6 text-center">ទៅ</h3>
+                                    <div className="space-y-6">
+
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium">នាយកដ្ឋាន</label>
+                                            <Popover open={openToDept} onOpenChange={setOpenToDept}>
+                                                <PopoverTrigger asChild>
+                                                    <Button variant="outline" role="combobox" className="w-full justify-between">
+                                                        {selectedNames.toDept || "ជ្រើសរើសនាយកដ្ឋាន"}
+                                                        <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-full p-0" align="start">
+                                                    <Command>
+                                                        <CommandInput placeholder="ស្វែងរកនាយកដ្ឋាន..." />
+                                                        <CommandList>
+                                                            <CommandEmpty>រកមិនឃើញទេ</CommandEmpty>
+                                                            <CommandGroup>
+                                                                {departments.map(dept => (
+                                                                    <CommandItem key={dept.id} value={dept.name} onSelect={() => {
                                                                         setData("to_department_id", dept.id.toString());
                                                                         setOpenToDept(false);
-                                                                    }}
-                                                                >
-                                                                    <Building className="mr-2 h-4 w-4 text-green-600 dark:text-green-400" />
-                                                                    {dept.name}
-                                                                </CommandItem>
-                                                            ))}
-                                                        </CommandGroup>
-                                                    </CommandList>
-                                                </Command>
-                                            </PopoverContent>
-                                        </Popover>
-                                    </div>
+                                                                    }}>
+                                                                        <Building className="mr-2 h-4 w-4 text-green-600" />
+                                                                        {dept.name}
+                                                                    </CommandItem>
+                                                                ))}
+                                                            </CommandGroup>
+                                                        </CommandList>
+                                                    </Command>
+                                                </PopoverContent>
+                                            </Popover>
+                                        </div>
 
-                                    {/* Room */}
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium">{t.createRoom}</label>
-                                        <Popover open={openToRoom} onOpenChange={setOpenToRoom}>
-                                            <PopoverTrigger asChild>
-                                                <Button variant="outline" role="combobox" className="w-full justify-between">
-                                                    {selectedNames.toRoom || t.createSelectRoom}
-                                                    <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-full p-0" align="start">
-                                                <Command>
-                                                    <CommandInput placeholder="Search room..." />
-                                                    <CommandList>
-                                                        <CommandEmpty>No room found.</CommandEmpty>
-                                                        <CommandGroup>
-                                                            {rooms.map(room => (
-                                                                <CommandItem
-                                                                    key={room.id}
-                                                                    value={room.name}
-                                                                    onSelect={() => {
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium">បន្ទប់</label>
+                                            <Popover open={openToRoom} onOpenChange={setOpenToRoom}>
+                                                <PopoverTrigger asChild>
+                                                    <Button variant="outline" role="combobox" className="w-full justify-between">
+                                                        {selectedNames.toRoom || "ជ្រើសរើសបន្ទប់"}
+                                                        <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-full p-0" align="start">
+                                                    <Command>
+                                                        <CommandInput placeholder="ស្វែងរកបន្ទប់..." />
+                                                        <CommandList>
+                                                            <CommandEmpty>រកមិនឃើញទេ</CommandEmpty>
+                                                            <CommandGroup>
+                                                                {rooms.map(room => (
+                                                                    <CommandItem key={room.id} value={room.name} onSelect={() => {
                                                                         setData("to_room_id", room.id.toString());
                                                                         setOpenToRoom(false);
-                                                                    }}
-                                                                >
-                                                                    <DoorOpen className="mr-2 h-4 w-4 text-green-600 dark:text-green-400" />
-                                                                    {room.name}
-                                                                </CommandItem>
-                                                            ))}
-                                                        </CommandGroup>
-                                                    </CommandList>
-                                                </Command>
-                                            </PopoverContent>
-                                        </Popover>
+                                                                    }}>
+                                                                        <DoorOpen className="mr-2 h-4 w-4 text-green-600" />
+                                                                        {room.name}
+                                                                    </CommandItem>
+                                                                ))}
+                                                            </CommandGroup>
+                                                        </CommandList>
+                                                    </Command>
+                                                </PopoverContent>
+                                            </Popover>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Note */}
-                    <div className="space-y-2">
-                        <label>{t.createNote}</label>
-                        <Textarea
-                            value={data.note}
-                            onChange={e => setData("note", e.target.value)}
-                            placeholder={t.createNotePlaceholder}
-                            rows={4}
-                            className="resize-none"
-                        />
-                    </div>
+                        {/* កំណត់ចំណាំ */}
+                        <div className="space-y-2">
+                            <label>កំណត់ចំណាំ</label>
+                            <Textarea
+                                value={data.note}
+                                onChange={e => setData("note", e.target.value)}
+                                placeholder="បញ្ចូលកំណត់ចំណាំបន្ថែម (មិនបង្ខំ)"
+                                rows={4}
+                                className="resize-none"
+                            />
+                        </div>
 
-                    {/* Buttons */}
-                    <div className="flex justify-end gap-4 pt-8">
-                        <Button
-                            type="submit"
-                            size="lg"
-                            disabled={processing}
-                        >
-                            {processing ? t.updating || "Updating..." : t.updateButton || "Update Transaction"}
-                        </Button>
-                        <Button variant="outline" size="lg" onClick={handleCancel} disabled={processing}>
-                            {t.createCancel}
-                        </Button>
-                    </div>
-                </form>
+                        {/* ប៊ូតុង */}
+                        <div className="flex justify-end gap-4 pt-8">
+                            <Button type="submit" size="lg" disabled={processing}>
+                                {processing ? "កំពុងរក្សាទុក..." : "រក្សាទុក"}
+                            </Button>
+                            <Button variant="outline" size="lg" onClick={handleCancel} disabled={processing}>
+                                បោះបង់
+                            </Button>
+                        </div>
+                    </form>
 
-                {/* Leave Dialog */}
-                <AlertDialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>{lang === "kh" ? "ចាកចេញដោយមិនរក្សាទុក?" : "Leave without saving?"}</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                {lang === "kh" ? "អ្នកមានការផ្លាស់ប្តូរដែលមិនបានរក្សាទុក។" : "You have unsaved changes."}
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>{t.createCancel}</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => router.visit(route("asset-transactions.index"))}>
-                                {lang === "kh" ? "ចាកចេញ" : "Leave"}
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
+                    {/* បញ្ជាក់មុនចាកចេញ */}
+                    <AlertDialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>ចាកចេញដោយមិនរក្សាទុក?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    អ្នកមានការផ្លាស់ប្តូរដែលមិនបានរក្សាទុក។ តើអ្នកប្រាកដទេ?
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>បន្តកែប្រែ</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => router.visit(route("asset-transactions.index"))}>
+                                    ចាកចេញ
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </div>
             </div>
-        </div>
-</AppLayout>
-);
+        </AppLayout>
+    );
 }

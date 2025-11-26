@@ -42,7 +42,7 @@ export default function SchoolsShow({
                                         isSuperLibrarian = false,
                                         lang = "kh",
                                     }: SchoolsShowProps) {
-    const t = translations[lang] || translations.en;
+    const t = translations["kh"];
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t.indexTitle || "Schools", href: route("schools.index") },
@@ -91,23 +91,20 @@ export default function SchoolsShow({
                         </Card>
 
                         <div className="flex justify-end space-x-4 mt-8">
-                            {isSuperLibrarian && (
+                            {/*{isSuperLibrarian && (*/}
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
                                             <Link href={route("schools.edit", school.id)}>
                                                 <Button className={`${commonStyles.button} ${commonStyles.indigoButton} px-6 py-2.5`}>
-                                                    <Pencil className="h-5 w-5 mr-2" />
+                                                    <Pencil className="h-5 w-5" />
                                                     {t.showEditButton || "Edit"}
                                                 </Button>
                                             </Link>
                                         </TooltipTrigger>
-                                        <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                            Edit this school
-                                        </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
-                            )}
+                            {/*)}*/}
 
                             <TooltipProvider>
                                 <Tooltip>
@@ -121,9 +118,6 @@ export default function SchoolsShow({
                                             </Button>
                                         </Link>
                                     </TooltipTrigger>
-                                    <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                        Return to list
-                                    </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
                         </div>

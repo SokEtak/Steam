@@ -67,7 +67,7 @@ const formatDateTime = (date?: string | null) => {
 };
 // --- END UPDATE ---
 
-export default function AssetsShow({ asset, lang = 'en' }: AssetShowProps) {
+export default function AssetsShow({ asset, lang = 'kh' }: AssetShowProps) {
     const trans = translations[lang] ?? translations.en;
 
     return (
@@ -92,13 +92,13 @@ export default function AssetsShow({ asset, lang = 'en' }: AssetShowProps) {
                                 <div className="space-x-2">
                                     <Button asChild>
                                         <Link href={route('assets.edit', asset.id)}>
-                                            <Edit className="mr-2 h-4 w-4" />
+                                            <Edit className="h-4 w-4" />
                                             {trans.edit}
                                         </Link>
                                     </Button>
                                     <Button variant="outline" asChild>
                                         <Link href={route('assets.index')}>
-                                            <ArrowLeft className="mr-2 h-4 w-4" />
+                                            <ArrowLeft className="h-4 w-4" />
                                             {trans.backToAssets}
                                         </Link>
                                     </Button>

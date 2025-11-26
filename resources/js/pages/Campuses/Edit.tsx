@@ -16,7 +16,20 @@ import {
 } from "@/components/ui/tooltip";
 import { CheckCircle2Icon, X } from "lucide-react";
 import { translations } from "@/utils/translations/campus/campus";
-
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "@/components/ui/command";
+import { ChevronDown, Package } from "lucide-react";
 interface School {
     id: number;
     name: string;
@@ -41,7 +54,7 @@ interface CampusesEditProps {
 }
 
 export default function CampusesEdit({ campus, schools, flash, lang = "kh" }: CampusesEditProps) {
-    const t = translations[lang] || translations.en;
+    const t = translations["kh"];
 
     const { data, setData, put, processing, errors } = useForm({
         school_id: String(campus.school_id),
@@ -53,6 +66,10 @@ export default function CampusesEdit({ campus, schools, flash, lang = "kh" }: Ca
         website: campus.website ?? "",
     });
 
+    const [openSchool, setOpenSchool] = useState(false);
+    const [selectedSchoolName, setSelectedSchoolName] = useState(
+        schools.find(s => s.id === campus.school_id)?.name ?? null
+    );
     const [showErrorAlert, setShowErrorAlert] = useState(false);
     const [showSuccessAlert, setShowSuccessAlert] = useState(!!flash?.message);
 
@@ -138,41 +155,49 @@ export default function CampusesEdit({ campus, schools, flash, lang = "kh" }: Ca
 
                     <form onSubmit={handleSubmit} className="space-y-6">
 
-                        {/* School - REQUIRED */}
+                        {/* School - REQUIRED (Popover/Command version) */}
                         <div className="space-y-2">
-                            <label htmlFor="school_id" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                <RequiredLabel>{t.editSchool}</RequiredLabel>
-                            </label>
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Select
-                                            value={data.school_id}
-                                            onValueChange={(v) => setData("school_id", v)}
-                                            disabled={processing}
-                                        >
-                                            <SelectTrigger
-                                                id="school_id"
-                                                className={`w-full ${errors.school_id ? "border-red-500 dark:border-red-400" : ""}`}
-                                            >
-                                                <SelectValue placeholder={t.editSchoolPlaceholder} />
-                                            </SelectTrigger>
-                                            <SelectContent>
+                            <label><span className="text-red-500">*</span> {t.editSchool}</label>
+
+                            <Popover open={openSchool} onOpenChange={setOpenSchool}>
+                                <PopoverTrigger asChild>
+                                    <Button variant="outline" className="w-full justify-between">
+                                        {selectedSchoolName ?? t.editSchoolPlaceholder}
+                                        <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="p-0 w-full" align="start">
+                                    <Command>
+                                        <CommandInput placeholder={t.editSchoolPlaceholder} />
+                                        <CommandList>
+                                            <CommandEmpty>
+                                                {schools.length === 0
+                                                    ? "មិនមានទិន្នន័យ។"
+                                                    : "រកមិនឃើញសាលាដែលផ្គូផ្គង"}
+                                            </CommandEmpty>
+                                            <CommandGroup>
                                                 {schools.map((s) => (
-                                                    <SelectItem key={s.id} value={String(s.id)}>
+                                                    <CommandItem
+                                                        key={s.id}
+                                                        value={s.name}
+                                                        onSelect={() => {
+                                                            setData("school_id", s.id.toString());
+                                                            setSelectedSchoolName(s.name);
+                                                            setOpenSchool(false);
+                                                        }}
+                                                    >
+                                                        <Package className="mr-2 h-4 w-4 text-indigo-600" />
                                                         {s.name}
-                                                    </SelectItem>
+                                                    </CommandItem>
                                                 ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </TooltipTrigger>
-                                    <TooltipContent className="bg-indigo-600 text-white rounded-lg p-2">
-                                        {t.createSchoolTooltip}
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
+
                             {errors.school_id && (
-                                <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.school_id}</p>
+                                <p className="text-red-500 text-sm mt-1">{errors.school_id}</p>
                             )}
                         </div>
 

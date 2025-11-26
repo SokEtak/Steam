@@ -35,7 +35,7 @@ export default function SchoolsCreate({
                                           isSuperLibrarian = false,
                                           lang = "kh",
                                       }: SchoolsCreateProps) {
-    const t = translations[lang] || translations.en;
+    const t = translations["kh"];
 
     const { data, setData, post, processing, errors } = useForm({
         name: "",

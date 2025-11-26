@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import AppLayout from "@/layouts/app-layout";
-import { Head, router } from '@inertiajs/react';
+import { Head, router, useForm } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -30,8 +30,6 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { CheckCircle2Icon, X, ChevronDown, Package } from "lucide-react";
-import { translations } from "@/utils/translations/asset-sub-category/asset-sub-category";
-import { useForm } from '@inertiajs/react';
 
 interface AssetCategory {
     id: number;
@@ -41,15 +39,12 @@ interface AssetCategory {
 interface AssetSubCategoriesCreateProps {
     assetCategories: AssetCategory[];
     flash?: { message?: string };
-    lang?: "kh" | "en";
 }
 
 export default function AssetSubCategoriesCreate({
                                                      assetCategories,
                                                      flash,
-                                                     lang = "en",
                                                  }: AssetSubCategoriesCreateProps) {
-    const t = translations[lang] || translations.en;
 
     const initialFormData = {
         asset_category_id: "",
@@ -63,13 +58,11 @@ export default function AssetSubCategoriesCreate({
     const [showLeaveDialog, setShowLeaveDialog] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
 
-    // Track form changes
     useEffect(() => {
         const hasChanges = Object.keys(data).some(k => data[k] !== initialFormData[k]);
         setIsDirty(hasChanges);
     }, [data]);
 
-    // Prevent accidental navigation
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
             if (isDirty) {
@@ -81,13 +74,11 @@ export default function AssetSubCategoriesCreate({
         return () => window.removeEventListener("beforeunload", handleBeforeUnload);
     }, [isDirty]);
 
-    // Show alerts
     useEffect(() => {
         setShowErrorAlert(Object.keys(errors).length > 0);
         if (flash?.message) setShowSuccessAlert(true);
     }, [errors, flash?.message]);
 
-    // Selected category name
     const selectedCategoryName = useMemo(() => {
         if (!data.asset_category_id) return null;
         return assetCategories.find(c => c.id.toString() === data.asset_category_id)?.name ?? null;
@@ -110,23 +101,23 @@ export default function AssetSubCategoriesCreate({
     };
 
     const breadcrumbs = [
-        { title: t.indexTitle, href: route("asset-sub-categories.index") },
-        { title: t.createBreadcrumb, href: "" },
+        { title: "បញ្ជីប្រភេទរងនៃទ្រព្យ", href: route("asset-sub-categories.index") },
+        { title: "បង្កើតប្រភេទរងថ្មី", href: "" },
     ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t.createTitle} />
+            <Head title="បង្កើតប្រភេទរងថ្មី" />
             <div className="min-h-screen p-6 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-                <div className="max-w-1xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-8">
-                    <h1 className="text-3xl font-semibold mb-8">{t.createTitle}</h1>
+                <div className="max-w-1xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl border p-8">
+                    <h1 className="text-3xl font-semibold mb-8">បង្កើតប្រភេទរងថ្មី</h1>
 
                     {/* Success Alert */}
                     {showSuccessAlert && flash?.message && (
                         <Alert className="mb-6 bg-blue-50 dark:bg-blue-900/50 border-blue-200">
                             <CheckCircle2Icon className="h-5 w-5 text-blue-600" />
                             <div>
-                                <AlertTitle>{t.createNotification}</AlertTitle>
+                                <AlertTitle>បានបង្កើតដោយជោគជ័យ</AlertTitle>
                                 <AlertDescription>{flash.message}</AlertDescription>
                             </div>
                             <Button onClick={() => setShowSuccessAlert(false)} variant="ghost" size="icon">
@@ -140,7 +131,7 @@ export default function AssetSubCategoriesCreate({
                         <Alert className="mb-6 bg-red-50 dark:bg-red-900/50 border-red-200">
                             <CheckCircle2Icon className="h-5 w-5 text-red-600" />
                             <div>
-                                <AlertTitle>{t.createError}</AlertTitle>
+                                <AlertTitle>មានបញ្ហាក្នុងការបង្កើត</AlertTitle>
                                 <AlertDescription>{Object.values(errors).join(", ")}</AlertDescription>
                             </div>
                             <Button onClick={() => setShowErrorAlert(false)} variant="ghost" size="icon">
@@ -151,24 +142,25 @@ export default function AssetSubCategoriesCreate({
 
                     <form onSubmit={handleSubmit} className="space-y-6">
 
-                        {/* Category - Searchable */}
+                        {/* Category */}
                         <div className="space-y-2">
-                            <label><span className="text-red-500">*</span> {t.createCategory}</label>
+                            <label><span className="text-red-500">*</span> ប្រភេទអសេត</label>
+
                             <Popover open={openCategory} onOpenChange={setOpenCategory}>
                                 <PopoverTrigger asChild>
                                     <Button variant="outline" className="w-full justify-between">
-                                        {selectedCategoryName ?? t.createCategoryPlaceholder}
+                                        {selectedCategoryName ?? "ជ្រើសរើសប្រភេទនៃទ្រព្យ"}
                                         <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="p-0 w-full" align="start">
                                     <Command>
-                                        <CommandInput placeholder={t.createCategoryPlaceholder} />
+                                        <CommandInput placeholder="ស្វែងរកប្រភេទអសេត..." />
                                         <CommandList>
                                             <CommandEmpty>
                                                 {assetCategories.length === 0
-                                                    ? t.createCategoryEmpty
-                                                    : t.createCategoryNoMatch}
+                                                    ? "មិនមានទិន្នន័យ។"
+                                                    : "រកមិនឃើញទិន្នន័យផ្គូផ្គង"}
                                             </CommandEmpty>
                                             <CommandGroup>
                                                 {assetCategories.map(c => (
@@ -189,6 +181,7 @@ export default function AssetSubCategoriesCreate({
                                     </Command>
                                 </PopoverContent>
                             </Popover>
+
                             {errors.asset_category_id && (
                                 <p className="text-red-500 text-sm">{errors.asset_category_id}</p>
                             )}
@@ -196,11 +189,11 @@ export default function AssetSubCategoriesCreate({
 
                         {/* Name */}
                         <div className="space-y-2">
-                            <label><span className="text-red-500">*</span> {t.createName}</label>
+                            <label><span className="text-red-500">*</span> ឈ្មោះប្រភេទរង</label>
                             <Input
                                 value={data.name}
                                 onChange={e => setData("name", e.target.value)}
-                                placeholder={t.createNamePlaceholder}
+                                placeholder="បញ្ចូលឈ្មោះប្រភេទរង"
                             />
                             {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
                         </div>
@@ -208,31 +201,27 @@ export default function AssetSubCategoriesCreate({
                         {/* Buttons */}
                         <div className="flex gap-4 pt-6">
                             <Button type="submit" disabled={processing}>
-                                {processing ? t.createCreating : t.createCreate}
+                                {processing ? "កំពុងបង្កើត..." : "បង្កើត"}
                             </Button>
                             <Button variant="outline" onClick={handleCancel} disabled={processing}>
-                                {t.createCancel}
+                                បោះបង់
                             </Button>
                         </div>
                     </form>
 
-                    {/* Leave Confirmation */}
+                    {/* Leave Dialog */}
                     <AlertDialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
                         <AlertDialogContent>
                             <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                    {lang === "kh" ? "តើអ្នកប្រាកដទេ?" : "Are you sure?"}
-                                </AlertDialogTitle>
+                                <AlertDialogTitle>តើអ្នកប្រាកដទេ?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    {lang === "kh"
-                                        ? "អ្នកមានការផ្លាស់ប្តូរដែលមិនបានរក្សាទុក។"
-                                        : "You have unsaved changes."}
+                                    អ្នកមានការផ្លាស់ប្តូរដែលមិនទាន់បានរក្សាទុក។
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                                <AlertDialogCancel>{t.createCancel}</AlertDialogCancel>
+                                <AlertDialogCancel>បោះបង់</AlertDialogCancel>
                                 <AlertDialogAction onClick={() => router.visit(route("asset-sub-categories.index"))}>
-                                    {lang === "kh" ? "ចាកចេញ" : "Leave"}
+                                    ចាកចេញ
                                 </AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>
