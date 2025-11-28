@@ -103,7 +103,7 @@ export const NavMain = React.memo(
 
         return (
             <SidebarGroup>
-                <SidebarGroupLabel>{label}</SidebarGroupLabel>
+                <SidebarGroupLabel className={"text-gray-600 dark:text-gray-200 text-sm"}>{label}</SidebarGroupLabel>
                 <SidebarMenu>
                     {items.map((item) => {
                         const hasSub = item.items && item.items.length > 0;
@@ -132,7 +132,7 @@ export const NavMain = React.memo(
                                                 className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors duration-150 ${
                                                     isItemActive
                                                         ? "bg-sky-500 text-white"
-                                                        : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 hover:text-gray-900"
                                                 }`}
                                             >
                                                 <Icon
