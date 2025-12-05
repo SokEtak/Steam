@@ -81,7 +81,7 @@ export default function AssetCategoriesEdit({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="កែប្រែប្រភេទទ្រព្យសម្បត្តិ" />
 
-            <div className={`p-6 lg:p-4 ${commonStyles.gradientBg} min-h-screen`}>
+            <div className={`p-6 lg:p-4 min-h-screen`}>
                 <div className="max-w-1xl mx-auto">
                     <div className={`${commonStyles.card} p-6 lg:p-8`}>
                         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-50 tracking-tight mb-8">

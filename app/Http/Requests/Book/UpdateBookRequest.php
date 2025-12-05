@@ -11,7 +11,7 @@ class UpdateBookRequest extends FormRequest
 {
     public function authorize()
     {
-        return Auth::check() && Auth::user()->role_id == 2;
+        return $this->user()->hasAnyRole(['staff', 'admin']);
     }
 
     protected function prepareForValidation()

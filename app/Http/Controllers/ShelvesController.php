@@ -27,9 +27,6 @@ class ShelvesController extends Controller
      */
     public function create()
     {
-        if ($redirect = $this->shouldRedirectIfNotStaff()) {
-            return $redirect;
-        }
 
         return Inertia::render('Shelves/Create', [
             'bookcases' => $this->getBookcasesForCampus(),
@@ -43,10 +40,6 @@ class ShelvesController extends Controller
     {
         if (!$this->belongsToUserCampus($shelf)) {
             return abort(404, 'Not Found');
-        }
-
-        if ($redirect = $this->shouldRedirectIfNotStaff()) {
-            return $redirect;
         }
 
         $shelf->loadActiveBooks();
@@ -86,10 +79,6 @@ class ShelvesController extends Controller
     {
         if (!$this->belongsToUserCampus($shelf)) {
             return abort(404, 'Not Found');
-        }
-
-        if ($redirect = $this->shouldRedirectIfNotStaff()) {
-            return $redirect;
         }
 
         return Inertia::render('Shelves/Edit', [

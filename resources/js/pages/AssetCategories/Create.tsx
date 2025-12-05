@@ -73,7 +73,7 @@ export default function AssetCategoriesCreate({ flash }: AssetCategoriesCreatePr
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="បង្កើតប្រភេទទ្រព្យសម្បត្តិថ្មី" />
-            <div className={`p-6 lg:p-4 ${commonStyles.gradientBg} min-h-screen`}>
+            <div className={`p-6 lg:p-4 min-h-screen`}>
                 <div className="max-w-1xl mx-auto">
                     <div className={`${commonStyles.card} p-6 lg:p-8`}>
 

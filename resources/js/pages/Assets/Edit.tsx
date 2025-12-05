@@ -144,7 +144,7 @@ export default function AssetsEdit({
 
             <div className="p-6">
                 <div className="max-w-1xl mx-auto">
-                <div className="rounded-xl border bg-white p-8 shadow-lg">
+                    <div className="rounded-xl border bg-white p-8 shadow-lg bg-white dark:bg-gray-900 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100 dark:border-gray-800">
                     <h1 className="mb-8 text-3xl font-bold">{trans.editAsset}</h1>
 
                     {showSuccess && flash?.message && (

@@ -14,8 +14,6 @@ import {
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { usePage } from "@inertiajs/react";
-
-// Import nav data (SINGLE FILE)
 import { globalNav, navGroups } from "@/nav/nav-items";
 
 interface User { name: string; email: string; roles: string[]; avatar?: string; }

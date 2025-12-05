@@ -17,6 +17,8 @@ import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 import { CheckCircle2Icon, X } from 'lucide-react';
 import { Component, ReactNode, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { translations } from '@/utils/translations/book/books';
+
 
 interface Category {
     id: number;
@@ -58,252 +60,16 @@ interface BooksCreateProps {
     flash?: {
         message: string | null;
         error: string | null;
-        warning: string | null; // Added warning to match flash structure
+        warning: string | null;
     };
     type: 'physical' | 'ebook';
 }
 
-// Translation object for English and Khmer
-const translations = {
-    en: {
-        go_back: 'Book List',
-        createBook: 'Create New Book',
-        createEBook: 'Create E-Book',
-        createPhysicalBook: 'Create Physical Book',
-        error: 'Error',
-        tryAgain: 'Try Again',
-        somethingWentWrong: 'Something went wrong',
-        errorDescription: 'An error occurred while creating the book. Please try again or contact support.',
-        bookCreated: 'Book created successfully!',
-        undo: 'Undo',
-        basicInformation: 'Basic Information',
-        title: 'Title',
-        titlePlaceholder: 'Enter the book title',
-        titleError: 'Please provide a valid title (max 255 characters).',
-        titleHelper: 'Max 255 characters.',
-        description: 'Description',
-        descriptionPlaceholder: 'Enter the book description',
-        descriptionError: 'Please provide a valid description.',
-        descriptionHelper: 'Brief description of the book.',
-        pageCount: 'Page Count',
-        pageCountPlaceholder: 'Enter the number of pages',
-        pageCountError: 'Please provide a valid page count (minimum 1).',
-        pageCountHelper: 'Total number of pages.',
-        publisher: 'Publisher',
-        publisherPlaceholder: 'Enter the publisher name',
-        publisherError: 'Please provide a valid publisher name (max 255 characters).',
-        publisherHelper: 'Max 255 characters.',
-        language: 'Language',
-        languagePlaceholder: 'Select language',
-        languageError: 'Please select a valid language.',
-        languageHelper: 'Primary language of the book.',
-        program: 'Program',
-        programPlaceholder: 'Select program',
-        programError: 'Please select a valid program.',
-        programHelper: 'Select the program for the book (Cambodia or American).',
-        publishedAt: 'Published Year',
-        publishedAtPlaceholder: 'Select Year',
-        publishedAtError: 'Please select a valid publication year.',
-        publishedAtHelper: 'Optional publication year.',
-        author: 'Author',
-        authorPlaceholder: 'Enter the author name',
-        authorError: 'Please provide a valid author name (max 255 characters).',
-        authorHelper: 'Optional, max 255 characters.',
-        flipLink: 'Flip Link',
-        flipLinkPlaceholder: 'Enter the digital preview URL',
-        flipLinkError: 'Please provide a valid URL for the digital preview.',
-        flipLinkHelper: 'Optional digital preview link.',
-        code: 'Code',
-        codePlaceholder: 'Auto-generated after selecting category',
-        codeError: 'Please provide a valid book code (max 10 characters).',
-        codeHelper: 'Max 10 characters, auto-generated.',
-        isbn: 'ISBN',
-        isbnPlaceholder: 'Enter the ISBN',
-        isbnError: 'Please provide a valid ISBN (max 13 characters).',
-        isbnHelper: 'Optional, 13 characters.',
-        availability: 'Availability',
-        downloadable: 'Downloadable',
-        availabilityError: 'Please select an availability option.',
-        availabilityHelper: 'Indicate if the book is available.',
-        downloadableHelper: 'Allow users to download the e-book.',
-        yes: 'Yes',
-        no: 'No',
-        classification: 'Classification',
-        category: 'Category',
-        categoryPlaceholder: 'Select category',
-        categoryError: 'Please select a valid category.',
-        categoryHelper: 'Select a category for the book.',
-        subcategory: 'Subcategory',
-        subcategoryPlaceholder: 'Select subcategory',
-        subcategoryError: 'Please select a valid subcategory.',
-        subcategoryHelper: 'Optional subcategory for the book.',
-        grade: 'Grade',
-        gradePlaceholder: 'Select grade',
-        gradeError: 'Please select a valid grade.',
-        gradeHelper: 'Optional grade level for the book.',
-        subject: 'Subject',
-        subjectPlaceholder: 'Select subject',
-        subjectError: 'Please select a valid subject.',
-        subjectHelper: 'Optional subject for the book.',
-        location: 'Location',
-        bookcase: 'Bookcase',
-        bookcasePlaceholder: 'Select bookcase',
-        bookcaseError: 'Please select a valid bookcase.',
-        bookcaseHelper: 'Select a bookcase for the physical book.',
-        shelf: 'Shelf',
-        shelfPlaceholder: 'Select shelf',
-        shelfError: 'Please select a valid shelf.',
-        shelfHelper: 'Select a shelf for the physical book.',
-        files: 'Files',
-        cover: 'Cover (portrait recommended)',
-        coverPlaceholder: 'Upload a cover image',
-        coverError: 'Please upload a valid cover image (JPEG/PNG, max 2MB).',
-        coverHelper: 'JPEG or PNG, max 2MB.',
-        pdfFile: 'PDF File (30MB max)',
-        pdfFilePlaceholder: 'Upload a PDF file',
-        pdfFileError: 'Please upload a valid PDF file (max 30MB).',
-        pdfFileHelper: 'Optional: PDF, max 30MB.',
-        browse: 'Browse',
-        remove: 'Remove',
-        preview: 'Preview',
-        createButton: 'Create Book',
-        creating: 'Creating...',
-        cancel: 'Cancel, Go Back to Book List',
-        coverPreview: 'Cover Preview',
-        pdfPreview: 'PDF Preview',
-        noCoverAvailable: 'No cover image available.',
-        noPdfAvailable: 'No PDF file available.',
-        saveBook: 'Save the new book',
-        returnToBooks: 'Return to the book list',
-        physical: 'Physical',
-        ebook: 'E-Book',
-        audio: 'Audio',
-        comingSoon: '(soon)',
-        isContinue: 'Is Continue',
-        warning: 'You have unsaved changes. Are you sure you want to leave?',
-    },
-    kh: {
-        go_back: 'បញ្ជីសៀវភៅ',
-        createBook: 'បង្កើតសៀវភៅថ្មី',
-        createEBook: 'បង្កើតសៀវភៅអេឡិចត្រូនិក',
-        createPhysicalBook: 'បង្កើតសៀវភៅផ្ទាល់',
-        error: 'កំហុស',
-        tryAgain: 'ព្យាយាមម្តងទៀត',
-        somethingWentWrong: 'មានអ្វីមួយខុសឆ្គង',
-        errorDescription: 'មានកំហុសកើតឡើងនៅពេលបង្កើតសៀវភៅ។ សូមព្យាយាមម្តងទៀត ឬទាក់ទងផ្នែកជំនួយ។',
-        bookCreated: 'សៀវភៅត្រូវបានបង្កើតដោយជោគជ័យ!',
-        undo: 'មិនធ្វើវិញ',
-        basicInformation: 'ព័ត៌មានមូលដ្ឋាន',
-        title: 'ចំណងជើង',
-        titlePlaceholder: 'បញ្ចូលចំណងជើងសៀវភៅ',
-        titleError: 'សូមផ្តល់ចំណងជើងត្រឹមត្រូវ (អតិបរមា ២៥៥ តួអក្សរ)។',
-        titleHelper: 'អតិបរមា ២៥៥ តួអក្សរ។',
-        description: 'ការពិពណ៌នា',
-        descriptionPlaceholder: 'បញ្ចូលការពិពណ៌នាសៀវភៅ',
-        descriptionError: 'សូមផ្តល់ការពិពណ៌នាត្រឹមត្រូវ។',
-        descriptionHelper: 'ការពិពណ៌នាសង្ខេបនៃសៀវភៅ។',
-        pageCount: 'ចំនួនទំព័រ',
-        pageCountPlaceholder: 'បញ្ចូលចំនួនទំព័រ',
-        pageCountError: 'សូមផ្តល់ចំនួនទំព័រត្រឹមត្រូវ (អប្បបរមា ១)',
-        pageCountHelper: 'ចំនួនទំព័រសរុប។',
-        publisher: 'អ្នកបោះពុម្ព',
-        publisherPlaceholder: 'បញ្ចូលឈ្មោះអ្នកបោះពុម្ព',
-        publisherError: 'សូមផ្តល់ឈ្មោះអ្នកបោះពុម្ពត្រឹមត្រូវ (អតិបរមា ២៥៥ តួអក្សរ)។',
-        publisherHelper: 'អតិបរមា ២៥៥ តួអក្សរ។',
-        language: 'ភាសា',
-        languagePlaceholder: 'ជ្រើសរើសភាសា',
-        languageError: 'សូមជ្រើសរើសភាសាត្រឹមត្រូវ។',
-        languageHelper: 'ភាសាចម្បងនៃសៀវភៅ។',
-        program: 'កម្មវិធី',
-        programPlaceholder: 'ជ្រើសរើសកម្មវិធី',
-        programError: 'សូមជ្រើសរើសកម្មវិធីត្រឹមត្រូវ។',
-        programHelper: 'ជ្រើសរើសកម្មវិធីសម្រាប់សៀវភៅ (កម្ពុជា ឬអាមេរិក)។',
-        publishedAt: 'ឆ្នាំបោះពុម្ព',
-        publishedAtPlaceholder: 'ជ្រើសរើសឆ្នាំ',
-        publishedAtError: 'សូមជ្រើសរើសឆ្នាំបោះពុម្ពត្រឹមត្រូវ។',
-        publishedAtHelper: 'ឆ្នាំបោះពុម្ពជាជម្រើស។',
-        author: 'អ្នកនិពន្ធ',
-        authorPlaceholder: 'បញ្ចូលឈ្មោះអ្នកនិពន្ធ',
-        authorError: 'សូមផ្តល់ឈ្មោះអ្នកនិពន្ធត្រឹមត្រូវ (អតិបរមា ២៥៥ តួអក្សរ)។',
-        authorHelper: 'ជាជម្រើស អតិបរមា ២៥៥ តួអក្សរ។',
-        flipLink: 'តំណភ្ជាប់ឌីជីថល',
-        flipLinkPlaceholder: 'បញ្ចូល URL មើលជាមុនឌីជីថល',
-        flipLinkError: 'សូមផ្តល់ URL ត្រឹមត្រូវសម្រាប់មើលជាមុនឌីជីថល។',
-        flipLinkHelper: 'តំណភ្ជាប់មើលជាមុនឌីជីថលជាជម្រើស។',
-        code: 'កូដ',
-        codePlaceholder: 'បង្កើតដោយស្វ័យប្រវត្តិបន្ទាប់ពីជ្រើសរើសប្រភេទ',
-        codeError: 'សូមផ្តល់កូដសៀវភៅត្រឹមត្រូវ (អតិបរមា ១០ តួអក្សរ)។',
-        codeHelper: 'អតិបរមា ១០ តួអក្សរ។ បង្កើតដោយស្វ័យប្រវត្តិ។',
-        isbn: 'ISBN',
-        isbnPlaceholder: 'បញ្ចូល ISBN',
-        isbnError: 'សូមផ្តល់ ISBN ត្រឹមត្រូវ (អតិបរមា ១៣ តួអក្សរ)។',
-        isbnHelper: 'ជាជម្រើស ១៣ តួអក្សរ។',
-        availability: 'ភាពអាចរកបាន',
-        downloadable: 'អាចទាញយកបាន',
-        availabilityError: 'សូមជ្រើសរើសជម្រើសភាពអាចរកបាន។',
-        availabilityHelper: 'បញ្ជាក់ថាសៀវភៅអាចរកបាន។',
-        downloadableHelper: 'អនុញ្ញាតឱ្យអ្នកប្រើប្រាស់ទាញយកសៀវភៅអេឡិចត្រូនិក។',
-        yes: 'បាន',
-        no: 'ទេ',
-        classification: 'ការចាត់ថ្នាក់',
-        category: 'ប្រភេទ',
-        categoryPlaceholder: 'ជ្រើសរើសប្រភេទ',
-        categoryError: 'សូមជ្រើសរើសប្រភេទត្រឹមត្រូវ។',
-        categoryHelper: 'ជ្រើសរើសប្រភេទសម្រាប់សៀវភៅ។',
-        subcategory: 'ប្រភេទរង',
-        subcategoryPlaceholder: 'ជ្រើសរើសប្រភេទរង',
-        subcategoryError: 'សូមជ្រើសរើសប្រភេទរងត្រឹមត្រូវ។',
-        subcategoryHelper: 'ប្រភេទរងជាជម្រើសសម្រាប់សៀវភៅ។',
-        grade: 'កម្រិត',
-        gradePlaceholder: 'ជ្រើសរើសកម្រិត',
-        gradeError: 'សូមជ្រើសរើសកម្រិតត្រឹមត្រូវ។',
-        gradeHelper: 'កម្រិតជាជម្រើសសម្រាប់សៀវភៅ។',
-        subject: 'មុខវិជ្ជា',
-        subjectPlaceholder: 'ជ្រើសរើសមុខវិជ្ជា',
-        subjectError: 'សូមជ្រើសរើសមុខវិជ្ជាត្រឹមត្រូវ។',
-        subjectHelper: 'មុខវិជ្ជាជាជម្រើសសម្រាប់សៀវភៅ។',
-        location: 'ទីតាំង',
-        bookcase: 'ទូសៀវភៅ',
-        bookcasePlaceholder: 'ជ្រើសរើសទូសៀវភៅ',
-        bookcaseError: 'សូមជ្រើសរើសទូសៀវភៅត្រឹមត្រូវ',
-        bookcaseHelper: 'ជ្រើសរើសទូសៀវភៅសម្រាប់សៀវភៅផ្ទាល់',
-        shelf: 'ធ្នើ',
-        shelfPlaceholder: 'ជ្រើសរើសធ្នើ',
-        shelfError: 'សូមជ្រើសរើសធ្នើត្រឹមត្រូវ។',
-        shelfHelper: 'ជ្រើសរើសធ្នើសម្រាប់សៀវភៅផ្ទាល់',
-        files: 'ឯកសារ',
-        cover: 'គម្រប (ណែនាំទំរង់បញ្ឈរ)',
-        coverPlaceholder: 'ផ្ទុកឡើងរូបភាពគម្រប',
-        coverError: 'សូមផ្ទុកឡើងរូបភាពគម្របត្រឹមត្រូវ (JPEG/PNG, អតិបរមា 5MB)។',
-        coverHelper: 'JPEG ឬ PNG, អតិបរមា 5MB។',
-        pdfFile: 'ឯកសារ PDF (អតិបរមា 30MB)',
-        pdfFilePlaceholder: 'ផ្ទុកឡើងឯកសារ PDF',
-        pdfFileError: 'សូមផ្ទុកឡើងឯកសារ PDF ត្រឹមត្រូវ (អតិបរមា 30MB)',
-        pdfFileHelper: 'ជាជម្រើស: PDF, អតិបរមា 30MB',
-        browse: 'រកមើល',
-        remove: 'លុប',
-        preview: 'មើលជាមុន',
-        createButton: 'បង្កើតសៀវភៅ',
-        creating: 'កំពុងបង្កើត...',
-        cancel: 'បោះបង់ ត្រឡប់ទៅបញ្ជីសៀវភៅ',
-        coverPreview: 'មើលគម្របជាមុន',
-        pdfPreview: 'មើល PDF ជាមុន',
-        noCoverAvailable: 'គ្មានរូបភាពគម្របទេ១',
-        noPdfAvailable: 'គ្មានឯកសារ PDF ទេ។',
-        saveBook: 'រក្សាទុកសៀវភៅថ្មី',
-        returnToBooks: 'ត្រឡប់ទៅបញ្ជីសៀវភៅ',
-        physical: 'សៀវភៅ',
-        ebook: 'សៀវភៅអេឡិចត្រូនិក',
-        audio: 'សំឡេង',
-        comingSoon: '(ឆាប់ៗនេះ)',
-        isContinue: 'បន្ត',
-        warning: 'មានការផ្លាស់ប្តូរដែលមិនទាន់រក្សាទុក។ តើអ្នកប្រាកដថាចង់ចាកចេញទេ?',
-    },
-};
+const t = translations.kh;
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: translations.kh.go_back, href: route('books.index') },
-    { title: translations.kh.createBook, href: '' },
+    { title: t.go_back, href: route('books.index') },
+    { title: t.createBook, href: '' },
 ];
 
 // Error Boundary Component
@@ -574,7 +340,7 @@ export default function BooksCreate({
     flash,
     type: initialType,
 }: BooksCreateProps) {
-    const t = translations.kh;
+
 
     const [type, setType] = useState<'physical' | 'ebook'>('physical');
     const isEbook = type === 'ebook';
@@ -592,15 +358,15 @@ export default function BooksCreate({
         title: '',
         description: '',
         page_count: '1',
-        publisher: 'បណ្ណាគារ បន្ទាយស្រី',
+        publisher: '',
         language: 'kh',
         program: '',
         published_at: '201',
-        author: 'បណ្ណាគារ បន្ទាយស្រី',
+        author: '',
         flip_link: '',
         cover: null,
-        code: 'J6-0',
-        isbn: '978',
+        code: '',
+        isbn: '',
         view: '0',
         is_available: !isEbook,
         pdf_url: null,
@@ -631,11 +397,11 @@ export default function BooksCreate({
             title: '',
             description: '',
             page_count: '1',
-            publisher: 'បណ្ណាគារ បន្ទាយស្រី',
+            publisher: '',
             language: 'kh',
             program: '',
-            published_at: '201',
-            author: 'បណ្ណាគារ បន្ទាយស្រី',
+            published_at: '20',
+            author: '',
             flip_link: '',
             cover: null,
             code: 'J6-0',
@@ -643,7 +409,7 @@ export default function BooksCreate({
             view: '0',
             is_available: !isEbook,
             pdf_url: null,
-            category_id: '5',
+            category_id: '',
             subcategory_id: '',
             shelf_id: isEbook ? '' : '',
             bookcase_id: isEbook ? '' : '',
@@ -929,7 +695,7 @@ export default function BooksCreate({
                                             {errors.title || t.titleError}
                                         </p>
                                     )}
-                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t.titleHelper}</p>
+                                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{t.titleHelper}</p>
                                 </div>
                                 <div>
                                     <Label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -961,7 +727,7 @@ export default function BooksCreate({
                                             {errors.description || t.descriptionError}
                                         </p>
                                     )}
-                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t.descriptionHelper}</p>
+                                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{t.descriptionHelper}</p>
                                 </div>
                             </div>
                             <div className="space-y-4">
@@ -995,7 +761,7 @@ export default function BooksCreate({
                                             {errors.page_count || t.pageCountError}
                                         </p>
                                     )}
-                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t.pageCountHelper}</p>
+                                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{t.pageCountHelper}</p>
                                 </div>
                                 <div>
                                     <Label htmlFor="publisher" className="text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -1025,7 +791,7 @@ export default function BooksCreate({
                                             {errors.publisher || t.publisherError}
                                         </p>
                                     )}
-                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t.publisherHelper}</p>
+                                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{t.publisherHelper}</p>
                                 </div>
                             </div>
                             <div className="space-y-4">
@@ -1065,7 +831,7 @@ export default function BooksCreate({
                                             {errors.language || t.languageError}
                                         </p>
                                     )}
-                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t.languageHelper}</p>
+                                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{t.languageHelper}</p>
                                 </div>
                                 <div>
                                     <Label htmlFor="published_at" className="text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -1113,7 +879,7 @@ export default function BooksCreate({
                                             {errors.published_at}
                                         </p>
                                     )}
-                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t.publishedAtHelper}</p>
+                                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{t.publishedAtHelper}</p>
                                 </div>
                             </div>
                             <div className="space-y-4">
@@ -1142,7 +908,7 @@ export default function BooksCreate({
                                             {errors.author || t.authorError}
                                         </p>
                                     )}
-                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t.authorHelper}</p>
+                                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{t.authorHelper}</p>
                                 </div>
                                 <div>
                                     <Label htmlFor="flip_link" className="text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -1172,7 +938,7 @@ export default function BooksCreate({
                                             {errors.flip_link || t.flipLinkError}
                                         </p>
                                     )}
-                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t.flipLinkHelper}</p>
+                                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{t.flipLinkHelper}</p>
                                 </div>
                             </div>
                             <div className="space-y-4">
@@ -1191,7 +957,7 @@ export default function BooksCreate({
                                                     className={`mt-1 w-full rounded-lg border ${
                                                         errors.code ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
                                                     } bg-white text-gray-900 focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:text-gray-100 dark:focus:ring-indigo-400`}
-                                                    placeholder={t.codePlaceholder}
+                                                    // placeholder={t.codePlaceholder}
                                                     required
                                                     aria-describedby={errors.code ? 'code-error' : undefined}
                                                 />
@@ -1204,7 +970,7 @@ export default function BooksCreate({
                                             {errors.code || t.codeError}
                                         </p>
                                     )}
-                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t.codeHelper}</p>
+                                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{t.codeHelper}</p>
                                 </div>
                             </div>
                             <div className="space-y-4">
@@ -1234,7 +1000,7 @@ export default function BooksCreate({
                                             {errors.isbn || t.isbnError}
                                         </p>
                                     )}
-                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t.isbnHelper}</p>
+                                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{t.isbnHelper}</p>
                                 </div>
                             </div>
 
@@ -1274,7 +1040,7 @@ export default function BooksCreate({
                                             {errors.program || t.programError}
                                         </p>
                                     )}
-                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t.programHelper}</p>
+                                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{t.programHelper}</p>
                                 </div>
                                 <div>
                                     <Label className="text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -1335,7 +1101,7 @@ export default function BooksCreate({
                                             {errors.is_available || errors.downloadable || t.availabilityError}
                                         </p>
                                     )}
-                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                                         {isEbook ? t.downloadableHelper : t.availabilityHelper}
                                     </p>
                                 </div>
@@ -1349,6 +1115,14 @@ export default function BooksCreate({
                                 <div>
                                     <Label htmlFor="category" className="text-sm font-medium text-gray-700 dark:text-gray-200">
                                         {t.category} <span className="text-red-500">*</span>
+                                     (<Link
+                                        href={route('categories.create')}
+                                        className="mt-1 inline-block text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"
+                                        preserveState
+                                        preserveScroll
+                                    >
+                                        {t.category} មិនមានទេ? ចុចទីនេះ
+                                    </Link>)
                                     </Label>
                                     <TooltipProvider>
                                         <Tooltip>
@@ -1369,6 +1143,7 @@ export default function BooksCreate({
                                                         <SelectValue placeholder={t.categoryPlaceholder} />
                                                     </SelectTrigger>
                                                     <SelectContent className="border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-800">
+                                                        <SelectItem value="none">គ្មាន</SelectItem>
                                                         {categories.map((cat) => (
                                                             <SelectItem key={cat.id} value={cat.id.toString()}>
                                                                 {cat.name}
@@ -1380,20 +1155,12 @@ export default function BooksCreate({
                                             <TooltipContent className="rounded-lg bg-indigo-600 text-white">{t.categoryPlaceholder}</TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
-                                    <Link
-                                        href={route('categories.create')}
-                                        className="mt-1 inline-block text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"
-                                        preserveState
-                                        preserveScroll
-                                    >
-                                        {t.category} មិនមានទេ? ចុចទីនេះ
-                                    </Link>
                                     {errors.category_id && (
                                         <p id="category-error" className="mt-1 text-sm text-red-500 dark:text-red-400">
                                             {errors.category_id || t.categoryError}
                                         </p>
                                     )}
-                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t.categoryHelper}</p>
+                                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{t.categoryHelper}</p>
                                 </div>
                                 <div>
                                     <Label htmlFor="grade" className="text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -1417,6 +1184,7 @@ export default function BooksCreate({
                                                         <SelectValue placeholder={t.gradePlaceholder} />
                                                     </SelectTrigger>
                                                     <SelectContent className="border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-800">
+                                                        <SelectItem value="none">គ្មាន</SelectItem>
                                                         {grades.map((grade) => (
                                                             <SelectItem key={grade.id} value={grade.id.toString()}>
                                                                 {grade.name}
@@ -1433,13 +1201,21 @@ export default function BooksCreate({
                                             {errors.grade_id || t.gradeError}
                                         </p>
                                     )}
-                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t.gradeHelper}</p>
+                                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{t.gradeHelper}</p>
                                 </div>
                             </div>
                             <div className="space-y-4">
                                 <div>
                                     <Label htmlFor="subcategory" className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                                        {t.subcategory}
+                                        {t.subcategory+" "}
+                                        (<Link
+                                        href={route('subcategories.create')}
+                                        className="mt-1 inline-block text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"
+                                        preserveState
+                                        preserveScroll
+                                        >
+                                            {t.subcategory} មិនមានទេ? ចុចទីនេះ
+                                        </Link>)
                                     </Label>
                                     <TooltipProvider>
                                         <Tooltip>
@@ -1459,6 +1235,7 @@ export default function BooksCreate({
                                                         <SelectValue placeholder={t.subcategoryPlaceholder} />
                                                     </SelectTrigger>
                                                     <SelectContent className="border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-800">
+                                                        <SelectItem value="none">គ្មាន</SelectItem>
                                                         {(subcategories || [])
                                                             .filter((subcat) => Number(data.category_id) === subcat.category_id)
                                                             .map((subcat) => (
@@ -1474,20 +1251,12 @@ export default function BooksCreate({
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
-                                    <Link
-                                        href={route('subcategories.create')}
-                                        className="mt-1 inline-block text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"
-                                        preserveState
-                                        preserveScroll
-                                    >
-                                        {t.subcategory} មិនមានទេ? ចុចទីនេះ
-                                    </Link>
                                     {errors.subcategory_id && (
                                         <p id="subcategory-error" className="mt-1 text-sm text-red-500 dark:text-red-400">
                                             {errors.subcategory_id || t.subcategoryError}
                                         </p>
                                     )}
-                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t.subcategoryHelper}</p>
+                                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{t.subcategoryHelper}</p>
                                 </div>
                                 <div>
                                     <Label htmlFor="subject" className="text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -1511,6 +1280,7 @@ export default function BooksCreate({
                                                         <SelectValue placeholder={t.subjectPlaceholder} />
                                                     </SelectTrigger>
                                                     <SelectContent className="border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-800">
+                                                        <SelectItem value="none">គ្មាន</SelectItem>
                                                         {subjects.map((subject) => (
                                                             <SelectItem key={subject.id} value={subject.id.toString()}>
                                                                 {subject.name}
@@ -1527,7 +1297,7 @@ export default function BooksCreate({
                                             {errors.subject_id || t.subjectError}
                                         </p>
                                     )}
-                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t.subjectHelper}</p>
+                                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{t.subjectHelper}</p>
                                 </div>
                             </div>
 
@@ -1541,6 +1311,14 @@ export default function BooksCreate({
                                         <div>
                                             <Label htmlFor="bookcase" className="text-sm font-medium text-gray-700 dark:text-gray-200">
                                                 {t.bookcase} <span className="text-red-500">*</span>
+                                                (<Link
+                                                href={route('bookcases.create')}
+                                                className="mt-1 inline-block text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"
+                                                preserveState
+                                                preserveScroll
+                                            >
+                                                {t.bookcase} មិនមានទេ? ចុចទីនេះ
+                                            </Link>)
                                             </Label>
                                             <TooltipProvider>
                                                 <Tooltip>
@@ -1561,6 +1339,7 @@ export default function BooksCreate({
                                                                 <SelectValue placeholder={t.bookcasePlaceholder} />
                                                             </SelectTrigger>
                                                             <SelectContent className="border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-800">
+                                                                <SelectItem value="none">គ្មាន</SelectItem>
                                                                 {bookcases.map((bookcase) => (
                                                                     <SelectItem key={bookcase.id} value={bookcase.id.toString()}>
                                                                         {bookcase.code}
@@ -1574,26 +1353,26 @@ export default function BooksCreate({
                                                     </TooltipContent>
                                                 </Tooltip>
                                             </TooltipProvider>
-                                            <Link
-                                                href={route('bookcases.create')}
-                                                className="mt-1 inline-block text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"
-                                                preserveState
-                                                preserveScroll
-                                            >
-                                                {t.bookcase} មិនមានទេ? ចុចទីនេះ
-                                            </Link>
                                             {errors.bookcase_id && (
                                                 <p id="bookcase-error" className="mt-1 text-sm text-red-500 dark:text-red-400">
                                                     {errors.bookcase_id || t.bookcaseError}
                                                 </p>
                                             )}
-                                            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t.bookcaseHelper}</p>
+                                            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{t.bookcaseHelper}</p>
                                         </div>
                                     </div>
                                     <div className="space-y-4">
                                         <div>
                                             <Label htmlFor="shelf" className="text-sm font-medium text-gray-700 dark:text-gray-200">
                                                 {t.shelf} <span className="text-red-500">*</span>
+                                                (<Link
+                                                    href={route('shelves.create')}
+                                                    className="mt-1 inline-block text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"
+                                                    preserveState
+                                                    preserveScroll
+                                                >
+                                                    {t.shelf} មិនមានទេ? ចុចទីនេះ
+                                                </Link>)
                                             </Label>
                                             <TooltipProvider>
                                                 <Tooltip>
@@ -1614,6 +1393,7 @@ export default function BooksCreate({
                                                                 <SelectValue placeholder={t.shelfPlaceholder} />
                                                             </SelectTrigger>
                                                             <SelectContent className="border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-800">
+                                                                <SelectItem value="none">គ្មាន</SelectItem>
                                                                 {shelves.map((shelf) => (
                                                                     <SelectItem key={shelf.id} value={shelf.id.toString()}>
                                                                         {shelf.code}
@@ -1627,20 +1407,12 @@ export default function BooksCreate({
                                                     </TooltipContent>
                                                 </Tooltip>
                                             </TooltipProvider>
-                                            <Link
-                                                href={route('shelves.create')}
-                                                className="mt-1 inline-block text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"
-                                                preserveState
-                                                preserveScroll
-                                            >
-                                                {t.shelf} មិនមានទេ? ចុចទីនេះ
-                                            </Link>
                                             {errors.shelf_id && (
                                                 <p id="shelf-error" className="mt-1 text-sm text-red-500 dark:text-red-400">
                                                     {errors.shelf_id || t.shelfError}
                                                 </p>
                                             )}
-                                            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t.shelfHelper}</p>
+                                            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{t.shelfHelper}</p>
                                         </div>
                                     </div>
                                 </>

@@ -10,7 +10,13 @@
         AlertDialogTitle,
     } from '@/components/ui/alert-dialog';
     import { Button } from '@/components/ui/button';
-    import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+    import {
+        DropdownMenu,
+        DropdownMenuCheckboxItem,
+        DropdownMenuContent,
+        DropdownMenuItem,
+        DropdownMenuTrigger,
+    } from '@/components/ui/dropdown-menu';
     import { Input } from '@/components/ui/input';
     import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
     import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -36,17 +42,24 @@
         ArrowLeft,
         ArrowRight,
         ArrowUp,
-        ArrowUpDown, BookOpen,
+        ArrowUpDown,
+        BookOpen,
         CheckCircle2Icon,
         ChevronDown,
-        Columns2, Download,
-        EyeIcon, EyeOff,
-        Filter as FilterIcon, Globe, ImageOff, Library,
+        ChevronUp,
+        Columns2,
+        Download,
+        EyeIcon,
+        EyeOff,
+        Filter as FilterIcon,
+        Globe,
+        ImageOff,
+        Library,
         MoreHorizontal,
         PencilIcon,
         Plus,
         TrashIcon,
-        X
+        X,
     } from 'lucide-react';
     import { useEffect, useMemo, useState } from 'react';
     import { toast } from 'sonner';
@@ -1269,6 +1282,7 @@
         const [isTableLoading, setIsTableLoading] = useState(true);
         const [rowModal, setRowModal] = useState<Book | null>(null);
         const [hoveredRow, setHoveredRow] = useState<Book | null>(null);
+        const [open, setOpen] = useState(false)
 
         useEffect(() => {
             if (flash?.message) {
@@ -1559,60 +1573,69 @@
                                 </DropdownMenuContent>
                             </DropdownMenu>
 
-                            {/* Library Cards as Buttons */}
+                            {/* Unified Library Button */}
                             <TooltipProvider>
                                 <Tooltip>
+                                    {/* Tooltip wraps only the button trigger */}
                                     <TooltipTrigger asChild>
-                                        <Link href={route('global library')}>
-                                            <Button
-                                                variant="outline"
-                                                className="h-8 rounded-lg border-cyan-200 bg-cyan-100 text-sm text-cyan-600 hover:bg-cyan-200 dark:border-cyan-600 dark:bg-gray-700 dark:text-cyan-300 dark:hover:bg-cyan-800"
-                                                disabled={isTableLoading || processing}
+                                        <DropdownMenu open={open} onOpenChange={setOpen}>
+                                            <DropdownMenuTrigger asChild className={"hover:cursor-pointer transition:300"}>
+                                                <Button
+                                                    variant="outline"
+                                                    className="h-8 rounded-lg border-cyan-200 bg-cyan-100 text-sm text-cyan-600 hover:bg-cyan-200 dark:border-cyan-600 dark:bg-gray-700 dark:text-cyan-300 dark:hover:bg-cyan-800"
+                                                    disabled={isTableLoading || processing}
+                                                    onMouseEnter={() => setOpen(true)}
+                                                    onMouseLeave={() => setOpen(false)}
+                                                >
+                                                    ប្រភេទបណ្ណាល័យ
+                                                    {open ? (
+                                                        <ChevronUp className="h-4 w-4" />
+                                                    ) : (
+                                                        <ChevronDown className="h-4 w-4" />
+                                                    )}
+                                                </Button>
+                                            </DropdownMenuTrigger>
+
+                                            <DropdownMenuContent
+                                                className="rounded-lg shadow-md"
+                                                onMouseEnter={() => setOpen(true)}
+                                                onMouseLeave={() => setOpen(false)}
                                             >
-                                                <Globe className="h-4 w-4 mr-2" /> បណ្ណាល័យសកល
-                                            </Button>
-                                        </Link>
+
+                                                <div className={"hover:cursor-pointer"}>
+                                                    <DropdownMenuItem asChild>
+                                                        <Link href={route("global library")}>
+                                                            <div className="flex items-center">
+                                                                <Globe className="h-4 w-4 mr-2 text-cyan-600" />
+                                                                បណ្ណាល័យសកល
+                                                            </div>
+                                                        </Link>
+                                                    </DropdownMenuItem>
+
+                                                    <DropdownMenuItem asChild>
+                                                        <Link href={route("local library")}>
+                                                            <div className="flex items-center">
+                                                                <Library className="h-4 w-4 mr-2 text-yellow-600" />
+                                                                បណ្ណាល័យក្នុងតំបន់
+                                                            </div>
+                                                        </Link>
+                                                    </DropdownMenuItem>
+
+                                                    <DropdownMenuItem asChild>
+                                                        <Link href={route("global e-library")}>
+                                                            <div className="flex items-center">
+                                                                <BookOpen className="h-4 w-4 mr-2 text-rose-600" />
+                                                                បណ្ណាល័យអេឡិចត្រូនិច
+                                                            </div>
+                                                        </Link>
+                                                    </DropdownMenuItem>
+                                                </div>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
                                     </TooltipTrigger>
+
                                     <TooltipContent className="rounded-xl bg-gradient-to-br from-cyan-900 to-cyan-600 text-white">
-                                        All Books from overall campuses
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Link href={route('local library')}>
-                                            <Button
-                                                variant="outline"
-                                                className="h-8 rounded-lg border-yellow-200 bg-yellow-100 text-sm text-yellow-600 hover:bg-yellow-200 dark:border-yellow-600 dark:bg-gray-700 dark:text-yellow-300 dark:hover:bg-yellow-800"
-                                                disabled={isTableLoading || processing}
-                                            >
-                                                <Library className="h-4 w-4 mr-2" /> បណ្ណាល័យក្នុងតំបន់
-                                            </Button>
-                                        </Link>
-                                    </TooltipTrigger>
-                                    <TooltipContent className="rounded-xl bg-gradient-to-br from-yellow-900 to-yellow-600 text-white">
-                                       Physical Books from your campus
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Link href={route('global e-library')}>
-                                            <Button
-                                                variant="outline"
-                                                className="h-8 rounded-lg border-rose-200 bg-rose-100 text-sm text-rose-600 hover:bg-rose-200 dark:border-rose-600 dark:bg-gray-700 dark:text-rose-300 dark:hover:bg-rose-800"
-                                                disabled={isTableLoading || processing}
-                                            >
-                                                <BookOpen className="h-4 w-4 mr-2" /> បណ្ណាល័យអេឡិចត្រូនិច
-                                            </Button>
-                                        </Link>
-                                    </TooltipTrigger>
-                                    <TooltipContent className="rounded-xl bg-gradient-to-br from-rose-900 to-rose-600 text-white">
-                                        Digital books from overall campuses
+                                        Choose between Global, Local, or E‑Library
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>

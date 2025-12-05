@@ -11,7 +11,7 @@ class StoreBookRequest extends FormRequest
 {
     public function authorize()
     {
-        return $this->user()->hasRole('staff');
+        return $this->user()->hasAnyRole(['staff', 'admin']);
     }
 
     protected function prepareForValidation()

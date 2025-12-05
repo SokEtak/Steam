@@ -16,6 +16,7 @@ import {
     SidebarMenuSubButton,
     SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
+import { useEffect } from "react";
 
 interface SubNavItem {
     title: string;
@@ -31,88 +32,76 @@ interface NavItem {
     icon: LucideIcon;
     iconColor?: string;
     items?: SubNavItem[];
-    onClick?: () => void;
 }
 
 interface NavMainProps {
     items: NavItem[];
     label?: string;
+    collapseAll?: boolean;
 }
 
 export const NavMain = React.memo(
-    ({ items, label = "Platform" }: NavMainProps) => {
-        const [activeUrl, setActiveUrl] = React.useState<string>(() => {
-            // Read from localStorage only on initial load
-            return localStorage.getItem("sidebarActiveUrl") || "/";
-        });
+    ({ items, label = "Platform", collapseAll }: NavMainProps) => {
+        const [activeUrl, setActiveUrl] = React.useState(
+            () => localStorage.getItem("sidebarActiveUrl") || "/"
+        );
 
-        const [openState, setOpenState] = React.useState<{
-            [key: string]: boolean;
-        }>(() => {
-            // Read and parse from localStorage only on initial load
-            const stored = localStorage.getItem("sidebarOpenState");
-            return stored ? JSON.parse(stored) : {};
-        });
+        const [openState, setOpenState] = React.useState<Record<string, boolean>>(
+            () => JSON.parse(localStorage.getItem("sidebarOpenState") || "{}")
+        );
 
-        // Optimization: Defer localStorage writes to useEffect.
-        // This makes UI updates feel instantaneous by not blocking the main thread.
-        React.useEffect(() => {
+        // persist active url
+        useEffect(() => {
             localStorage.setItem("sidebarActiveUrl", activeUrl);
         }, [activeUrl]);
 
-        React.useEffect(() => {
+        // persist open state
+        useEffect(() => {
             localStorage.setItem("sidebarOpenState", JSON.stringify(openState));
         }, [openState]);
 
-        // Optimization: Memoize handlers so they have a stable identity.
-        const handleClick = React.useCallback(
-            (url?: string, parentKey?: string) => {
-                if (url) {
-                    setActiveUrl(url);
-                }
-                if (parentKey) {
-                    // Ensure parent is open when a child is clicked
-                    setOpenState((prev) => ({ ...prev, [parentKey]: true }));
-                }
-            },
-            [], // State setters (setActiveUrl, setOpenState) are stable and don't need to be dependencies
-        );
+        // Apply collapse/expand-all
+        useEffect(() => {
+            if (collapseAll === undefined) return;
+
+            const updated: Record<string, boolean> = {};
+            items.forEach((item) => (updated[item.title] = !collapseAll));
+
+            setOpenState((prev) => ({ ...prev, ...updated }));
+        }, [collapseAll, items]);
+
+        const handleClick = React.useCallback((url?: string, parent?: string) => {
+            if (url) setActiveUrl(url);
+            if (parent) setOpenState((prev) => ({ ...prev, [parent]: true }));
+        }, []);
 
         const toggleOpen = React.useCallback((key: string) => {
             setOpenState((prev) => ({ ...prev, [key]: !prev[key] }));
         }, []);
 
-        // Optimization: Create a lookup map for sub-item URLs.
-        // This avoids an expensive O(N*M) .some() check inside the render loop.
-        const parentUrlMap = React.useMemo(() => {
+        const parentMap = React.useMemo(() => {
             const map = new Map<string, string>();
-            items.forEach((item) => {
-                if (item.items) {
-                    item.items.forEach((sub) => {
-                        if (sub.url) {
-                            map.set(sub.url, item.title);
-                        }
-                    });
-                }
-            });
+            items.forEach((item) =>
+                item.items?.forEach((sub) => sub.url && map.set(sub.url, item.title))
+            );
             return map;
-        }, [items]); // Only recalculates when the `items` prop changes
+        }, [items]);
 
-        // Get the active parent title *once* per render, outside the loop.
-        const activeParentTitle = parentUrlMap.get(activeUrl);
+        const activeParent = parentMap.get(activeUrl);
 
         return (
             <SidebarGroup>
-                <SidebarGroupLabel className={"text-gray-600 dark:text-gray-200 text-sm"}>{label}</SidebarGroupLabel>
+                <SidebarGroupLabel className="text-gray-600 dark:text-gray-300 text-sm">
+                    {label}
+                </SidebarGroupLabel>
+
                 <SidebarMenu>
                     {items.map((item) => {
-                        const hasSub = item.items && item.items.length > 0;
+                        const hasSub = !!item.items?.length;
+                        const isActive =
+                            item.url === activeUrl || item.title === activeParent;
 
-                        // Optimized: This is now an O(1) check instead of O(M).
-                        const isItemActive =
-                            item.url === activeUrl || item.title === activeParentTitle;
-
-                        const isOpen = openState[item.title] ?? isItemActive;
+                        const isOpen = openState[item.title] ?? isActive;
                         const Icon = item.icon;
 
                         return (
@@ -121,38 +110,36 @@ export const NavMain = React.memo(
                                     <SidebarMenuButton
                                         asChild
                                         tooltip={item.title}
-                                        // Pass the stable, memoized callback
                                         onClick={() => hasSub && toggleOpen(item.title)}
                                     >
                                         {item.url ? (
                                             <a
                                                 href={item.url}
-                                                // Pass the stable, memoized callback
                                                 onClick={() => handleClick(item.url)}
-                                                className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors duration-150 ${
-                                                    isItemActive
+                                                className={`flex items-center gap-2 px-3 py-2 rounded-md transition ${
+                                                    isActive
                                                         ? "bg-sky-500 text-white"
-                                                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 hover:text-gray-900"
+                                                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-100"
                                                 }`}
                                             >
                                                 <Icon
                                                     className={`${item.iconColor} ${
-                                                        isItemActive ? "text-white" : ""
+                                                        isActive ? "text-white" : ""
                                                     }`}
                                                 />
                                                 <span>{item.title}</span>
                                             </a>
                                         ) : (
                                             <button
-                                                className={`flex items-center gap-2 w-full px-3 py-2 rounded-md transition-colors duration-150 ${
-                                                    isItemActive
+                                                className={`flex items-center gap-2 w-full px-3 py-2 rounded-md transition ${
+                                                    isActive
                                                         ? "bg-sky-500 text-white"
-                                                        : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                                        : "text-gray-600 hover:bg-gray-100"
                                                 }`}
                                             >
                                                 <Icon
                                                     className={`${item.iconColor} ${
-                                                        isItemActive ? "text-white" : ""
+                                                        isActive ? "text-white" : ""
                                                     }`}
                                                 />
                                                 <span>{item.title}</span>
@@ -165,19 +152,17 @@ export const NavMain = React.memo(
                                             <CollapsibleTrigger asChild>
                                                 <SidebarMenuAction
                                                     className="data-[state=open]:rotate-90"
-                                                    // Pass the stable, memoized callback
                                                     onClick={() => toggleOpen(item.title)}
                                                 >
                                                     <ChevronRight />
-                                                    <span className="sr-only">Toggle</span>
                                                 </SidebarMenuAction>
                                             </CollapsibleTrigger>
 
                                             <CollapsibleContent>
                                                 <SidebarMenuSub>
                                                     {item.items!.map((sub) => {
-                                                        const isSubActive = sub.url === activeUrl;
                                                         const SubIcon = sub.icon;
+                                                        const isSub = sub.url === activeUrl;
 
                                                         return (
                                                             <SidebarMenuSubItem key={sub.title}>
@@ -185,25 +170,24 @@ export const NavMain = React.memo(
                                                                     {sub.url ? (
                                                                         <a
                                                                             href={sub.url}
-                                                                            // Pass the stable, memoized callback
                                                                             onClick={() =>
                                                                                 handleClick(
                                                                                     sub.url,
-                                                                                    item.title,
+                                                                                    item.title
                                                                                 )
                                                                             }
-                                                                            className={`flex items-center gap-2 px-2 py-1 rounded-md transition-colors duration-150 ${
-                                                                                isSubActive
+                                                                            className={`flex items-center gap-2 px-2 py-1 rounded transition ${
+                                                                                isSub
                                                                                     ? "bg-sky-500 text-white"
                                                                                     : "hover:bg-gray-100"
                                                                             }`}
                                                                         >
                                                                             {SubIcon && (
                                                                                 <SubIcon
-                                                                                    className={`size-4 shrink-0 ${
-                                                                                        isSubActive
+                                                                                    className={`size-4 ${
+                                                                                        isSub
                                                                                             ? "text-white"
-                                                                                            : sub.iconColor // FIX: Directly use iconColor when inactive
+                                                                                            : sub.iconColor
                                                                                     }`}
                                                                                 />
                                                                             )}
@@ -211,23 +195,22 @@ export const NavMain = React.memo(
                                                                         </a>
                                                                     ) : (
                                                                         <button
-                                                                            // Pass the stable, memoized callback
                                                                             onClick={() =>
                                                                                 handleClick(
                                                                                     undefined,
-                                                                                    item.title,
+                                                                                    item.title
                                                                                 )
                                                                             }
-                                                                            className={`flex items-center gap-2 w-full px-2 py-1 rounded-md transition-colors duration-150 ${
-                                                                                isSubActive
+                                                                            className={`flex items-center gap-2 w-full px-2 py-1 rounded transition ${
+                                                                                isSub
                                                                                     ? "bg-sky-500 text-white"
-                                                                                    : "hover:bg-green-100"
+                                                                                    : "hover:bg-gray-100"
                                                                             }`}
                                                                         >
                                                                             {SubIcon && (
                                                                                 <SubIcon
-                                                                                    className={`size-4 shrink-0 ${
-                                                                                        isSubActive
+                                                                                    className={`size-4 ${
+                                                                                        isSub
                                                                                             ? "text-white"
                                                                                             : sub.iconColor
                                                                                     }`}
@@ -251,8 +234,7 @@ export const NavMain = React.memo(
                 </SidebarMenu>
             </SidebarGroup>
         );
-    },
+    }
 );
 
-// Add a display name for better debugging
 NavMain.displayName = "NavMain";
